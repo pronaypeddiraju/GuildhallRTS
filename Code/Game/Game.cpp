@@ -26,9 +26,6 @@
 #include "Engine/Renderer/TextureView.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
-//Create Camera and set to null 
-//Camera *g_mainCamera = nullptr; // Define these next, and group by data type - primitives first, structs next, classes next; spaces only necessary if there are clear categories
-
 float g_shakeAmount = 0.0f;
 
 RandomNumberGenerator* g_randomNumGen;
@@ -40,7 +37,7 @@ bool g_debugMode = false;
 Game::Game()
 {
 	m_isGameAlive = true;
-	m_testAudioID = g_audio->CreateOrGetSound("Data/Audio/UproarLilWayne.mp3");
+	//m_testAudioID = g_audio->CreateOrGetSound("Data/Audio/UproarLilWayne.mp3");
 
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
