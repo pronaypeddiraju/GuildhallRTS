@@ -191,6 +191,16 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case W_KEY:
 		case S_KEY:
 		case D_KEY:
+		case NUM_1:
+		case NUM_2:
+		case NUM_3:
+		case NUM_4:
+		case NUM_5:
+		case NUM_6:
+		case NUM_7:
+		case NUM_8:
+		case NUM_9:
+		case NUM_0:
 		{
 			m_game->HandleKeyPressed(keyCode);
 			return true;

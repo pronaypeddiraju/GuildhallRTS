@@ -81,8 +81,11 @@ public:
 	//Game render functions
 	void								Render() const;
 	void								RenderInitState() const;
+	void								RenderLoadState() const;
 	void								RenderMainMenuState() const;
 	void								RenderGameState() const;
+	void								RenderEditState() const;
+	void								RenderControlsToUI() const;
 	void								RenderUsingMaterial() const;
 	void								RenderUsingLegacy() const;
 

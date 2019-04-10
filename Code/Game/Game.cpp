@@ -210,7 +210,7 @@ void Game::SetupCameras()
 	m_mainCamera->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, SCREEN_ASPECT);
 
 	//Set the ortho perspective for the UI camera
-	m_UICamera->SetOrthoView(Vec2(-CANVAS_WIDTH * 0.5f * CANVAS_ASPECT, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_WIDTH * 0.5f * CANVAS_ASPECT, CANVAS_HEIGHT * 0.5f));
+	m_UICamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * CANVAS_ASPECT, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * CANVAS_ASPECT, CANVAS_HEIGHT * 0.5f));
 
 	m_clearScreenColor = new Rgba(0.f, 0.f, 0.5f, 1.f);
 }
@@ -508,10 +508,36 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//Fire event
 			g_eventSystem->FireEvent("TestEvent");
 			break;
-		}		case F7_KEY:
+		}		
+		case F7_KEY:
 		{
 			//Quit Debug
 			g_eventSystem->FireEvent("Quit");
+			break;
+		}
+		case NUM_1:
+		{
+			m_gameState = STATE_INIT;
+			break;
+		}
+		case NUM_2:
+		{
+			m_gameState = STATE_MENU;
+			break;
+		}
+		case NUM_3:
+		{
+			m_gameState = STATE_LOAD;
+			break;
+		}
+		case NUM_4:
+		{
+			m_gameState = STATE_PLAY;
+			break;
+		}
+		case NUM_5:
+		{
+			m_gameState = STATE_EDIT;
 			break;
 		}
 		default:
@@ -640,7 +666,7 @@ void Game::Render() const
 	break;
 	case STATE_LOAD:
 	{
-
+		RenderLoadState();
 	}
 	break;
 	case STATE_PLAY:
@@ -649,10 +675,16 @@ void Game::Render() const
 	}
 	break;
 	case STATE_EDIT:
+	{
+		RenderEditState();
+	}
 	break;
 	default:
 	break;
 	}
+
+	//Show the controls for the UI Camera
+	RenderControlsToUI();
 
 	if(!m_consoleDebugOnce)
 	{
@@ -715,6 +747,60 @@ void Game::RenderGameState() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderEditState() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
+	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->ClearColorTargets(Rgba::BLACK);
+
+	std::vector<Vertex_PCU> textVerts;
+	AABB2 titleBox = AABB2(Vec2(-400.0f, -100.f), Vec2(400.f, 100.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 100.f, "Edit!", Rgba::WHITE);
+	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	std::vector<Vertex_PCU> boxVerts;
+	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
+	g_renderContext->DrawVertexArray(boxVerts);
+
+	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderControlsToUI() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
+	g_renderContext->BeginCamera(*m_UICamera); 
+	//g_renderContext->ClearColorTargets(Rgba::BLACK);
+
+	std::vector<Vertex_PCU> textVerts;
+	AABB2 infoBox = AABB2(Vec2(-640.0f, 340.f), Vec2(640.f, 360.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "Num Key 1 : STATE_INIT", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	
+	infoBox = AABB2(Vec2(-640.0f, 320.f), Vec2(640.f, 340.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "Num Key 2 : STATE_MENU", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	
+	infoBox = AABB2(Vec2(-640.0f, 300.f), Vec2(640.f, 320.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "Num Key 3 : STATE_LOAD", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	
+	infoBox = AABB2(Vec2(-640.0f, 280.f), Vec2(640.f, 300.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "Num Key 4 : STATE_PLAY", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
+	infoBox = AABB2(Vec2(-640.0f, 260.f), Vec2(640.f, 280.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "Num Key 5 : STATE_EDIT", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
+	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderInitState() const
 {
 	g_renderContext->BindShader(m_shader);
@@ -726,8 +812,36 @@ void Game::RenderInitState() const
 
 	std::vector<Vertex_PCU> textVerts;
 	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Init", Rgba::WHITE);
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 100.f, "Init", Rgba::WHITE);
 	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	std::vector<Vertex_PCU> boxVerts;
+	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
+	g_renderContext->DrawVertexArray(boxVerts);
+
+	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderLoadState() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
+	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->ClearColorTargets(Rgba::BLACK);
+
+	std::vector<Vertex_PCU> textVerts;
+	AABB2 titleBox = AABB2(Vec2(-400.0f, -200.f), Vec2(400.f, 200.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 400.f, "Load", Rgba::WHITE);
+	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	std::vector<Vertex_PCU> boxVerts;
+	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
+	g_renderContext->DrawVertexArray(boxVerts);
 
 	g_renderContext->EndCamera();
 }
@@ -740,12 +854,17 @@ void Game::RenderMainMenuState() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 
 	g_renderContext->BeginCamera(*m_UICamera); 
-	g_renderContext->ClearColorTargets(Rgba::BLUE);
+	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
 	std::vector<Vertex_PCU> textVerts;
-	AABB2 titleBox = AABB2(Vec2(-400.0f, -400.f), Vec2(400.f, 400.f));
+	AABB2 titleBox = AABB2(Vec2(-400.0f, -200.f), Vec2(400.f, 0.f));
 	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 400.f, "Menu", Rgba::WHITE);
 	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	std::vector<Vertex_PCU> boxVerts;
+	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
+	g_renderContext->DrawVertexArray(boxVerts);
 
 	g_renderContext->EndCamera();
 }
