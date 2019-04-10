@@ -77,12 +77,14 @@ void Game::StartUp()
 
 	CreateInitialLight();
 
+	/*
 	//Only to keep track of what input does what
 	DebugRenderOptionsT options;
 	options.space = DEBUG_RENDER_SCREEN;
 	g_debugRenderer->DebugAddToLog(options, "F1 and F2 to increase/decrease ambient light intensity", Rgba::WHITE, 20000.f);
 	g_debugRenderer->DebugAddToLog(options, "F3 to toggle directional light", Rgba::WHITE, 20000.f);
 	g_debugRenderer->DebugAddToLog(options, "F4 to toggle normal or lit shaders", Rgba::WHITE, 20000.f);	
+	*/
 
 }
 
@@ -653,11 +655,13 @@ void Game::Render() const
 		g_devConsole->ExecuteCommandLine("Exec Health=85 Armor=100");
 	}
 
-	//Uncomment to get Debug Rendering to work
-	DebugRenderToCamera();
+	//DebugRenderToCamera();
 	
 	if(g_devConsole->IsOpen())
 	{	
+		g_renderContext->BindShader(m_shader);
+		g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
 	}	
 }
@@ -720,7 +724,8 @@ void Game::DebugRenderToScreen() const
 	g_renderContext->BindShader(m_shader);
 	g_renderContext->BeginCamera(debugCamera);
 	
-	g_debugRenderer->DebugRenderToScreen();
+	//Uncomment after addressing issues with DebugRender System
+	//g_debugRenderer->DebugRenderToScreen();
 
 	g_renderContext->EndCamera();
 	
@@ -735,7 +740,8 @@ void Game::DebugRenderToCamera() const
 	g_renderContext->BeginCamera(debugCamera3D);
 	
 	g_debugRenderer->Setup3DCamera(&debugCamera3D);
-	g_debugRenderer->DebugRenderToCamera();
+	//Uncomment after addressing issues with DebugRender System
+	//g_debugRenderer->DebugRenderToCamera();
 
 	g_renderContext->EndCamera();
 }
@@ -756,8 +762,8 @@ void Game::PostRender()
 		m_isDebugSetup = true;
 	}
 
-	//All screen Debug information
-	DebugRenderToScreen();
+	//Uncomment this once you get the DebugRender System working
+	//DebugRenderToScreen();
 }
 
 void Game::Update( float deltaTime )
@@ -779,6 +785,9 @@ void Game::Update( float deltaTime )
 	CheckXboxInputs();
 	m_animTime += deltaTime;
 
+	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
+
+	/*
 	DebugRenderOptionsT options;
 	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
 	const char* text = "Current Time %f";
@@ -790,6 +799,7 @@ void Game::Update( float deltaTime )
 	
 	text = "UP/DOWN to increase/decrease emissive factor";
 	g_debugRenderer->DebugAddToLog(options, text, Rgba::WHITE, 0.f);
+	*/
 
 	//Update the camera's transform
 	Matrix44 camTransform = Matrix44::MakeFromEuler( m_mainCamera->GetEuler(), m_rotationOrder ); 
@@ -869,44 +879,46 @@ void Game::UpdateLightPositions()
 {
 	//Update all the 4 light positions
 	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
-	DebugRenderOptionsT options;
-	options.space = DEBUG_RENDER_WORLD;
+	
+	//DebugRenderOptionsT options;
+	//options.space = DEBUG_RENDER_WORLD;
+	
 	//Light 1
 	m_dynamicLight0Pos = Vec3(-3.f, 2.f * CosDegrees(currentTime * 20.f), 2.f * SinDegrees(currentTime * 20.f));
 
 	g_renderContext->m_cpuLightBuffer.lights[1].position = m_dynamicLight0Pos;
 	g_renderContext->m_lightBufferDirty = true;
 
-	options.beginColor = Rgba::GREEN;
-	options.endColor = Rgba::GREEN * 0.4f;
-	g_debugRenderer->DebugRenderPoint(options, m_dynamicLight0Pos, 0.1f, 0.1f, nullptr);
+	//options.beginColor = Rgba::GREEN;
+	//options.endColor = Rgba::GREEN * 0.4f;
+	//g_debugRenderer->DebugRenderPoint(options, m_dynamicLight0Pos, 0.1f, 0.1f, nullptr);
 
 	//Light 2
 	m_dynamicLight1Pos = Vec3(3.f, 3.f * CosDegrees(currentTime * 40.f), 3.f * SinDegrees(currentTime * 40.f));
 	g_renderContext->m_cpuLightBuffer.lights[2].position = m_dynamicLight1Pos;
 	g_renderContext->m_lightBufferDirty = true;
 
-	options.beginColor = Rgba::BLUE;
-	options.endColor = Rgba::BLUE * 0.4f;
-	g_debugRenderer->DebugRenderPoint(options, m_dynamicLight1Pos, 0.1f, 0.1f, nullptr);
+	//options.beginColor = Rgba::BLUE;
+	//options.endColor = Rgba::BLUE * 0.4f;
+	//g_debugRenderer->DebugRenderPoint(options, m_dynamicLight1Pos, 0.1f, 0.1f, nullptr);
 
 	//Light 3
 	m_dynamicLight2Pos = Vec3(-1.f, 1.f * CosDegrees(currentTime * 30.f), 1.f * SinDegrees(currentTime * 30.f));
 	g_renderContext->m_cpuLightBuffer.lights[3].position = m_dynamicLight2Pos;
 	g_renderContext->m_lightBufferDirty = true;
 
-	options.beginColor = Rgba::YELLOW;
-	options.endColor = Rgba::YELLOW * 0.4f;
-	g_debugRenderer->DebugRenderPoint(options, m_dynamicLight2Pos, 0.1f, 0.1f, nullptr);
+	//options.beginColor = Rgba::YELLOW;
+	//options.endColor = Rgba::YELLOW * 0.4f;
+	//g_debugRenderer->DebugRenderPoint(options, m_dynamicLight2Pos, 0.1f, 0.1f, nullptr);
 
 	//Light 4
 	m_dynamicLight3Pos = Vec3(4.f * CosDegrees(currentTime * 60.f), 0.f , 4.f * SinDegrees(currentTime * 60.f));
 	g_renderContext->m_cpuLightBuffer.lights[4].position = m_dynamicLight3Pos;
 	g_renderContext->m_lightBufferDirty = true;
 
-	options.beginColor = Rgba::MAGENTA;
-	options.endColor = Rgba::MAGENTA * 0.4f;
-	g_debugRenderer->DebugRenderPoint(options, m_dynamicLight3Pos, 0.1f, 0.1f, nullptr);
+	//options.beginColor = Rgba::MAGENTA;
+	//options.endColor = Rgba::MAGENTA * 0.4f;
+	//g_debugRenderer->DebugRenderPoint(options, m_dynamicLight3Pos, 0.1f, 0.1f, nullptr);
 
 
 	/*
