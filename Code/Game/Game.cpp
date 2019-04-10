@@ -34,31 +34,126 @@ extern AudioSystem* g_audio;
 bool g_debugMode = false;
 
 //------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::TestEvent(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::YELLOW, "This a test event called from Game.cpp");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ToggleLight1( EventArgs& args )
+{
+	UNUSED(args);
+	if(g_renderContext->m_cpuLightBuffer.lights[1].color.a != 0.f)
+	{
+		g_devConsole->PrintString(Rgba::RED, "Disabling Light 1");
+		g_renderContext->m_cpuLightBuffer.lights[1].color.a = 0.f;
+	}
+	else
+	{
+		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 1");
+		g_renderContext->m_cpuLightBuffer.lights[1].color.a = 1.f;
+	}
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ToggleLight2( EventArgs& args )
+{
+	UNUSED(args);
+	if(g_renderContext->m_cpuLightBuffer.lights[2].color.a != 0.f)
+	{
+		g_devConsole->PrintString(Rgba::RED, "Disabling Light 2");
+		g_renderContext->m_cpuLightBuffer.lights[2].color.a = 0.f;
+	}
+	else
+	{
+		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 2");
+		g_renderContext->m_cpuLightBuffer.lights[2].color.a = 1.f;
+	}
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ToggleLight3( EventArgs& args )
+{
+	UNUSED(args);
+	if(g_renderContext->m_cpuLightBuffer.lights[3].color.a != 0.f)
+	{
+		g_devConsole->PrintString(Rgba::RED, "Disabling Light 3");
+		g_renderContext->m_cpuLightBuffer.lights[3].color.a = 0.f;
+	}
+	else
+	{
+		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 3");
+		g_renderContext->m_cpuLightBuffer.lights[3].color.a = 1.f;
+	}
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ToggleLight4( EventArgs& args )
+{
+	UNUSED(args);
+	if(g_renderContext->m_cpuLightBuffer.lights[4].color.a != 0.f)
+	{
+		g_devConsole->PrintString(Rgba::RED, "Disabling Light 4");
+		g_renderContext->m_cpuLightBuffer.lights[4].color.a = 0.f;
+	}
+	else
+	{
+		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 4");
+		g_renderContext->m_cpuLightBuffer.lights[4].color.a = 1.f;
+	}
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ToggleAllPointLights( EventArgs& args )
+{
+	UNUSED(args);
+	for(int i = 1; i < 5; i++)
+	{
+		if(g_renderContext->m_cpuLightBuffer.lights[i].color.a != 0.f)
+		{
+			g_renderContext->m_cpuLightBuffer.lights[i].color.a = 0.f;
+		}
+		else
+		{
+			g_renderContext->m_cpuLightBuffer.lights[i].color.a = 1.f;
+		}
+	}
+	g_devConsole->PrintString(Rgba::GREEN, "Toggled All Point Lights");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 Game::Game()
 {
 	m_isGameAlive = true;
-	//m_testAudioID = g_audio->CreateOrGetSound("Data/Audio/UproarLilWayne.mp3");
 
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
 	g_debugRenderer->SetDebugFont(m_squirrelFont);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 Game::~Game()
 {
 	m_isGameAlive = false;
 	Shutdown();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::StartUp()
 {
+	m_gameState = STATE_INIT;
+	
 	SetupMouseData();
 	SetupCameras();
 
-	GetandSetShaders();
-	LoadGameTextures();
-
-	LoadGameMaterials();
+	PerformInitActions();
 
 	g_devConsole->PrintString(Rgba::BLUE, "this is a test string");
 	g_devConsole->PrintString(Rgba::RED, "this is also a test string");
@@ -73,10 +168,6 @@ void Game::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn("ToggleLight4", ToggleLight4);
 	g_eventSystem->SubscribeEventCallBackFn("ToggleAllPointLights", ToggleAllPointLights);
 
-	CreateInitialMeshes();
-
-	CreateInitialLight();
-
 	/*
 	//Only to keep track of what input does what
 	DebugRenderOptionsT options;
@@ -88,6 +179,7 @@ void Game::StartUp()
 
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::SetupMouseData()
 {
 	IntVec2 clientCenter = g_windowContext->GetClientCenter();
@@ -97,11 +189,16 @@ void Game::SetupMouseData()
 	g_windowContext->HideMouse();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::SetupCameras()
 {
 	//Create the Camera and setOrthoView
 	m_mainCamera = new Camera();
 	m_mainCamera->SetColorTarget(nullptr);
+
+	//Create the UI Camera
+	m_UICamera = new Camera();
+	m_UICamera->SetColorTarget(nullptr);
 
 	//Create a devConsole Cam
 	m_devConsoleCamera = new Camera();
@@ -111,12 +208,26 @@ void Game::SetupCameras()
 	m_camPosition = Vec3(0.f, 0.f, -10.f);
 	m_mainCamera->SetColorTarget(nullptr);
 	m_mainCamera->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, SCREEN_ASPECT);
-	//m_mainCamera->SetOrthoView(Vec2(-10.f * SCREEN_ASPECT, -10.f), Vec2(10.f * SCREEN_ASPECT, 10.f));
+
+	//Set the ortho perspective for the UI camera
+	m_UICamera->SetOrthoView(Vec2(-CANVAS_WIDTH * 0.5f * CANVAS_ASPECT, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_WIDTH * 0.5f * CANVAS_ASPECT, CANVAS_HEIGHT * 0.5f));
 
 	m_clearScreenColor = new Rgba(0.f, 0.f, 0.5f, 1.f);
-
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::PerformInitActions()
+{
+	GetandSetShaders();
+	LoadGameTextures();
+	LoadGameMaterials();
+	CreateInitialMeshes();
+	CreateInitialLight();
+
+	m_gameState = STATE_MENU;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::SetStartupDebugRenderObjects()
 {
 	ColorTargetView* ctv = g_renderContext->GetFrameColorTarget();
@@ -291,95 +402,7 @@ void Game::SetStartupDebugRenderObjects()
 	g_debugRenderer->DebugAddToLog(options, debugText2, Rgba::GREEN, 20.f);
 }
 
-STATIC bool Game::TestEvent(EventArgs& args)
-{
-	UNUSED(args);
-	g_devConsole->PrintString(Rgba::YELLOW, "This a test event called from Game.cpp");
-	return true;
-}
-
-STATIC bool Game::ToggleLight1( EventArgs& args )
-{
-	UNUSED(args);
-	if(g_renderContext->m_cpuLightBuffer.lights[1].color.a != 0.f)
-	{
-		g_devConsole->PrintString(Rgba::RED, "Disabling Light 1");
-		g_renderContext->m_cpuLightBuffer.lights[1].color.a = 0.f;
-	}
-	else
-	{
-		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 1");
-		g_renderContext->m_cpuLightBuffer.lights[1].color.a = 1.f;
-	}
-	return true;
-}
-
-STATIC bool Game::ToggleLight2( EventArgs& args )
-{
-	UNUSED(args);
-	if(g_renderContext->m_cpuLightBuffer.lights[2].color.a != 0.f)
-	{
-		g_devConsole->PrintString(Rgba::RED, "Disabling Light 2");
-		g_renderContext->m_cpuLightBuffer.lights[2].color.a = 0.f;
-	}
-	else
-	{
-		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 2");
-		g_renderContext->m_cpuLightBuffer.lights[2].color.a = 1.f;
-	}
-	return true;
-}
-
-STATIC bool Game::ToggleLight3( EventArgs& args )
-{
-	UNUSED(args);
-	if(g_renderContext->m_cpuLightBuffer.lights[3].color.a != 0.f)
-	{
-		g_devConsole->PrintString(Rgba::RED, "Disabling Light 3");
-		g_renderContext->m_cpuLightBuffer.lights[3].color.a = 0.f;
-	}
-	else
-	{
-		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 3");
-		g_renderContext->m_cpuLightBuffer.lights[3].color.a = 1.f;
-	}
-	return true;
-}
-
-bool Game::ToggleLight4( EventArgs& args )
-{
-	UNUSED(args);
-	if(g_renderContext->m_cpuLightBuffer.lights[4].color.a != 0.f)
-	{
-		g_devConsole->PrintString(Rgba::RED, "Disabling Light 4");
-		g_renderContext->m_cpuLightBuffer.lights[4].color.a = 0.f;
-	}
-	else
-	{
-		g_devConsole->PrintString(Rgba::GREEN, "Enabling Light 4");
-		g_renderContext->m_cpuLightBuffer.lights[4].color.a = 1.f;
-	}
-	return true;
-}
-
-STATIC bool Game::ToggleAllPointLights( EventArgs& args )
-{
-	UNUSED(args);
-	for(int i = 1; i < 5; i++)
-	{
-		if(g_renderContext->m_cpuLightBuffer.lights[i].color.a != 0.f)
-		{
-			g_renderContext->m_cpuLightBuffer.lights[i].color.a = 0.f;
-		}
-		else
-		{
-			g_renderContext->m_cpuLightBuffer.lights[i].color.a = 1.f;
-		}
-	}
-	g_devConsole->PrintString(Rgba::GREEN, "Toggled All Point Lights");
-	return true;
-}
-
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::HandleKeyPressed(unsigned char keyCode)
 {
 	if(g_devConsole->IsOpen())
@@ -464,16 +487,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//Set volume back to 1
 			//g_audio->SetSoundPlaybackVolume(m_testPlayback, 1.0f);
-
-			/*
-			DebugRenderOptionsT options;
-			//Setup Debug Options
-			options.mode = DEBUG_RENDER_ALWAYS;
-			options.beginColor = Rgba::WHITE;
-			options.endColor = Rgba::YELLOW;
-			const char* debugText1 = std::to_string(g_devConsole->GetFrameCount()).c_str();
-			g_debugRenderer->DebugAddToLog(options, debugText1, Rgba::YELLOW, 1.f);
-			*/
 			
 			//Toggle Shader here
 			m_normalMode = !m_normalMode;
@@ -506,13 +519,13 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 	}
 }
 
-//Function that handles debug mode enabled
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugEnabled()
 {
 	g_debugMode = !g_debugMode;
 }
 
-
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::Shutdown()
 {
 	delete m_mainCamera;
@@ -520,6 +533,9 @@ void Game::Shutdown()
 
 	delete m_devConsoleCamera;
 	m_devConsoleCamera = nullptr;
+
+	delete m_UICamera;
+	m_UICamera = nullptr;
 
 	delete m_cube;
 	m_cube = nullptr;
@@ -536,6 +552,7 @@ void Game::Shutdown()
 	//FreeResources();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::HandleKeyReleased(unsigned char keyCode)
 {
 	if(g_devConsole->IsOpen())
@@ -557,6 +574,7 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::HandleCharacter( unsigned char charCode )
 {
 	if(g_devConsole->IsOpen())
@@ -566,6 +584,7 @@ void Game::HandleCharacter( unsigned char charCode )
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::EnablePointLight( uint slot, const Vec3& position, const Vec3& direction, const Rgba& color /*= Rgba::WHITE*/, float intensity /*= 1.f*/, const Vec3& diffuseAttenuation, const Vec3& specularAttenuation ) const
 {
 	LightT pointLight;
@@ -580,6 +599,7 @@ void Game::EnablePointLight( uint slot, const Vec3& position, const Vec3& direct
 	g_renderContext->EnableLight(slot, pointLight);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::EnableDirectionalLight( const Vec3& position, const Vec3& direction,  const Rgba& color /*= Rgba::WHITE*/, float intensity /*= 1.f*/, const Vec3& diffuseAttenuation, const Vec3& specularAttenuation) const
 {
 	LightT directionalLight;
@@ -595,6 +615,7 @@ void Game::EnableDirectionalLight( const Vec3& position, const Vec3& direction, 
 	g_renderContext->EnableLight(0U, directionalLight);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::Render() const
 {
 	//Get the ColorTargetView from rendercontext
@@ -602,15 +623,67 @@ void Game::Render() const
 
 	//Setup what we are rendering to
 	m_mainCamera->SetColorTarget(colorTargetView);
+	m_UICamera->SetColorTarget(colorTargetView);
 	m_devConsoleCamera->SetColorTarget(colorTargetView);
 
+	switch( m_gameState )
+	{
+	case STATE_INIT:
+	{
+		RenderInitState();
+	}
+	break;
+	case STATE_MENU:
+	{
+		RenderMainMenuState();
+	}
+	break;
+	case STATE_LOAD:
+	{
+
+	}
+	break;
+	case STATE_PLAY:
+	{
+		RenderGameState();
+	}
+	break;
+	case STATE_EDIT:
+	break;
+	default:
+	break;
+	}
+
+	if(!m_consoleDebugOnce)
+	{
+		EventArgs* args = new EventArgs("TestString", "This is a test");
+		g_devConsole->Command_Test(*args);
+		g_devConsole->ExecuteCommandLine("Exec Health=25");
+		g_devConsole->ExecuteCommandLine("Exec Health=85 Armor=100");
+	}
+
+	//Uncomment this after fixing memory issues with DebugRender system
+	//DebugRenderToCamera();
+	
+	if(g_devConsole->IsOpen())
+	{	
+		g_renderContext->BindShader(m_shader);
+		g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
+	}	
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderGameState() const
+{
 	// Move the camera to where it is in the scene
 	Matrix44 camTransform = Matrix44::MakeFromEuler( m_mainCamera->GetEuler(), m_rotationOrder ); 
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 
 	g_renderContext->BeginCamera(*m_mainCamera); 
-	
+
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
 	float intensity = Clamp(m_ambientIntensity, 0.f, 1.f);
@@ -638,34 +711,46 @@ void Game::Render() const
 		RenderUsingLegacy();
 	}
 
-	/*
-	//Render the Quad
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
-	g_renderContext->SetModelMatrix(m_baseQuadTransform);
-	g_renderContext->DrawMesh( m_baseQuad );	
-	*/
-
 	g_renderContext->EndCamera();
-
-	if(!m_consoleDebugOnce)
-	{
-		EventArgs* args = new EventArgs("TestString", "This is a test");
-		g_devConsole->Command_Test(*args);
-		g_devConsole->ExecuteCommandLine("Exec Health=25");
-		g_devConsole->ExecuteCommandLine("Exec Health=85 Armor=100");
-	}
-
-	//DebugRenderToCamera();
-	
-	if(g_devConsole->IsOpen())
-	{	
-		g_renderContext->BindShader(m_shader);
-		g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
-		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
-		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
-	}	
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderInitState() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	
+	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->ClearColorTargets(Rgba::BLACK);
+
+	std::vector<Vertex_PCU> textVerts;
+	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Init", Rgba::WHITE);
+	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderMainMenuState() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
+	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->ClearColorTargets(Rgba::BLUE);
+
+	std::vector<Vertex_PCU> textVerts;
+	AABB2 titleBox = AABB2(Vec2(-400.0f, -400.f), Vec2(400.f, 400.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 400.f, "Menu", Rgba::WHITE);
+	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderUsingMaterial() const
 {
 	g_renderContext->BindMaterial(m_testMaterial);
@@ -686,6 +771,7 @@ void Game::RenderUsingMaterial() const
 	g_renderContext->DrawMesh( m_quad );
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderUsingLegacy() const
 {
 	//Bind the shader we are using (This case it's the default shader we made in Shaders folder)
@@ -716,6 +802,7 @@ void Game::RenderUsingLegacy() const
 
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugRenderToScreen() const
 {
 	Camera& debugCamera = g_debugRenderer->Get2DCamera();
@@ -724,13 +811,13 @@ void Game::DebugRenderToScreen() const
 	g_renderContext->BindShader(m_shader);
 	g_renderContext->BeginCamera(debugCamera);
 	
-	//Uncomment after addressing issues with DebugRender System
-	//g_debugRenderer->DebugRenderToScreen();
+	g_debugRenderer->DebugRenderToScreen();
 
 	g_renderContext->EndCamera();
 	
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugRenderToCamera() const
 {
 	Camera& debugCamera3D = *m_mainCamera;
@@ -740,12 +827,12 @@ void Game::DebugRenderToCamera() const
 	g_renderContext->BeginCamera(debugCamera3D);
 	
 	g_debugRenderer->Setup3DCamera(&debugCamera3D);
-	//Uncomment after addressing issues with DebugRender System
-	//g_debugRenderer->DebugRenderToCamera();
+	g_debugRenderer->DebugRenderToCamera();
 
 	g_renderContext->EndCamera();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::PostRender()
 {
 	//Debug bools
@@ -766,6 +853,7 @@ void Game::PostRender()
 	//DebugRenderToScreen();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::Update( float deltaTime )
 {
 
@@ -821,60 +909,36 @@ void Game::Update( float deltaTime )
 	ClearGarbageEntities();	
 }
 
-//Use this chunk of code only for screen shake!
-/*
-void Game::UpdateCamera(float deltaTime)
-{
-	g_mainCamera = new Camera();
-	Vec2 orthoBottomLeft = Vec2(0.f,0.f);
-	Vec2 orthoTopRight = Vec2(WORLD_WIDTH, WORLD_HEIGHT);
-	g_mainCamera->SetOrthoView(orthoBottomLeft, orthoTopRight);
-
-	float shakeX = 0.f;
-	float shakeY = 0.f;
-
-	if(g_shakeAmount > 0)
-	{
-		shakeX = g_randomNumGen->GetRandomFloatInRange(-g_shakeAmount, g_shakeAmount);
-		shakeY = g_randomNumGen->GetRandomFloatInRange(-g_shakeAmount, g_shakeAmount);
-
-		g_shakeAmount -= deltaTime * CAMERA_SHAKE_REDUCTION_PER_SECOND;
-	}
-	else
-	{
-		g_shakeAmount = 0;
-	}
-
-	Vec2 translate2D = Vec2(shakeX, shakeY);
-	translate2D.ClampLength(MAX_SHAKE);
-	g_mainCamera->Translate2D(translate2D);
-}
-*/
-
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::ClearGarbageEntities()
 {
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CheckXboxInputs()
 {
 	//XboxController playerController = g_inputSystem->GetXboxController(0);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CheckCollisions()
 {		
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::IsAlive()
 {
 	//Check if alive
 	return m_isGameAlive;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadGameMaterials()
 {
 	m_testMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialPath);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::UpdateLightPositions()
 {
 	//Update all the 4 light positions
@@ -920,21 +984,9 @@ void Game::UpdateLightPositions()
 	//options.endColor = Rgba::MAGENTA * 0.4f;
 	//g_debugRenderer->DebugRenderPoint(options, m_dynamicLight3Pos, 0.1f, 0.1f, nullptr);
 
-
-	/*
-	if(m_dynamicLight0Pos.y < 3.f)
-	{
-	m_dynamicLight0Pos = Vec3(-3.f, deltaSeconds * m_ySpeed , 0.f);
-	}
-	else
-	{
-	m_dynamicLight0Pos = Vec3(-3.f, deltaSeconds * -m_ySpeed , 0.f);
-	}
-
-	g_renderContext->m_cpuLightBuffer.lights[0].position = m_dynamicLight0Pos;
-	*/
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateInitialLight()
 {
 	EnableDirectionalLight(Vec3(1.f, 1.f, 1.f), Vec3(0.f, 0.f, 1.f));
@@ -945,6 +997,7 @@ void Game::CreateInitialLight()
 	EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 1.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateInitialMeshes()
 {
 
@@ -983,6 +1036,7 @@ void Game::CreateInitialMeshes()
 	m_baseQuadTransform = Matrix44::SetTranslation3D(Vec3(0.f, -1.f, 0.f), m_baseQuadTransform);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadGameTextures()
 {
 	//Get the test texture
@@ -991,6 +1045,7 @@ void Game::LoadGameTextures()
 	m_sphereTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_sphereTexturePath);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::GetandSetShaders()
 {
 	//Get the Shader
@@ -1004,6 +1059,9 @@ void Game::GetandSetShaders()
 	m_defaultLit->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+// Forseth Mouse Update code
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::UpdateMouseInputs(float deltaTime)
 {
 	//Get pitch and yaw from mouse
@@ -1035,10 +1093,5 @@ void Game::UpdateMouseInputs(float deltaTime)
 	// this gives us our current camera's orientation.  we will 
 	// use this to translate our local movement to a world movement 
 	Matrix44 camMatrix = Matrix44::MakeFromEuler( camEuler ); 
-
-	//Test implementation
-	//m_camEuler.y -= static_cast<float>(mouseRelativePos.x);
-	//m_camEuler.x -= static_cast<float>(mouseRelativePos.y);
-
 
 }

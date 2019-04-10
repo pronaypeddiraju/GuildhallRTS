@@ -20,12 +20,23 @@ class GPUMesh;
 struct Camera;
 
 //------------------------------------------------------------------------------------------------------------------------------
+enum GameState
+{
+	STATE_INIT,
+	STATE_MENU,
+	STATE_LOAD,
+	STATE_PLAY,
+	STATE_EDIT,
+};
+
+//------------------------------------------------------------------------------------------------------------------------------
 class Game
 {
 public:
 	Game();
 	~Game();
 	
+	//Static methods
 	static bool TestEvent(EventArgs& args);
 	static bool ToggleLight1(EventArgs& args);
 	static bool ToggleLight2(EventArgs& args);
@@ -33,22 +44,30 @@ public:
 	static bool ToggleLight4(EventArgs& args);
 	static bool ToggleAllPointLights(EventArgs& args);
 
+	//Startup functions
 	void								StartUp();
 	
 	void								SetupMouseData();
 	void								SetupCameras();
+
+	void								PerformInitActions();
+
 	void								GetandSetShaders();
 	void								LoadGameTextures();
 	void								LoadGameMaterials();
 	void								CreateInitialMeshes();
 	void								CreateInitialLight();
+	
+	//Debug test objects
 	void								SetStartupDebugRenderObjects();
+	void								DebugEnabled();
 
-
+	//Input handling
 	void								HandleKeyPressed( unsigned char keyCode );
 	void								HandleKeyReleased( unsigned char keyCode );
 	void								HandleCharacter( unsigned char charCode );
 
+	//Light functions
 	void								EnablePointLight( uint slot, const Vec3& position, const Vec3& direction,
 															const Rgba& color = Rgba::WHITE, float intensity = 1.f,
 															const Vec3& diffuseAttenuation = Vec3(1.f, 0.f, 0.f),
@@ -59,15 +78,20 @@ public:
 															const Vec3& diffuseAttenuation = Vec3(1.f, 0.f, 0.f),
 															const Vec3& specularAttenuation = Vec3(1.f, 0.f, 0.f)) const;
 
-	void								DebugEnabled();
-	void								Shutdown();
-
+	//Game render functions
 	void								Render() const;
+	void								RenderInitState() const;
+	void								RenderMainMenuState() const;
+	void								RenderGameState() const;
 	void								RenderUsingMaterial() const;
 	void								RenderUsingLegacy() const;
+
+	//Debug render functions
 	void								DebugRenderToScreen() const;
 	void								DebugRenderToCamera() const;
 	void								PostRender();
+
+	//Update methods
 	void								Update( float deltaTime );
 	void								UpdateMouseInputs(float deltaTime);
 	void								UpdateLightPositions();
@@ -76,7 +100,10 @@ public:
 	void								CheckXboxInputs();
 	void								CheckCollisions();
 
+	//Shut down
+	void								Shutdown();
 	bool								IsAlive();
+
 private:
 	bool								m_isGameAlive = false;
 	bool								m_consoleDebugOnce = false;
@@ -109,6 +136,7 @@ public:
 
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
+	Camera*								m_UICamera = nullptr;
 	Rgba*								m_clearScreenColor = nullptr;
 	
 	float								m_camFOVDegrees = 60.f; //Desired Camera Field of View
@@ -154,4 +182,7 @@ public:
 
 	float								m_emissiveFactor = 0.f;
 	float								m_emissiveStep = 0.1f;
+
+	//Game data
+	GameState							m_gameState = STATE_INIT;
 };
