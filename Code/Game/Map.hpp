@@ -54,4 +54,6 @@ private:
 
 	GPUMesh*				m_terrainMesh; 
 	Material*				m_terrainMaterial; 
+
+	AABB2					m_mapBounds;
 };

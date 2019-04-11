@@ -462,37 +462,75 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case A_KEY:
 		{
 			//Handle left movement
+			/*
 			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetIVector() * -1.f;
 			worldMovementDirection *= (m_cameraSpeed);
 
 			m_camPosition += worldMovementDirection; 
+			*/
+
+			Vec2 camForward = Vec2(0.f, 1.f);
+			camForward.RotateDegrees(m_RTSCam->m_angle);
+
+			m_RTSCam->m_focalPoint -= camForward * m_cameraSpeed;
+
+			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
+
 		}
 		break;
 		case W_KEY:
 		{
+			/*
 			//Handle forward movement
-			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetKVector();
+			Vec3 worldMovementDirection = m_RTSCam->m_cameraModel.GetJVector();
 			worldMovementDirection *= (m_cameraSpeed); 
 
 			m_camPosition += worldMovementDirection; 
+			*/
+
+			Vec2 camRight = Vec2(1.f, 0.f);
+			camRight.RotateDegrees(m_RTSCam->m_angle);
+
+			m_RTSCam->m_focalPoint -= camRight * m_cameraSpeed;
+
+			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
+
 		}
 		break;
 		case S_KEY:
 		{
 			//Handle backward movement
-			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetKVector() * -1.f;
+			/*
+			Vec3 worldMovementDirection = m_RTSCam->m_cameraModel.GetJVector() * -1.f;
 			worldMovementDirection *= (m_cameraSpeed); 
 
 			m_camPosition += worldMovementDirection; 
+			*/
+
+			Vec2 camRight = Vec2(1.f, 0.f);
+			camRight.RotateDegrees(m_RTSCam->m_angle);
+
+			m_RTSCam->m_focalPoint += camRight * m_cameraSpeed;
+
+			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
 		}
 		break;
 		case D_KEY:
 		{
 			//Handle right movement
-			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetIVector();
+			/*
+			Vec3 worldMovementDirection = m_RTSCam->m_cameraModel.GetIVector();
 			worldMovementDirection *= (m_cameraSpeed); 
 
 			m_camPosition += worldMovementDirection; 
+			*/
+
+			Vec2 camForward = Vec2(0.f, 1.f);
+			camForward.RotateDegrees(m_RTSCam->m_angle);
+
+			m_RTSCam->m_focalPoint += camForward * m_cameraSpeed;
+
+			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
 		}
 		break;
 		case F4_KEY:

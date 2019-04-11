@@ -129,6 +129,9 @@ bool Map::Create( int mapWidth, int mapHeight )
 	m_terrainMesh = new GPUMesh(g_renderContext);
 	m_terrainMesh->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
 
+	//Set the map bounds in the AABB2
+	m_mapBounds = AABB2(Vec2(m_mapVerts[0].m_position.x, m_mapVerts[0].m_position.y), Vec2(m_mapVerts[(int)m_mapVerts.size() - 1].m_position.x, m_mapVerts[(int)m_mapVerts.size() - 1].m_position.y));
+
 	return true;
 }
 
@@ -167,4 +170,10 @@ void Map::RenderTerrain( Material* matOverride /*= nullptr */ ) const
 		g_renderContext->BindMaterial(m_terrainMaterial);
 	}
 	g_renderContext->DrawMesh(m_terrainMesh);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+AABB2 Map::GetXYBounds() const
+{
+	return m_mapBounds;
 }
