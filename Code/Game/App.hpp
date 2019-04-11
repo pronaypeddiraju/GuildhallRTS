@@ -37,15 +37,11 @@ public:
 
 private:
 	//Private methods
-	void BeginFrame();
-	void Update();
-	//void Update();
-	void Render() const;
-	void PostRender();
-	void EndFrame();
-
-	//void UpdateShip( float deltaSeconds );
-	void RenderShip() const;
+	void				BeginFrame();
+	void				Update();
+	void				Render() const;
+	void				PostRender();
+	void				EndFrame();
 
 public:
 	//public variables

@@ -2,6 +2,7 @@
 #pragma once
 //Engine Systems
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/Matrix44.hpp"
 #include "Engine/Math/Vec3.hpp"
 
@@ -15,10 +16,13 @@ public:
 	// Called each frame to update the underlying camera with the RTSCamera's options; 
 	void Update( float deltaTime ); 
 
+	void SetFocusBounds( const AABB2& bounds);
+
 	void SetFocalPoint( Vec3 const &pos ); 
 	void SetZoom( float zoom ); //Manipulates distance
 	void SetAngle( float angleOffset ); // really is setting an angle offset
 
+	void PanFocalPoint( Vec3 panAmount );
 	void SetZoomDelta( float delta );
 
 public:
@@ -45,6 +49,7 @@ public:
 	float m_tilt;
 	float m_angle;
 
+	AABB2 m_FPBounds;	//Bounds for the focal point
 
 	// juice
 	// ...to make a smoother camera, you may want to save off "targets" in which

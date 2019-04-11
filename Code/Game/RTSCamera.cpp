@@ -40,6 +40,12 @@ void RTSCamera::Update( float deltaTime )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void RTSCamera::SetFocusBounds( const AABB2& bounds )
+{
+	m_FPBounds = bounds;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void RTSCamera::SetFocalPoint( Vec3 const &pos )
 {
 	m_focalPoint = pos;
@@ -50,6 +56,13 @@ void RTSCamera::SetZoom( float zoom )
 {
 	m_currentZoom = zoom;
 	m_distance = RangeMapFloat(m_currentZoom, 0.f, 1.f, m_minDistance, m_maxDistance);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void RTSCamera::PanFocalPoint( Vec3 panAmount )
+{
+	m_focalPoint += panAmount;
+	m_focalPoint.ClampVector(m_focalPoint, m_FPBounds.m_minBounds, m_FPBounds.m_maxBounds);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

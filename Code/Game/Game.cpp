@@ -26,6 +26,7 @@
 #include "Engine/Renderer/TextureView.hpp"
 
 //Game Systems
+#include "Game/GameInput.hpp"
 #include "Game/Map.hpp"
 #include "Game/RTSCamera.hpp"
 
@@ -152,6 +153,8 @@ Game::Game()
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
 	g_debugRenderer->SetDebugFont(m_squirrelFont);
+
+	m_gameInput = new GameInput(this);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -247,6 +250,8 @@ void Game::PerformInitActions()
 
 	m_map = new Map();
 	m_map->Load("InitMap");
+
+	m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
 
 	m_gameState = STATE_MENU;
 }
@@ -435,6 +440,8 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		return;
 	}
 
+	m_gameInput->HandleKeyPressed(keyCode);
+
 	switch( keyCode )
 	{
 		case UP_ARROW:
@@ -480,14 +487,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 
 			m_camPosition += worldMovementDirection; 
 			*/
-
-			Vec2 camForward = Vec2(0.f, 1.f);
-			camForward.RotateDegrees(m_RTSCam->m_angle);
-
-			m_RTSCam->m_focalPoint -= camForward * m_cameraSpeed;
-
-			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
-
 		}
 		break;
 		case W_KEY:
@@ -499,14 +498,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 
 			m_camPosition += worldMovementDirection; 
 			*/
-
-			Vec2 camRight = Vec2(1.f, 0.f);
-			camRight.RotateDegrees(m_RTSCam->m_angle);
-
-			m_RTSCam->m_focalPoint -= camRight * m_cameraSpeed;
-
-			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
-
 		}
 		break;
 		case S_KEY:
@@ -518,13 +509,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 
 			m_camPosition += worldMovementDirection; 
 			*/
-
-			Vec2 camRight = Vec2(1.f, 0.f);
-			camRight.RotateDegrees(m_RTSCam->m_angle);
-
-			m_RTSCam->m_focalPoint += camRight * m_cameraSpeed;
-
-			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
 		}
 		break;
 		case D_KEY:
@@ -536,13 +520,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 
 			m_camPosition += worldMovementDirection; 
 			*/
-
-			Vec2 camForward = Vec2(0.f, 1.f);
-			camForward.RotateDegrees(m_RTSCam->m_angle);
-
-			m_RTSCam->m_focalPoint += camForward * m_cameraSpeed;
-
-			m_RTSCam->m_focalPoint.ClampVector(m_RTSCam->m_focalPoint, m_map->GetXYBounds().m_minBounds, m_map->GetXYBounds().m_maxBounds);
 		}
 		break;
 		case F4_KEY:
@@ -1088,6 +1065,11 @@ void Game::Update( float deltaTime )
 
 	UpdateMouseInputs(deltaTime);
 
+	m_gameInput->Update(deltaTime);
+
+	Vec2 framePan = m_gameInput->GetFramePan();
+	m_RTSCam->PanFocalPoint(framePan * deltaTime);
+
 	m_RTSCam->Update(deltaTime);
 
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
@@ -1254,6 +1236,18 @@ void Game::CreateInitialLight()
 	EnablePointLight(2U, m_dynamicLight1Pos, Vec3(0.f, -1.f, 0.f), Rgba::BLUE, 1.f, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.1f, 0.f));
 	EnablePointLight(3U, m_dynamicLight2Pos, Vec3(0.f, 0.f, 1.f), Rgba::YELLOW, 1.f, Vec3(0.f, 1.f, 0.1f), Vec3(0.f, 0.1f, 0.f));
 	EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 1.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::BeginFrame()
+{
+	m_gameInput->BeginFrame();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::EndFrame()
+{
+	m_gameInput->EndFrame();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

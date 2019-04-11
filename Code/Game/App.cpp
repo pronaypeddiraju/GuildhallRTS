@@ -134,6 +134,8 @@ void App::BeginFrame()
 	g_devConsole->BeginFrame();
 	g_eventSystem->BeginFrame();
 	g_debugRenderer->BeginFrame();
+
+	m_game->BeginFrame();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -145,6 +147,8 @@ void App::EndFrame()
 	g_devConsole->EndFrame();
 	g_eventSystem->EndFrame();
 	g_debugRenderer->EndFrame();
+
+	m_game->EndFrame();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -10,6 +10,7 @@
 
 //------------------------------------------------------------------------------------------------------------------------------
 class BitmapFont;
+class GameInput;
 class GPUMesh;
 class Image;
 class Map;
@@ -62,6 +63,9 @@ public:
 	void								CreateInitialMeshes();
 	void								CreateInitialLight();
 	
+	void								BeginFrame();
+	void								EndFrame();
+
 	//Debug test objects
 	void								SetStartupDebugRenderObjects();
 	void								DebugEnabled();
@@ -205,4 +209,5 @@ public:
 
 	//Map (For now will be 1 single map)
 	Map*								m_map;
+	GameInput*							m_gameInput;
 };
