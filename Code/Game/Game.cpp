@@ -224,6 +224,9 @@ void Game::PerformInitActions()
 	CreateInitialMeshes();
 	CreateInitialLight();
 
+	m_map = new Map();
+	m_map->Load("InitMap");
+
 	m_gameState = STATE_MENU;
 }
 
@@ -554,6 +557,9 @@ void Game::DebugEnabled()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::Shutdown()
 {
+	delete m_map;
+	m_map = nullptr;
+
 	delete m_mainCamera;
 	m_mainCamera = nullptr;
 
@@ -734,6 +740,7 @@ void Game::RenderGameState() const
 		g_renderContext->EnableDirectionalLight();
 	}
 
+	/*
 	if(m_useMaterial)
 	{
 		RenderUsingMaterial();
@@ -742,6 +749,10 @@ void Game::RenderGameState() const
 	{
 		RenderUsingLegacy();
 	}
+	*/
+
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	m_map->Render();
 
 	g_renderContext->EndCamera();
 }

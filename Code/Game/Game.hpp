@@ -7,6 +7,7 @@
 #include "Engine/Renderer/Material.hpp"
 //Game Systems
 #include "Game/GameCommon.hpp"
+#include "Game/Map.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 class Texture;
@@ -188,4 +189,7 @@ public:
 
 	//Game data
 	GameState							m_gameState = STATE_INIT;
+
+	//Map (For now will be 1 single map)
+	Map*								m_map;
 };
