@@ -14,13 +14,15 @@ public:
 	~RTSCamera();
 
 	// Called each frame to update the underlying camera with the RTSCamera's options; 
+	void BeginFrame();
 	void Update( float deltaTime ); 
+	void EndFrame();
 
 	void SetFocusBounds( const AABB2& bounds);
 
 	void SetFocalPoint( Vec3 const &pos ); 
 	void SetZoom( float zoom ); //Manipulates distance
-	void SetAngle( float angleOffset ); // really is setting an angle offset
+	void SetAngleOffset( float angleOffset ); // really is setting an angle offset
 
 	void PanFocalPoint( Vec3 panAmount );
 	void SetZoomDelta( float delta );
@@ -39,9 +41,6 @@ public:
 	float m_defaultTilt     = 40.0f; 
 	
 	Vec2 m_tiltBounds		= Vec2(10.f, 40.f);
-
-	// used for moving from the default
-	float m_angleOffset     = 0.0f; 
 
 	Matrix44 m_modelMatrix	= Matrix44::IDENTITY;
 

@@ -56,12 +56,13 @@ public:
 	float m_rotationSpeed            = PI; 
 	float m_zoomSpeed                = 24.0f; 
 
-	float m_cameraSpeed				 = 0.3f; 
 
 	// EXTRA:  Support Middle Mouse Button "Drag Pan"
 	Game* m_game					 = nullptr;
 
 	Vec2 m_framePan					 = Vec2::ONE;
 	float m_frameZoomDelta			 = 0.f;
+	float m_frameRotation			 = 0.f;
 
+	bool m_isRotating				 = false;
 }; 

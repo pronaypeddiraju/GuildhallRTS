@@ -218,6 +218,7 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case NUM_8:
 		case NUM_9:
 		case NUM_0:
+		case LCTRL_KEY:
 		{
 			m_game->HandleKeyPressed(keyCode);
 			return true;
@@ -255,33 +256,8 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 //------------------------------------------------------------------------------------------------------------------------------
 bool App::HandleKeyReleased(unsigned char keyCode)
 {
-	switch(keyCode)
-	{
-		/*
-		case 'T':
-		{
-			//Implement code to return deltaTime to original value
-			m_isSlowMo = false;
-			return true;
-		}
-		case  'P':
-		{
-			//Implement code to un-pause game
-			m_isPaused = false;
-			return true;
-		}
-		*/
-		case 38:
-		case 32:
-		case 39:
-		case 37:
-		{
-			m_game->HandleKeyReleased(keyCode);
-			return true;
-		}
-		default:
-		return false;
-	}
+	m_game->HandleKeyReleased(keyCode);
+	return true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

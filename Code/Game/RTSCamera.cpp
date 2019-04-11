@@ -59,6 +59,12 @@ void RTSCamera::SetZoom( float zoom )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void RTSCamera::SetAngleOffset( float angleOffset )
+{
+	m_angle += angleOffset;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void RTSCamera::PanFocalPoint( Vec3 panAmount )
 {
 	m_focalPoint += panAmount;

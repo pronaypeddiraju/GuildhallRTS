@@ -30,6 +30,7 @@ void GameInput::BeginFrame()
 //------------------------------------------------------------------------------------------------------------------------------
 void GameInput::Update( float deltaTime )
 {
+	UNUSED(deltaTime);
 	//Update the inputs and also check if your mouse is in a place where you should be doing something
 }
 
@@ -38,12 +39,29 @@ void GameInput::EndFrame()
 {
 	m_framePan = Vec2::ZERO;
 	m_frameZoomDelta = 0.f;
+	
+	if(!m_isRotating)
+	{
+		m_frameRotation = 0.f;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 Vec2 GameInput::GetFramePan() const
 {
 	return m_framePan;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+float GameInput::GetFrameRotation() const
+{
+	return m_frameRotation;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool GameInput::IsRotating() const
+{
+	return m_isRotating;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -121,8 +139,33 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		m_framePan += camForward * m_keyboardPanSpeed;
 	}
 	break;
+	case LCTRL_KEY:
+	{
+		if(!m_isRotating)
+		{
+			m_isRotating = true;
+		}
+
+		m_frameRotation += m_rotationSpeed;
+	}
+	break;
 	default:
 	break;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::HandleKeyReleased( unsigned char keyCode )
+{
+	switch (keyCode)
+	{
+		case LCTRL_KEY:
+		{
+			m_isRotating = false;
+		}
+		break;
+		default:
+		break;
 	}
 }
 
