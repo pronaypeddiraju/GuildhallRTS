@@ -50,7 +50,7 @@ private:
 	std::vector<Vertex_Lit> m_mapVerts; 
 	std::vector<uint>		m_mapIndices;
 
-	std::string				m_materialName = "couch.mat";
+	std::string				m_materialName = "terrain.mat";
 
 	GPUMesh*				m_terrainMesh; 
 	Material*				m_terrainMaterial; 

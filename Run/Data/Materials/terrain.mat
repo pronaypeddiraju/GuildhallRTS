@@ -1,0 +1,13 @@
+<material id="couch"
+  shader="default_lit.xml">
+
+
+  <diffuse 	src="stone_diffuse.png" />
+  <normal  	src="stone_normal.png" /> 
+  <spec    	src="stone_spec.png" /> 
+  <emissive	src="test_normal.jpg" />
+
+  <sampler idx="0" type="linear" />
+  <sampler idx="1" type="linear" />
+
+</material>

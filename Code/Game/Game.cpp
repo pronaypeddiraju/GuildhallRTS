@@ -25,6 +25,10 @@
 #include "Engine/Renderer/Shader.hpp"
 #include "Engine/Renderer/TextureView.hpp"
 
+//Game Systems
+#include "Game/Map.hpp"
+#include "Game/RTSCamera.hpp"
+
 //------------------------------------------------------------------------------------------------------------------------------
 float g_shakeAmount = 0.0f;
 
@@ -203,6 +207,11 @@ void Game::SetupCameras()
 	//Create a devConsole Cam
 	m_devConsoleCamera = new Camera();
 	m_devConsoleCamera->SetColorTarget(nullptr);
+
+	//Create a RTSCamera
+	m_RTSCam = new RTSCamera();
+	m_RTSCam->SetColorTarget(nullptr);
+	m_RTSCam->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, SCREEN_ASPECT);
 
 	//Set Projection Perspective for new Cam
 	m_camPosition = Vec3(0.f, 0.f, -10.f);
@@ -569,6 +578,9 @@ void Game::Shutdown()
 	delete m_UICamera;
 	m_UICamera = nullptr;
 
+	delete m_RTSCam;
+	m_RTSCam = nullptr;
+
 	delete m_cube;
 	m_cube = nullptr;
 
@@ -657,6 +669,7 @@ void Game::Render() const
 	m_mainCamera->SetColorTarget(colorTargetView);
 	m_UICamera->SetColorTarget(colorTargetView);
 	m_devConsoleCamera->SetColorTarget(colorTargetView);
+	m_RTSCam->SetColorTarget(colorTargetView);
 
 	switch( m_gameState )
 	{
@@ -720,7 +733,7 @@ void Game::RenderGameState() const
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 
-	g_renderContext->BeginCamera(*m_mainCamera); 
+	g_renderContext->BeginCamera(*m_RTSCam); 
 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
@@ -990,6 +1003,8 @@ void Game::Update( float deltaTime )
 	UpdateLightPositions();
 
 	UpdateMouseInputs(deltaTime);
+
+	m_RTSCam->Update(deltaTime);
 
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
 	{

@@ -133,10 +133,15 @@ bool Map::Create( int mapWidth, int mapHeight )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Map::Update()
+{
+	//Do nothing for now
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::Render() const
 {
-	g_renderContext->BindMaterial(m_terrainMaterial);
-	g_renderContext->DrawMesh(m_terrainMesh);
+	RenderTerrain(m_terrainMaterial);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -149,4 +154,17 @@ void Map::Shutdown()
 	m_mapTiles.clear();
 	m_mapVerts.clear();
 	m_mapIndices.clear();
+}
+
+void Map::RenderTerrain( Material* matOverride /*= nullptr */ ) const
+{
+	if(matOverride != nullptr)
+	{
+		g_renderContext->BindMaterial(matOverride);
+	}
+	else
+	{
+		g_renderContext->BindMaterial(m_terrainMaterial);
+	}
+	g_renderContext->DrawMesh(m_terrainMesh);
 }

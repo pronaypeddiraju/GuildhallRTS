@@ -25,6 +25,9 @@
     <ClCompile Include="Map.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="RTSCamera.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp">
@@ -43,5 +46,6 @@
       <Filter>Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="Map.hpp" />
+    <ClInclude Include="RTSCamera.hpp" />
   </ItemGroup>
 </Project>

@@ -7,16 +7,17 @@
 #include "Engine/Renderer/Material.hpp"
 //Game Systems
 #include "Game/GameCommon.hpp"
-#include "Game/Map.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
-class Texture;
 class BitmapFont;
-class SpriteAnimDefenition;
-class TextureView;
-class Image;
-class Shader;
 class GPUMesh;
+class Image;
+class Map;
+class RTSCamera;
+class Shader;
+class SpriteAnimDefenition;
+class Texture;
+class TextureView;
 
 struct Camera;
 
@@ -141,6 +142,7 @@ public:
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
 	Camera*								m_UICamera = nullptr;
+	RTSCamera*							m_RTSCam = nullptr;
 	Rgba*								m_clearScreenColor = nullptr;
 	
 	float								m_camFOVDegrees = 60.f; //Desired Camera Field of View
