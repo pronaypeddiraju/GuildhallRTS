@@ -200,6 +200,7 @@
     </ClCompile>
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="RTSCamera.cpp" />
+    <ClCompile Include="UIWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="GameInput.hpp" />
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="RTSCamera.hpp" />
+    <ClInclude Include="UIWidget.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Submodule\Engine\Code\Engine\Engine.vcxproj">
