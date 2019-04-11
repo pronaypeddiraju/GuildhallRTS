@@ -133,6 +133,18 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+STATIC Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
+{
+	Clamp(static_cast<float>(mousePosInClient.x), 0.f, static_cast<float>(ClientBounds.x));
+	Clamp(static_cast<float>(mousePosInClient.y), 0.f, static_cast<float>(ClientBounds.y));
+
+	float posOnX = RangeMapFloat(static_cast<float>(mousePosInClient.x), 0.0f, static_cast<float>(ClientBounds.x), 0.f, WORLD_WIDTH);
+	float posOnY = RangeMapFloat(static_cast<float>(mousePosInClient.y), static_cast<float>(ClientBounds.y), 0.f, 0.f, WORLD_HEIGHT);
+
+	return Vec2(posOnX, posOnY);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 Game::Game()
 {
 	m_isGameAlive = true;
@@ -806,6 +818,15 @@ void Game::RenderGameState() const
 	m_map->Render();
 
 	g_renderContext->EndCamera();
+
+	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	m_UICamera->SetModelMatrix(Matrix44::IDENTITY);
+
+	RenderCursor();
+
+	g_renderContext->EndCamera();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -829,6 +850,31 @@ void Game::RenderEditState() const
 	g_renderContext->DrawVertexArray(boxVerts);
 
 	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderCursor() const
+{
+	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
+	IntVec2 clientBounds = g_windowContext->GetClientBounds();
+
+	//Vec2 worldPos = Game::GetClientToWorldPosition2D(intVecPos, clientBounds);
+	Vec2 worldPos = Vec2::ZERO;
+
+	std::vector<Vertex_PCU> ringVerts;
+	AddVertsForRing2D(ringVerts, worldPos, 20.f, 2.f, Rgba::YELLOW);
+
+	std::vector<Vertex_PCU>	lineVerts;
+	Vec2 vertLineOffset = Vec2(0.f, 10.f);
+	Vec2 horLineOffset = Vec2(10.f, 0.f);
+
+	AddVertsForLine2D(lineVerts, worldPos - vertLineOffset - Vec2(0.f, 0.5f), worldPos + vertLineOffset + Vec2(0.f, 0.5f), 2.f, Rgba::YELLOW);
+	AddVertsForLine2D(lineVerts, worldPos - horLineOffset - Vec2(0.5f, 0.f), worldPos + horLineOffset + Vec2(0.5f, 0.f), 2.f, Rgba::YELLOW);
+
+	//g_renderContext->BindTexture(nullptr);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	g_renderContext->DrawVertexArray(lineVerts);
+	g_renderContext->DrawVertexArray(ringVerts);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1106,6 +1152,36 @@ void Game::CheckXboxInputs()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::CheckCollisions()
 {		
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::HandleMouseLBDown()
+{
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::HandleMouseLBUp()
+{
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::HandleMouseRBDown()
+{
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::HandleMouseRBUp()
+{
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::HandleMouseScroll(float wheelDelta)
+{
+	return true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -33,6 +33,8 @@ public:
 
 	float m_defaultAngle    = -135.0f; 
 	float m_defaultTilt     = 40.0f; 
+	
+	Vec2 m_tiltBounds		= Vec2(10.f, 40.f);
 
 	// used for moving from the default
 	float m_angleOffset     = 0.0f; 

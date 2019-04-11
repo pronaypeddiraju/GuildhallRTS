@@ -11,6 +11,7 @@ RTSCamera::RTSCamera()
 	m_tilt = m_defaultTilt;
 	m_angle = m_defaultAngle;
 	m_focalPoint = Vec3(3.5f, 3.5f, 0.f);
+	m_currentZoom = RangeMapFloat(m_distance, m_minDistance, m_maxDistance, 0.f, 1.f);
 }
 
 RTSCamera::~RTSCamera()
@@ -55,5 +56,6 @@ void RTSCamera::SetZoom( float zoom )
 void RTSCamera::SetZoomDelta( float delta )
 {
 	m_currentZoom += delta;
+	m_distance = RangeMapFloat(m_currentZoom, 0.f, 1.f, m_minDistance, m_maxDistance);
 }
 

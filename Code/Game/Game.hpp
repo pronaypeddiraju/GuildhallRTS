@@ -39,12 +39,14 @@ public:
 	~Game();
 	
 	//Static methods
-	static bool TestEvent(EventArgs& args);
-	static bool ToggleLight1(EventArgs& args);
-	static bool ToggleLight2(EventArgs& args);
-	static bool ToggleLight3(EventArgs& args);
-	static bool ToggleLight4(EventArgs& args);
-	static bool ToggleAllPointLights(EventArgs& args);
+	static bool				TestEvent(EventArgs& args);
+	static bool				ToggleLight1(EventArgs& args);
+	static bool				ToggleLight2(EventArgs& args);
+	static bool				ToggleLight3(EventArgs& args);
+	static bool				ToggleLight4(EventArgs& args);
+	static bool				ToggleAllPointLights(EventArgs& args);
+
+	static Vec2				GetClientToWorldPosition2D(IntVec2 mousePosInClient, IntVec2 ClientBounds);
 
 	//Startup functions
 	void								StartUp();
@@ -87,6 +89,7 @@ public:
 	void								RenderMainMenuState() const;
 	void								RenderGameState() const;
 	void								RenderEditState() const;
+	void								RenderCursor() const;
 	void								RenderControlsToUI() const;
 	void								RenderUsingMaterial() const;
 	void								RenderUsingLegacy() const;
@@ -104,6 +107,14 @@ public:
 	void								ClearGarbageEntities();
 	void								CheckXboxInputs();
 	void								CheckCollisions();
+
+	//Mouse Input handling
+	bool								HandleMouseLBDown();
+	bool								HandleMouseLBUp();
+	bool								HandleMouseRBDown();
+	bool								HandleMouseRBUp();
+	bool								HandleMouseScroll(float wheelDelta);
+
 
 	//Shut down
 	void								Shutdown();

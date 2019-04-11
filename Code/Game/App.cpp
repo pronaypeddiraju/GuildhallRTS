@@ -16,15 +16,18 @@
 
 App* g_theApp = nullptr;
 
+//------------------------------------------------------------------------------------------------------------------------------
 App::App()
 {	
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 App::~App()
 {
 	ShutDown();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 STATIC bool App::Command_Quit(EventArgs& args)
 {
 	UNUSED(args);
@@ -32,6 +35,7 @@ STATIC bool App::Command_Quit(EventArgs& args)
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::LoadGameBlackBoard()
 {
 	const char* xmlDocPath = "Data/Gameplay/GameConfig.xml";
@@ -55,6 +59,7 @@ void App::LoadGameBlackBoard()
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::StartUp()
 {
 	LoadGameBlackBoard();
@@ -83,6 +88,7 @@ void App::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn("Quit", Command_Quit);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::ShutDown()
 {
 	delete g_renderContext;
@@ -106,6 +112,7 @@ void App::ShutDown()
 	m_game->Shutdown();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::RunFrame()
 {
 	BeginFrame();	
@@ -118,6 +125,7 @@ void App::RunFrame()
 	EndFrame();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::BeginFrame()
 {
 	g_renderContext->BeginFrame();
@@ -128,6 +136,7 @@ void App::BeginFrame()
 	g_debugRenderer->BeginFrame();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::EndFrame()
 {
 	g_renderContext->EndFrame();
@@ -138,6 +147,7 @@ void App::EndFrame()
 	g_debugRenderer->EndFrame();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::Update()
 {	
 	m_timeAtLastFrameBegin = m_timeAtThisFrameBegin;
@@ -153,16 +163,19 @@ void App::Update()
 	g_debugRenderer->Update(deltaTime);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::Render() const
 {
 	m_game->Render();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void App::PostRender()
 {
 	m_game->PostRender();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool App::HandleKeyPressed(unsigned char keyCode)
 {
 	if(keyCode == TILDY_KEY)
@@ -235,6 +248,7 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool App::HandleKeyReleased(unsigned char keyCode)
 {
 	switch(keyCode)
@@ -266,14 +280,50 @@ bool App::HandleKeyReleased(unsigned char keyCode)
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool App::HandleCharacter( unsigned char charCode )
 {
 	m_game->HandleCharacter(charCode);
 	return false;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool App::HandleQuitRequested()
 {
 	m_isQuitting = true;
 	return m_isQuitting;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool App::HandleMouseLBDown()
+{
+	//Implement Mouse Left button down logic here
+	return m_game->HandleMouseLBDown();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool App::HandleMouseLBUp()
+{
+	//Implement Mouse Left button Up logic here
+	return m_game->HandleMouseLBUp();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool App::HandleMouseRBDown()
+{
+	//Implement Mouse Right Button Down logic here
+	return m_game->HandleMouseRBDown();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool App::HandleMouseRBUp()
+{
+	//Implement Mouse Right Button Up logic here
+	return m_game->HandleMouseRBUp();	
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool App::HandleMouseScroll(float wheelDelta)
+{
+	return m_game->HandleMouseScroll(wheelDelta);
 }
