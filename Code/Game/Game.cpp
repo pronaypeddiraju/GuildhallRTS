@@ -134,7 +134,7 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
+Vec2 Game::GetClientToUIScreenPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
 {
 	Clamp(static_cast<float>(mousePosInClient.x), 0.f, static_cast<float>(ClientBounds.x));
 	Clamp(static_cast<float>(mousePosInClient.y), 0.f, static_cast<float>(ClientBounds.y));
@@ -153,6 +153,8 @@ Game::Game()
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
 	g_debugRenderer->SetDebugFont(m_squirrelFont);
+
+
 
 	m_gameInput = new GameInput(this);
 }
@@ -803,8 +805,6 @@ void Game::RenderGameState() const
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	m_UICamera->SetModelMatrix(Matrix44::IDENTITY);
 
-	RenderCursor();
-
 	g_renderContext->EndCamera();
 }
 
@@ -829,31 +829,6 @@ void Game::RenderEditState() const
 	g_renderContext->DrawVertexArray(boxVerts);
 
 	g_renderContext->EndCamera();
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::RenderCursor() const
-{
-	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
-	IntVec2 clientBounds = g_windowContext->GetClientBounds();
-
-	//Vec2 worldPos = Game::GetClientToWorldPosition2D(intVecPos, clientBounds);
-	Vec2 worldPos = Vec2::ZERO;
-
-	std::vector<Vertex_PCU> ringVerts;
-	AddVertsForRing2D(ringVerts, worldPos, 20.f, 2.f, Rgba::YELLOW);
-
-	std::vector<Vertex_PCU>	lineVerts;
-	Vec2 vertLineOffset = Vec2(0.f, 10.f);
-	Vec2 horLineOffset = Vec2(10.f, 0.f);
-
-	AddVertsForLine2D(lineVerts, worldPos - vertLineOffset - Vec2(0.f, 0.5f), worldPos + vertLineOffset + Vec2(0.f, 0.5f), 2.f, Rgba::YELLOW);
-	AddVertsForLine2D(lineVerts, worldPos - horLineOffset - Vec2(0.5f, 0.f), worldPos + horLineOffset + Vec2(0.5f, 0.f), 2.f, Rgba::YELLOW);
-
-	//g_renderContext->BindTexture(nullptr);
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
-	g_renderContext->DrawVertexArray(lineVerts);
-	g_renderContext->DrawVertexArray(ringVerts);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1069,7 +1044,7 @@ void Game::Update( float deltaTime )
 	m_gameInput->Update(deltaTime);
 
 	Vec2 framePan = m_gameInput->GetFramePan();
-	m_RTSCam->PanFocalPoint(framePan * deltaTime);
+	m_RTSCam->PanFocalPoint(framePan);
 
 	float angleOffset = m_gameInput->GetFrameRotation();
 	m_RTSCam->SetAngleOffset(angleOffset);
@@ -1090,6 +1065,10 @@ void Game::Update( float deltaTime )
 
 	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
 
+	//Update the mouse position
+	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
+	IntVec2 clientBounds = g_windowContext->GetClientBounds();
+
 	/*
 	DebugRenderOptionsT options;
 	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
@@ -1102,7 +1081,6 @@ void Game::Update( float deltaTime )
 	
 	text = "UP/DOWN to increase/decrease emissive factor";
 	g_debugRenderer->DebugAddToLog(options, text, Rgba::WHITE, 0.f);
-	*/
 
 	//Update the camera's transform
 	Matrix44 camTransform = Matrix44::MakeFromEuler( m_mainCamera->GetEuler(), m_rotationOrder ); 
@@ -1122,6 +1100,8 @@ void Game::Update( float deltaTime )
 	CheckCollisions();
 
 	ClearGarbageEntities();	
+	*/
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1143,24 +1123,28 @@ void Game::CheckCollisions()
 //------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseLBDown()
 {
+	m_gameInput->HandleMouseLBDown();
 	return true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseLBUp()
 {
+	m_gameInput->HandleMouseLBUp();
 	return true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseRBDown()
 {
+	m_gameInput->HandleMouseRBDown();
 	return true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseRBUp()
 {
+	m_gameInput->HandleMouseRBUp();
 	return true;
 }
 

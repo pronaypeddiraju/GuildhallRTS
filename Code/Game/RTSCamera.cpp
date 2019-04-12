@@ -28,6 +28,8 @@ void RTSCamera::Update( float deltaTime )
 {
 	UNUSED(deltaTime);
 
+	m_tilt = RangeMapFloat(m_distance, m_maxDistance, m_minDistance, m_tiltBounds.y, m_tiltBounds.x);
+
 	//We are at an angle of m_angle around y axis
 	//We are at a tilt of m_tilt around x axis
 	float height = SinDegrees(m_tilt) * m_distance;

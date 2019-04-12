@@ -16,6 +16,9 @@ GameInput::GameInput(Game* game)
 	m_framePan = Vec2::ZERO;
 
 	m_screenBounds = AABB2(Vec2(0.f, 0.f), Vec2(1280.f, 720.f));
+
+	m_mouseButtonLeft.ResetButton();
+	m_mouseButtonRight.ResetButton();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -34,10 +37,12 @@ void GameInput::BeginFrame()
 void GameInput::Update( float deltaTime )
 {
 	//Update the inputs for keyboard input
-	UpdateKeyBoardPan(deltaTime);
+	UpdateKeyBoardPan();
 
 	//Update the mouse position and check if you need to pan
-	UpdateMousePan(deltaTime);
+	UpdateMousePan();
+
+	m_framePan *= deltaTime;
 
 	m_game->m_RTSCam->SetZoomDelta(m_frameZoomDelta);
 
@@ -51,7 +56,7 @@ void GameInput::Update( float deltaTime )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void GameInput::UpdateKeyBoardPan( float deltaTime )
+void GameInput::UpdateKeyBoardPan()
 {
 	Vec2 camForward = Vec2(0.f, 1.f);
 	Vec2 camRight = Vec2(1.f, 0.f);
@@ -82,7 +87,7 @@ void GameInput::UpdateKeyBoardPan( float deltaTime )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void GameInput::UpdateMousePan( float deltaTime )
+void GameInput::UpdateMousePan()
 {
 	Vec2 camForward = Vec2(0.f, 1.f);
 	Vec2 camRight = Vec2(1.f, 0.f);
@@ -92,7 +97,7 @@ void GameInput::UpdateMousePan( float deltaTime )
 
 	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
 
-	Vec2 screenPos = m_game->GetClientToWorldPosition2D(mousePos, g_windowContext->GetClientBounds());
+	Vec2 screenPos = m_game->GetClientToUIScreenPosition2D(mousePos, g_windowContext->GetClientBounds());
 
 	if(screenPos.x < (m_screenBounds.m_minBounds.x + m_edgePanDistance))
 	{
@@ -162,6 +167,30 @@ float GameInput::GetScreenHeight()
 {
 	float height = m_screenBounds.m_maxBounds.y - m_screenBounds.m_minBounds.y;
 	return height;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool GameInput::HandleMouseLBDown()
+{
+	return false;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool GameInput::HandleMouseLBUp()
+{
+	return false;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool GameInput::HandleMouseRBDown()
+{
+	return false;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool GameInput::HandleMouseRBUp()
+{
+	return false;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

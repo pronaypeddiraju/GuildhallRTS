@@ -2,6 +2,7 @@
 #pragma once
 //Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Input/KeyButtonState.hpp"
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/MathUtils.hpp"
 
@@ -21,8 +22,8 @@ public:
 	void								BeginFrame();
 	
 	void								Update( float deltaTime ); 
-	void								UpdateKeyBoardPan( float deltaTime);
-	void								UpdateMousePan( float deltaTime);
+	void								UpdateKeyBoardPan();
+	void								UpdateMousePan();
 
 	void								EndFrame();
 
@@ -79,6 +80,9 @@ public:
 	bool m_WPressed					 = false;
 	bool m_SPressed					 = false;
 	bool m_DPressed					 = false;
+
+	KeyButtonState m_mouseButtonLeft;
+	KeyButtonState m_mouseButtonRight;
 
 	AABB2 m_screenBounds;
 }; 

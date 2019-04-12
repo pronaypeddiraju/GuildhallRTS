@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Core/NamedStrings.hpp"
 #include "Engine/Math//AABB2.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/Vec4.hpp"
@@ -8,7 +9,7 @@
 #include <string>
 
 struct InputEvent;
-
+class UIRadioGroup;
 
 //------------------------------------------------------------------------------------------------------------------------------
 class UIWidget
@@ -102,7 +103,7 @@ class UIButton : public UIWidget
 	}
 	*/
 
-	std::string m_eventOnClick = "play map=level0.map"
+	std::string m_eventOnClick = "play map=level0.map";
 }; 
 
 class UISlider : public UIWidget
@@ -126,7 +127,7 @@ class UISlider : public UIWidget
 
 // A radio group allows for only a single item in the group 
 // to be selected at a time - ie, mutually exclusive selection
-class UIRadioGroup
+class UIRadioGroup : public UIWidget
 {
 	// implement me
 }; 

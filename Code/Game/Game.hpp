@@ -47,7 +47,7 @@ public:
 	static bool				ToggleLight4(EventArgs& args);
 	static bool				ToggleAllPointLights(EventArgs& args);
 
-	Vec2					GetClientToWorldPosition2D(IntVec2 mousePosInClient, IntVec2 ClientBounds);
+	Vec2					GetClientToUIScreenPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds );
 
 	//Startup functions
 	void								StartUp();
@@ -93,7 +93,6 @@ public:
 	void								RenderMainMenuState() const;
 	void								RenderGameState() const;
 	void								RenderEditState() const;
-	void								RenderCursor() const;
 	void								RenderControlsToUI() const;
 	void								RenderUsingMaterial() const;
 	void								RenderUsingLegacy() const;

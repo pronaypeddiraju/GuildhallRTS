@@ -37,7 +37,7 @@ public:
 
 	float m_defaultAngle    = -135.0f; 
 	float m_defaultTilt     = 40.0f; 
-	
+
 	Vec2 m_tiltBounds		= Vec2(10.f, 40.f);
 
 	Matrix44 m_modelMatrix	= Matrix44::IDENTITY;
