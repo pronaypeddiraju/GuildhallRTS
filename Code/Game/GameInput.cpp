@@ -41,6 +41,13 @@ void GameInput::Update( float deltaTime )
 
 	m_game->m_RTSCam->SetZoomDelta(m_frameZoomDelta);
 
+	if(!m_isRotating && (m_game->m_RTSCam->m_angle > m_game->m_RTSCam->m_defaultAngle))
+	{
+		m_frameRotation -= m_rotationSpeed;
+	}
+
+	m_frameRotation *= deltaTime;
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -111,11 +118,6 @@ void GameInput::EndFrame()
 {
 	m_framePan = Vec2::ZERO;
 	m_frameZoomDelta = 0.f;
-	
-	if(!m_isRotating)
-	{
-		m_frameRotation = 0.f;
-	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -165,7 +167,7 @@ float GameInput::GetScreenHeight()
 //------------------------------------------------------------------------------------------------------------------------------
 bool GameInput::HandleMouseScroll( float wheelDelta )
 {
-	m_frameZoomDelta += wheelDelta;
+	m_frameZoomDelta -= wheelDelta;
 
 	m_frameZoomDelta = Clamp(m_frameZoomDelta, MIN_ZOOM_STEPS, MAX_ZOOM_STEPS);
 

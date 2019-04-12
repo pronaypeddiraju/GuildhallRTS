@@ -1071,7 +1071,7 @@ void Game::Update( float deltaTime )
 	Vec2 framePan = m_gameInput->GetFramePan();
 	m_RTSCam->PanFocalPoint(framePan * deltaTime);
 
-	float angleOffset = m_gameInput->GetFrameRotation() * deltaTime;
+	float angleOffset = m_gameInput->GetFrameRotation();
 	m_RTSCam->SetAngleOffset(angleOffset);
 
 	m_RTSCam->Update(deltaTime);

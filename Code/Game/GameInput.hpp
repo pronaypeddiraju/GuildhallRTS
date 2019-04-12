@@ -61,7 +61,7 @@ public:
 	float m_edgePanSpeed             = 16.0f; // how quickly we pan when using edge-scroll
 	float m_edgePanDistance          = 32.0f; // units away from the edge in 2D before scrolling starts
 
-	float m_rotationSpeed            = PI; 
+	float m_rotationSpeed            = 100.f; 
 	float m_zoomSpeed                = 24.0f; 
 	const float m_maxZoom			 = 100.f;
 
