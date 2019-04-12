@@ -2,6 +2,7 @@
 #pragma once
 //Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/MathUtils.hpp"
 
 //Game Systems
@@ -18,7 +19,11 @@ public:
 	// 
 	// Hotkey bindings will also live here; 
 	void								BeginFrame();
-	void								Update(float deltaTime); 
+	
+	void								Update( float deltaTime ); 
+	void								UpdateKeyBoardPan( float deltaTime);
+	void								UpdateMousePan( float deltaTime);
+
 	void								EndFrame();
 
 	// A08
@@ -30,6 +35,9 @@ public:
 
 	void								SetFramePan(Vec2 panAmount);
 
+	void								SetScreenBounds( const AABB2& screenBounds);
+	float								GetScreenWidth();
+	float								GetScreenHeight();
 
 	//Mouse Input handling
 	bool								HandleMouseLBDown();
@@ -72,4 +80,5 @@ public:
 	bool m_SPressed					 = false;
 	bool m_DPressed					 = false;
 
+	AABB2 m_screenBounds;
 }; 

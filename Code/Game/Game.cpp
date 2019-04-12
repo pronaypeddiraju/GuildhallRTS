@@ -134,13 +134,13 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-STATIC Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
+Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
 {
 	Clamp(static_cast<float>(mousePosInClient.x), 0.f, static_cast<float>(ClientBounds.x));
 	Clamp(static_cast<float>(mousePosInClient.y), 0.f, static_cast<float>(ClientBounds.y));
 
-	float posOnX = RangeMapFloat(static_cast<float>(mousePosInClient.x), 0.0f, static_cast<float>(ClientBounds.x), 0.f, WORLD_WIDTH);
-	float posOnY = RangeMapFloat(static_cast<float>(mousePosInClient.y), static_cast<float>(ClientBounds.y), 0.f, 0.f, WORLD_HEIGHT);
+	float posOnX = RangeMapFloat(static_cast<float>(mousePosInClient.x), 0.0f, static_cast<float>(ClientBounds.x), 0.f, m_gameInput->GetScreenWidth());
+	float posOnY = RangeMapFloat(static_cast<float>(mousePosInClient.y), static_cast<float>(ClientBounds.y), 0.f, 0.f, m_gameInput->GetScreenHeight());
 
 	return Vec2(posOnX, posOnY);
 }
@@ -204,8 +204,8 @@ void Game::SetupMouseData()
 	IntVec2 clientCenter = g_windowContext->GetClientCenter();
 	g_windowContext->SetClientMousePosition(clientCenter);
 
-	g_windowContext->SetMouseMode(MOUSE_MODE_RELATIVE);
-	g_windowContext->HideMouse();
+	g_windowContext->SetMouseMode(MOUSE_MODE_ABSOLUTE);
+	g_windowContext->ShowMouse();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1044,11 +1044,10 @@ void Game::PostRender()
 	//Debug bools
 	m_consoleDebugOnce = true;
 
+	ColorTargetView* ctv = g_renderContext->GetFrameColorTarget();
+
 	if(!m_isDebugSetup)
 	{
-		//SetStartupDebugRenderObjects();
-
-		ColorTargetView* ctv = g_renderContext->GetFrameColorTarget();
 		//Setup debug render client data
 		g_debugRenderer->SetClientDimensions( ctv->m_height, ctv->m_width );
 
@@ -1065,7 +1064,7 @@ void Game::Update( float deltaTime )
 
 	UpdateLightPositions();
 
-	UpdateMouseInputs(deltaTime);
+	//UpdateMouseInputs(deltaTime);
 
 	m_gameInput->Update(deltaTime);
 

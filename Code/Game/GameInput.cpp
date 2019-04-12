@@ -1,7 +1,9 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/GameInput.hpp"
 //Engine Systems
+#include "Engine/Core/WindowContext.hpp"
 #include "Engine/Renderer/Camera.hpp"
+
 //Game Systems
 #include "Game/Game.hpp"
 #include "Game/Map.hpp"
@@ -12,6 +14,8 @@ GameInput::GameInput(Game* game)
 {
 	m_game = game;
 	m_framePan = Vec2::ZERO;
+
+	m_screenBounds = AABB2(Vec2(0.f, 0.f), Vec2(1280.f, 720.f));
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -29,8 +33,19 @@ void GameInput::BeginFrame()
 //------------------------------------------------------------------------------------------------------------------------------
 void GameInput::Update( float deltaTime )
 {
-	//Update the inputs and also check if your mouse is in a place where you should be doing something
+	//Update the inputs for keyboard input
+	UpdateKeyBoardPan(deltaTime);
 
+	//Update the mouse position and check if you need to pan
+	UpdateMousePan(deltaTime);
+
+	m_game->m_RTSCam->SetZoomDelta(m_frameZoomDelta);
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::UpdateKeyBoardPan( float deltaTime )
+{
 	Vec2 camForward = Vec2(0.f, 1.f);
 	Vec2 camRight = Vec2(1.f, 0.f);
 
@@ -57,10 +72,38 @@ void GameInput::Update( float deltaTime )
 	{
 		m_framePan += camRight * m_keyboardPanSpeed;
 	}
+}
 
-	m_game->m_RTSCam->SetZoomDelta(m_frameZoomDelta);
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::UpdateMousePan( float deltaTime )
+{
+	Vec2 camForward = Vec2(0.f, 1.f);
+	Vec2 camRight = Vec2(1.f, 0.f);
 
+	camForward.RotateDegrees(m_game->m_RTSCam->m_angle);
+	camRight.RotateDegrees(m_game->m_RTSCam->m_angle);
 
+	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
+
+	Vec2 screenPos = m_game->GetClientToWorldPosition2D(mousePos, g_windowContext->GetClientBounds());
+
+	if(screenPos.x < (m_screenBounds.m_minBounds.x + m_edgePanDistance))
+	{
+		m_framePan -= camForward * m_edgePanSpeed;
+	}
+	else if(screenPos.x > (m_screenBounds.m_maxBounds.x- m_edgePanDistance))
+	{
+		m_framePan += camForward * m_edgePanSpeed;
+	}
+
+	if(screenPos.y > (m_screenBounds.m_maxBounds.y- m_edgePanDistance))
+	{
+		m_framePan -= camRight * m_edgePanSpeed;
+	}
+	else if(screenPos.y < (m_screenBounds.m_minBounds.y + m_edgePanDistance))
+	{
+		m_framePan += camRight * m_edgePanSpeed;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -97,6 +140,26 @@ bool GameInput::IsRotating() const
 void GameInput::SetFramePan( Vec2 panAmount )
 {
 	m_framePan = panAmount;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::SetScreenBounds( const AABB2& screenBounds )
+{
+	m_screenBounds = screenBounds;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+float GameInput::GetScreenWidth()
+{
+	float width = m_screenBounds.m_maxBounds.x - m_screenBounds.m_minBounds.x;
+	return width;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+float GameInput::GetScreenHeight()
+{
+	float height = m_screenBounds.m_maxBounds.y - m_screenBounds.m_minBounds.y;
+	return height;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

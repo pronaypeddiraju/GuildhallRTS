@@ -47,7 +47,7 @@ public:
 	static bool				ToggleLight4(EventArgs& args);
 	static bool				ToggleAllPointLights(EventArgs& args);
 
-	static Vec2				GetClientToWorldPosition2D(IntVec2 mousePosInClient, IntVec2 ClientBounds);
+	Vec2					GetClientToWorldPosition2D(IntVec2 mousePosInClient, IntVec2 ClientBounds);
 
 	//Startup functions
 	void								StartUp();
@@ -129,6 +129,7 @@ private:
 	bool								m_consoleDebugOnce = false;
 	bool								m_devConsoleSetup = false;
 	bool								m_isDebugSetup = false;
+	bool								m_inputSetup = false;
 	float								m_cameraSpeed = 0.3f; 
 
 public:
