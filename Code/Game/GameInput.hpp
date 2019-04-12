@@ -47,7 +47,7 @@ public:
 
 public:
 	// Configuration - Keyboard Input
-	float m_keyboardPanSpeed         = 16.0f; 
+	float m_keyboardPanSpeed         = 10.0f; 
 
 	// Configuration - Mouse Input
 	float m_edgePanSpeed             = 16.0f; // how quickly we pan when using edge-scroll
@@ -55,7 +55,7 @@ public:
 
 	float m_rotationSpeed            = PI; 
 	float m_zoomSpeed                = 24.0f; 
-
+	const float m_maxZoom			 = 100.f;
 
 	// EXTRA:  Support Middle Mouse Button "Drag Pan"
 	Game* m_game					 = nullptr;
@@ -63,6 +63,13 @@ public:
 	Vec2 m_framePan					 = Vec2::ONE;
 	float m_frameZoomDelta			 = 0.f;
 	float m_frameRotation			 = 0.f;
+	float m_frameZoom				 = 0.f;
 
 	bool m_isRotating				 = false;
+
+	bool m_APressed					 = false;
+	bool m_WPressed					 = false;
+	bool m_SPressed					 = false;
+	bool m_DPressed					 = false;
+
 }; 

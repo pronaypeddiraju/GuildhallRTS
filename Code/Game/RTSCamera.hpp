@@ -14,9 +14,7 @@ public:
 	~RTSCamera();
 
 	// Called each frame to update the underlying camera with the RTSCamera's options; 
-	void BeginFrame();
-	void Update( float deltaTime ); 
-	void EndFrame();
+	void Update( float deltaTime ); 	
 
 	void SetFocusBounds( const AABB2& bounds);
 
@@ -34,8 +32,8 @@ public:
 	float m_currentZoom = 0.f;
 
 	// configuration - mess with these numbers to get a view you like; 
-	float m_minDistance     = 2.0f;
-	float m_maxDistance     = 16.0f;
+	float m_minDistance     = 1.0f;
+	float m_maxDistance     = 32.0f;
 
 	float m_defaultAngle    = -135.0f; 
 	float m_defaultTilt     = 40.0f; 

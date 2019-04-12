@@ -18,6 +18,9 @@ constexpr float DEVCONSOLE_LINE_HEIGHT = 2.0f;
 
 constexpr float CLIENT_ASPECT = 2.0f; // We are requesting a 1:1 aspect (square) window area
 
+constexpr float MAX_ZOOM_STEPS = 10.f;
+constexpr float MIN_ZOOM_STEPS = -10.f;
+
 class RenderContext;
 class InputSystem;
 class AudioSystem;

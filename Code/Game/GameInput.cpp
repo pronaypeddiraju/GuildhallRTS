@@ -12,7 +12,6 @@ GameInput::GameInput(Game* game)
 {
 	m_game = game;
 	m_framePan = Vec2::ZERO;
-	m_frameZoomDelta = 0.f;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -30,8 +29,38 @@ void GameInput::BeginFrame()
 //------------------------------------------------------------------------------------------------------------------------------
 void GameInput::Update( float deltaTime )
 {
-	UNUSED(deltaTime);
 	//Update the inputs and also check if your mouse is in a place where you should be doing something
+
+	Vec2 camForward = Vec2(0.f, 1.f);
+	Vec2 camRight = Vec2(1.f, 0.f);
+
+	camForward.RotateDegrees(m_game->m_RTSCam->m_angle);
+	camRight.RotateDegrees(m_game->m_RTSCam->m_angle);
+
+	//Check right, left
+	if(m_APressed)
+	{
+		m_framePan -= camForward * m_keyboardPanSpeed;
+	}
+
+	if(m_DPressed)
+	{
+		m_framePan += camForward * m_keyboardPanSpeed;
+	}
+
+	if(m_WPressed)
+	{
+		m_framePan -= camRight * m_keyboardPanSpeed;
+	}
+
+	if(m_SPressed)
+	{
+		m_framePan += camRight * m_keyboardPanSpeed;
+	}
+
+	m_game->m_RTSCam->SetZoomDelta(m_frameZoomDelta);
+
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -71,72 +100,50 @@ void GameInput::SetFramePan( Vec2 panAmount )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+bool GameInput::HandleMouseScroll( float wheelDelta )
+{
+	m_frameZoomDelta += wheelDelta;
+
+	m_frameZoomDelta = Clamp(m_frameZoomDelta, MIN_ZOOM_STEPS, MAX_ZOOM_STEPS);
+
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void GameInput::HandleKeyPressed( unsigned char keyCode )
 {
 	switch( keyCode )
 	{
 	case A_KEY:
 	{
-		/*
-		Vec2 camForward = Vec2(0.f, 1.f);
-		camForward.RotateDegrees(m_game->m_RTSCam->m_angle);
-
-		m_game->m_RTSCam->m_focalPoint -= camForward * m_cameraSpeed;
-
-		m_game->m_RTSCam->m_focalPoint.ClampVector(m_game->m_RTSCam->m_focalPoint, m_game->m_map->GetXYBounds().m_minBounds, m_game->m_map->GetXYBounds().m_maxBounds);
-		*/
-
-		Vec2 camForward = Vec2(0.f, 1.f);
-		camForward.RotateDegrees(m_game->m_RTSCam->m_angle);
-		m_framePan -= camForward * m_keyboardPanSpeed;
+		if(!m_APressed)
+		{
+			m_APressed = true;
+		}
 	}
 	break;
 	case W_KEY:
 	{
-		/*
-		Vec2 camRight = Vec2(1.f, 0.f);
-		camRight.RotateDegrees(m_game->m_RTSCam->m_angle);
-
-		m_game->m_RTSCam->m_focalPoint -= camRight * m_cameraSpeed;
-
-		m_game->m_RTSCam->m_focalPoint.ClampVector(m_game->m_RTSCam->m_focalPoint, m_game->m_map->GetXYBounds().m_minBounds, m_game->m_map->GetXYBounds().m_maxBounds);
-		*/
-
-		Vec2 camRight = Vec2(1.f, 0.f);
-		camRight.RotateDegrees(m_game->m_RTSCam->m_angle);
-		m_framePan -= camRight * m_keyboardPanSpeed;
+		if(!m_WPressed)
+		{
+			m_WPressed = true;
+		}
 	}
 	break;
 	case S_KEY:
 	{
-		/*
-		Vec2 camRight = Vec2(1.f, 0.f);
-		camRight.RotateDegrees(m_game->m_RTSCam->m_angle);
-
-		m_game->m_RTSCam->m_focalPoint += camRight * m_cameraSpeed;
-
-		m_game->m_RTSCam->m_focalPoint.ClampVector(m_game->m_RTSCam->m_focalPoint, m_game->m_map->GetXYBounds().m_minBounds, m_game->m_map->GetXYBounds().m_maxBounds);
-		*/
-
-		Vec2 camRight = Vec2(1.f, 0.f);
-		camRight.RotateDegrees(m_game->m_RTSCam->m_angle);
-		m_framePan += camRight * m_keyboardPanSpeed;
+		if(!m_SPressed)
+		{
+			m_SPressed = true;
+		}
 	}
 	break;
 	case D_KEY:
 	{
-		/*
-		Vec2 camForward = Vec2(0.f, 1.f);
-		camForward.RotateDegrees(m_game->m_RTSCam->m_angle);
-
-		m_game->m_RTSCam->m_focalPoint += camForward * m_cameraSpeed;
-
-		m_game->m_RTSCam->m_focalPoint.ClampVector(m_game->m_RTSCam->m_focalPoint, m_game->m_map->GetXYBounds().m_minBounds, m_game->m_map->GetXYBounds().m_maxBounds);
-		*/
-
-		Vec2 camForward = Vec2(0.f, 1.f);
-		camForward.RotateDegrees(m_game->m_RTSCam->m_angle);
-		m_framePan += camForward * m_keyboardPanSpeed;
+		if(!m_DPressed)
+		{
+			m_DPressed = true;
+		}
 	}
 	break;
 	case LCTRL_KEY:
@@ -149,8 +156,6 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		m_frameRotation += m_rotationSpeed;
 	}
 	break;
-	default:
-	break;
 	}
 }
 
@@ -162,6 +167,26 @@ void GameInput::HandleKeyReleased( unsigned char keyCode )
 		case LCTRL_KEY:
 		{
 			m_isRotating = false;
+		}
+		break;
+		case A_KEY:
+		{
+			m_APressed = false;
+		}
+		break;
+		case W_KEY:
+		{
+			m_WPressed = false;
+		}
+		break;
+		case S_KEY:
+		{
+			m_SPressed = false;
+		}
+		break;
+		case D_KEY:
+		{
+			m_DPressed = false;
 		}
 		break;
 		default:

@@ -1168,6 +1168,7 @@ bool Game::HandleMouseRBUp()
 //------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseScroll(float wheelDelta)
 {
+	m_gameInput->HandleMouseScroll(wheelDelta);
 	return true;
 }
 

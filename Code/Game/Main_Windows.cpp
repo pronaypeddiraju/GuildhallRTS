@@ -81,7 +81,7 @@ static bool AppWindowProc( void* windowHandle, uint32_t wmMessageCode, uintptr_t
 			if(asKey != 96 && asKey != 27)
 			{
 				g_theApp->HandleCharacter(asKey);
-				return 0;
+				return true;
 			}
 		}
 	}

@@ -2,7 +2,11 @@
 #include "Game/RTSCamera.hpp"
 
 //Engine Systems
+#include "Engine/Core/DevConsole.hpp"
 #include "Engine/Math/MathUtils.hpp"
+
+//Game Systems
+#include "Game/GameCommon.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 RTSCamera::RTSCamera()
@@ -75,6 +79,8 @@ void RTSCamera::PanFocalPoint( Vec3 panAmount )
 void RTSCamera::SetZoomDelta( float delta )
 {
 	m_currentZoom += delta;
-	m_distance = RangeMapFloat(m_currentZoom, 0.f, 1.f, m_minDistance, m_maxDistance);
+	m_distance = RangeMapFloat(m_currentZoom, MIN_ZOOM_STEPS, MAX_ZOOM_STEPS, m_minDistance, m_maxDistance);
+
+	m_distance = Clamp(m_distance, m_minDistance, m_maxDistance);
 }
 
