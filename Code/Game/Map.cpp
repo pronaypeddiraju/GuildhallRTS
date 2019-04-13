@@ -125,6 +125,12 @@ bool Map::Create( int mapWidth, int mapHeight )
 		}
 	}
 
+	if(m_terrainMesh != nullptr)
+	{
+		delete m_terrainMesh;
+		m_terrainMesh = nullptr;
+	}
+
 	//Copy the CPU mesh info to the GPUMesh
 	m_terrainMesh = new GPUMesh(g_renderContext);
 	m_terrainMesh->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);

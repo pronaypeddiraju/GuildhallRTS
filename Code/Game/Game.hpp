@@ -47,6 +47,12 @@ public:
 	static bool				ToggleLight4(EventArgs& args);
 	static bool				ToggleAllPointLights(EventArgs& args);
 
+	static bool				ReLoadMap(EventArgs& args);
+
+	static bool				RemakeMap(const std::string& remakeString );
+	static Game*			s_gameReference; 
+
+
 	Vec2					GetClientToUIScreenPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds );
 
 	//Startup functions

@@ -134,6 +134,95 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ReLoadMap( EventArgs& args )
+{
+	UNUSED(args);
+
+	IntVec2 mapDimensions = IntVec2::ZERO;
+
+	//Print the data we read
+	mapDimensions = args.GetValue("Map", IntVec2::ZERO);
+
+	if(mapDimensions == IntVec2::ZERO)
+	{
+		g_devConsole->PrintString(DevConsole::CONSOLE_ERROR, "Cannot create map of size 0,0");
+		return false;
+	}
+
+	//If we have reached this point, we have valid data
+	if(s_gameReference != nullptr)
+	{
+		//The game is valid
+		s_gameReference->m_map->Create(mapDimensions.x, mapDimensions.y);
+	}
+
+	return true;	
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::RemakeMap( const std::string& remakeString )
+{
+	//Split the string to sensible key value pairs
+	std::vector<std::string> splitStrings = SplitStringOnDelimiter(remakeString, ' ');
+	if(splitStrings[0] != "Remake")
+	{
+		return false;
+	}
+
+	if(splitStrings[1] != "Map")
+	{
+		return false;
+	}
+
+	else
+	{
+		g_devConsole->PrintString(DevConsole::CONSOLE_INFO, "Data Received:");
+		std::string printS = "> Exec ";
+		for(int i =0; i < static_cast<int>(splitStrings.size()); i++)
+		{
+			printS += " " + splitStrings[i];
+		}
+		g_devConsole->PrintString(DevConsole::CONSOLE_INFO, printS);
+
+
+		int mapX = 0;
+		int mapY = 0;
+
+		for(int stringIndex = 2; stringIndex < static_cast<int>(splitStrings.size()); stringIndex++)
+		{
+			//Split string on ,
+			std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(splitStrings[stringIndex], ',');
+
+			if(KeyValSplit.size() != 2)
+			{
+				g_devConsole->PrintString(DevConsole::CONSOLE_ERROR ," ! The number of arguments read are not valid");
+				g_devConsole->PrintString(DevConsole::CONSOLE_ERROR_DESC, "    Execute requires 2 arguments. A key and value pair split by ,");
+			}
+			else
+			{
+				//Print the data we read
+				printS = " Action: Remake Map Size " + KeyValSplit[0] + " , " + KeyValSplit[1];
+				mapX = atoi(KeyValSplit[0].c_str());
+				mapY = atoi(KeyValSplit[1].c_str());
+				g_devConsole->PrintString(DevConsole::CONSOLE_ECHO, printS);
+			}
+		}
+
+		//If we have reached this point, we have valid data
+		if(s_gameReference != nullptr)
+		{
+			//The game is valid
+			s_gameReference->m_map->Create(mapX, mapY);
+		}
+
+		return true;	
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+Game* Game::s_gameReference = nullptr;
+
+//------------------------------------------------------------------------------------------------------------------------------
 Vec2 Game::GetClientToUIScreenPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
 {
 	Clamp(static_cast<float>(mousePosInClient.x), 0.f, static_cast<float>(ClientBounds.x));
@@ -157,13 +246,16 @@ Game::Game()
 
 
 	m_gameInput = new GameInput(this);
+
+	s_gameReference = this;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 Game::~Game()
-{
-	m_isGameAlive = false;
+{	m_isGameAlive = false;
 	Shutdown();
+
+	s_gameReference = nullptr;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -188,6 +280,8 @@ void Game::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn("ToggleLight3", ToggleLight3);
 	g_eventSystem->SubscribeEventCallBackFn("ToggleLight4", ToggleLight4);
 	g_eventSystem->SubscribeEventCallBackFn("ToggleAllPointLights", ToggleAllPointLights);
+
+	g_eventSystem->SubscribeEventCallBackFn("RemakeMap", ReLoadMap);
 
 	/*
 	//Only to keep track of what input does what
@@ -736,14 +830,6 @@ void Game::Render() const
 	//Show the controls for the UI Camera
 	RenderControlsToUI();
 
-	if(!m_consoleDebugOnce)
-	{
-		EventArgs* args = new EventArgs("TestString", "This is a test");
-		g_devConsole->Command_Test(*args);
-		g_devConsole->ExecuteCommandLine("Exec Health=25");
-		g_devConsole->ExecuteCommandLine("Exec Health=85 Armor=100");
-	}
-
 	//Uncomment this after fixing memory issues with DebugRender system
 	//DebugRenderToCamera();
 	
@@ -1069,9 +1155,7 @@ void Game::Update( float deltaTime )
 	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
 	IntVec2 clientBounds = g_windowContext->GetClientBounds();
 
-	/*
 	DebugRenderOptionsT options;
-	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
 	const char* text = "Current Time %f";
 	
 	//g_debugRenderer->DebugAddToLog(options, text, Rgba::YELLOW, 0.f, currentTime);
@@ -1100,7 +1184,6 @@ void Game::Update( float deltaTime )
 	CheckCollisions();
 
 	ClearGarbageEntities();	
-	*/
 
 }
 

@@ -52,8 +52,8 @@ private:
 
 	std::string				m_materialName = "terrain.mat";
 
-	GPUMesh*				m_terrainMesh; 
-	Material*				m_terrainMaterial; 
+	GPUMesh*				m_terrainMesh = nullptr; 
+	Material*				m_terrainMaterial = nullptr; 
 
 	AABB2					m_mapBounds;
 };
