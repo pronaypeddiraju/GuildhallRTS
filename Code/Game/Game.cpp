@@ -345,6 +345,8 @@ void Game::PerformInitActions()
 	CreateInitialMeshes();
 	CreateInitialLight();
 
+	CreateUIWidgets();
+
 	m_map = new Map();
 	m_map->Load("InitMap");
 
@@ -1023,11 +1025,11 @@ void Game::RenderMainMenuState() const
 void Game::RenderMenuUI() const
 {
 	//Render the Menu UI 
-	UIWidget mainMenu(nullptr);
-	mainMenu.UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+	//mainMenu.UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(20.f, 10.f)));
+
 	g_renderContext->BeginCamera(*m_UICamera);	
 
-	mainMenu.Render();
+	m_parentWidget->Render();
 
 	g_renderContext->EndCamera();
 }
@@ -1258,6 +1260,23 @@ bool Game::IsAlive()
 {
 	//Check if alive
 	return m_isGameAlive;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::CreateUIWidgets()
+{
+	//Create the parent widget
+	m_parentWidget = new UIWidget(nullptr);
+	m_parentWidget->SetColor(Rgba::GREEN);
+	m_parentWidget->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
+	//Create a child wiget
+	m_child = new UIWidget(m_parentWidget);
+	m_child->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(10.f, 10.f)));
+	m_child->SetSize(Vec4(0.1f, 0.1f, 0.f, 0.f));
+	m_child->SetPosition(Vec4(0.5f, 0.5, 0.f, 0.f));
+	m_child->SetColor(Rgba::RED);
+	m_parentWidget->AddChild(m_child);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

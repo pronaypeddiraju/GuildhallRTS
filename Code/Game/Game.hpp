@@ -19,6 +19,7 @@ class Shader;
 class SpriteAnimDefenition;
 class Texture;
 class TextureView;
+class UIWidget;
 
 struct Camera;
 
@@ -62,6 +63,7 @@ public:
 	void								SetupCameras();
 
 	void								PerformInitActions();
+	void								CreateUIWidgets();
 
 	void								GetandSetShaders();
 	void								LoadGameTextures();
@@ -217,4 +219,8 @@ public:
 	//Map (For now will be 1 single map)
 	Map*								m_map;
 	GameInput*							m_gameInput;
+
+	//UI References
+	UIWidget*							m_parentWidget = nullptr;
+	UIWidget*							m_child = nullptr;
 };
