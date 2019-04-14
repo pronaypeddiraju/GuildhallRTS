@@ -21,6 +21,9 @@ constexpr float CLIENT_ASPECT = 2.0f; // We are requesting a 1:1 aspect (square)
 constexpr float MAX_ZOOM_STEPS = 10.f;
 constexpr float MIN_ZOOM_STEPS = -10.f;
 
+constexpr float UI_SCREEN_ASPECT = 1.77f;
+constexpr float UI_SCREEN_HEIGHT = 720.f;
+
 class RenderContext;
 class InputSystem;
 class AudioSystem;

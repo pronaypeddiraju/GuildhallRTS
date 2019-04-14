@@ -15,7 +15,7 @@ class UIRadioGroup;
 class UIWidget
 {
 public:
-	UIWidget(); 
+	UIWidget(UIWidget* parent); 
 	virtual ~UIWidget(); // virtual dctr - why?  Baseline this should kill all my children; 
 
 	void UpdateBounds( AABB2 const &container ); 
@@ -30,6 +30,10 @@ public:
 											   // accessors
 	inline Vec2 GetWorldPosition() const      { return m_position; }
 	inline AABB2 GetWorldBounds() const       { return m_worldBounds; }
+
+	AABB2					GetWidgetDimensions( const AABB2& parentBounds );
+
+	Vec2					GetRelativePosInWorld2D( const Vec2& positionInWorld );
 
 public:
 	// templated helper I like having
@@ -55,7 +59,7 @@ private:
 
 	// human settable independent variables; 
 	Vec4 m_virtualPosition     = Vec4( .5f, .5f, 0.0f, 0.0f );     // centered relative to container
-	Vec4 m_virtualSize         = Vec4( 1.0f, 1.0f, 0.0f, 0.0f );   // stretch to 100% of the screen 
+	Vec4 m_virtualSize         = Vec4( .1f, .1f, 0.0f, 0.0f );   // stretch to 100% of the screen 
 	Vec2 m_pivot               = Vec2( .5f, .5f );                 // centered
 
 																   // derived from the above;
@@ -65,6 +69,8 @@ private:
 	// Misc Data
 	//eUIWidgetFlags m_uiFlags   = 0U;       // some state tracking; 
 	UIRadioGroup *m_radioGroup = nullptr;  // which radio group do I belong to?
+
+	std::string	m_defaultShaderName	= "default_unlit.00.hlsl";
 }; 
 
 class UILabel : public UIWidget

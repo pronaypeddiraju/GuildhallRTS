@@ -29,6 +29,7 @@
 #include "Game/GameInput.hpp"
 #include "Game/Map.hpp"
 #include "Game/RTSCamera.hpp"
+#include "Game/UIWidget.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 float g_shakeAmount = 0.0f;
@@ -806,6 +807,7 @@ void Game::Render() const
 	case STATE_MENU:
 	{
 		RenderMainMenuState();
+		RenderMenuUI();
 	}
 	break;
 	case STATE_LOAD:
@@ -1013,6 +1015,19 @@ void Game::RenderMainMenuState() const
 	std::vector<Vertex_PCU> boxVerts;
 	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
 	g_renderContext->DrawVertexArray(boxVerts);
+
+	g_renderContext->EndCamera();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderMenuUI() const
+{
+	//Render the Menu UI 
+	UIWidget mainMenu(nullptr);
+	mainMenu.UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+	g_renderContext->BeginCamera(*m_UICamera);	
+
+	mainMenu.Render();
 
 	g_renderContext->EndCamera();
 }

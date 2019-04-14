@@ -97,6 +97,7 @@ public:
 	void								RenderInitState() const;
 	void								RenderLoadState() const;
 	void								RenderMainMenuState() const;
+	void								RenderMenuUI() const;
 	void								RenderGameState() const;
 	void								RenderEditState() const;
 	void								RenderControlsToUI() const;
