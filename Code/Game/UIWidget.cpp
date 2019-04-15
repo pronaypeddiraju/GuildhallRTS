@@ -114,7 +114,6 @@ void UIWidget::RenderForWidgetType()
 
 		std::vector<Vertex_PCU> boxVerts;
 		AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
-		AddVertsForBoundingBox(boxVerts, boxDimensions, m_color, 10.f);
 
 		if(button->m_buttonTexture != nullptr)
 		{
@@ -127,6 +126,28 @@ void UIWidget::RenderForWidgetType()
 		
 		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 
+		//Check if there is hover (Find a better place to check this! Have an update)
+		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
+		IntVec2 clientSize = g_windowContext->GetTureClientBounds();
+
+		Vec2 relativePosition;
+		relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
+		relativePosition.y = RangeMapFloat((float)mousePos.y, 0.f, (float)clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
+
+		if( IsPointInAABBB2(boxDimensions, relativePosition))
+		{
+			UIButton* button = dynamic_cast<UIButton*>(this);
+
+			button->OnHover();
+		}
+		else
+		{
+			button->OnUnHover();
+		}
+
+		//Add verts for the box
+		AddVertsForBoundingBox(boxVerts, boxDimensions, m_color, 10.f);
+
 		g_renderContext->DrawVertexArray(boxVerts);
 	}
 	break;
@@ -136,6 +157,14 @@ void UIWidget::RenderForWidgetType()
 
 		AABB2 parentBounds = m_parent->GetWorldBounds();
 		AABB2 BoxDimensions = GetWidgetDimensions(parentBounds);
+
+		//Check if the parent is a button, if yes set the parent's color as label color
+		UIButton* button = dynamic_cast<UIButton*>(this->m_parent);
+		
+		if(button != nullptr)
+		{
+			m_color = button->m_color;
+		}
 
 		std::vector<Vertex_PCU> textVerts;
 		AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
@@ -393,6 +422,12 @@ void UIButton::SetOnClick( const std::string& onClickEvent )
 void UIButton::SetButtonTexture( const std::string& texturePath )
 {
 	m_buttonTexture = g_renderContext->GetOrCreateTextureViewFromFile(texturePath);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void UIButton::SetOnHover( const std::string& onHoverEvent )
+{
+	m_eventOnHover = onHoverEvent;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

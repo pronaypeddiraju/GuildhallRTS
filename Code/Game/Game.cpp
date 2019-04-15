@@ -987,7 +987,7 @@ void Game::RenderLoadState() const
 
 	std::vector<Vertex_PCU> textVerts;
 	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Loading....", Rgba::WHITE);
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Loading....", Rgba(1.f, 1.f, 1.f, 0.5f));
 	g_renderContext->DrawVertexArray(textVerts);
 
 	g_renderContext->EndCamera();
@@ -1300,7 +1300,7 @@ void Game::CreateMenuUIWidgets()
 	//Create the Play Button
 	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
 	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
-	Vec4 position = Vec4(0.75f, 0.75, 0.f, 0.f);
+	Vec4 position = Vec4(0.75f, 0.f, 0.f, 220.f);
 	m_playButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
 	m_playButton->SetOnClick("GoToGame");
 	m_playButton->SetColor(Rgba::WHITE);
@@ -1308,7 +1308,7 @@ void Game::CreateMenuUIWidgets()
 	//Create the Edit button
 	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
 	size = Vec4(0.1f, 0.1f, 0.f, 0.f);
-	position = Vec4(0.75f, 0.75, 0.f, -100.f);
+	position = Vec4(0.75f, 0.f, 0.f, 130.f);
 
 	m_editButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
 	m_editButton->SetOnClick("GoToEdit");
@@ -1324,6 +1324,21 @@ void Game::CreateMenuUIWidgets()
 
 	label = m_editButton->CreateChild<UILabel>(m_editButton->GetWorldBounds(), size, position);
 	label->SetLabelText("EDIT");
+	label->SetColor(Rgba::WHITE);
+
+	//Age of emptiness
+	size = Vec4(0.4f, 0.45f, 0.f, 0.f);
+	position = Vec4(0.35f, 1.0, 0.f, -120.f);
+
+	label = m_menuParent->CreateChild<UILabel>(m_menuParent->GetWorldBounds(), size, position);
+	label->SetLabelText("Age of Emptiness III");
+	label->SetColor(Rgba(0.f, 0.f, 0.f, 1.f));
+
+	size = Vec4(0.4f, 0.4f, 0.f, 0.f);
+	position = Vec4(0.35f, 1.0, 0.f, -117.f);
+
+	label = m_menuParent->CreateChild<UILabel>(m_menuParent->GetWorldBounds(), size, position);
+	label->SetLabelText("Age of Emptiness III");
 	label->SetColor(Rgba::WHITE);
 }
 

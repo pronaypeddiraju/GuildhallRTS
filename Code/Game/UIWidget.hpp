@@ -125,6 +125,7 @@ private:
 	BitmapFont* m_font = nullptr;
 }; 
 
+//------------------------------------------------------------------------------------------------------------------------------
 class UILabel : public UIWidget
 {
 public:
@@ -137,6 +138,7 @@ public:
 	std::string m_labelText = "";
 }; 
 
+//------------------------------------------------------------------------------------------------------------------------------
 class Event
 {
 public:
@@ -148,6 +150,7 @@ public:
 	EventArgs m_args;
 }; 
 
+//------------------------------------------------------------------------------------------------------------------------------
 class UIButton : public UIWidget
 {
 public:
@@ -156,6 +159,7 @@ public:
 
 	void SetOnClick(const std::string& onClickEvent);
 	void SetButtonTexture(const std::string& texturePath);
+	void SetOnHover(const std::string& onHoverEvent);
 
 	void Click()
 	{
@@ -163,10 +167,32 @@ public:
 		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
 	}
 
+	void OnHover()
+	{
+		/*
+		Event evt( m_eventOnHover ); 
+		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
+		*/
+
+		SetColor(Rgba(0.4f, 0.9f, 0.9f, 1.f));
+	}
+
+	void OnUnHover()
+	{
+		/*
+		Event evt( m_eventOnHover ); 
+		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
+		*/
+
+		SetColor(Rgba::WHITE);
+	}
+
 	std::string m_eventOnClick = "play map=level0.map";
+	std::string m_eventOnHover = "play map=level0.map";
 	TextureView* m_buttonTexture = nullptr;
 }; 
 
+//------------------------------------------------------------------------------------------------------------------------------
 class UISlider : public UIWidget
 {
 	/*
@@ -186,6 +212,7 @@ class UISlider : public UIWidget
 	std::string m_eventOnChange = "changeRadius"; 
 }; 
 
+//------------------------------------------------------------------------------------------------------------------------------
 // A radio group allows for only a single item in the group 
 // to be selected at a time - ie, mutually exclusive selection
 class UIRadioGroup : public UIWidget

@@ -170,7 +170,7 @@ public:
 	std::string							m_sphereTexturePath = "2k_earth_daymap.jpg";
 	std::string							m_xmlShaderPath = "default_unlit.xml";
 	std::string							m_materialPath = "couch.mat";
-	std::string							m_backgroundPath = "title.png";
+	std::string							m_backgroundPath = "pixelArt.jpg";
 
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
