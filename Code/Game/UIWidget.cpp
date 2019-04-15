@@ -8,18 +8,21 @@
 #include "Engine/Renderer/BitmapFont.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 // Game systems
+#include "Game/Game.hpp"
 #include "Game/GameCommon.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
-UIWidget::UIWidget(UIWidget* parent)
+UIWidget::UIWidget(Game* game, UIWidget* parent)
 {
 	m_parent = parent;
+	m_game = game;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 UIWidget::~UIWidget()
 {
 	m_parent = nullptr;
+	DestroyChildren();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -33,29 +36,39 @@ void UIWidget::ProcessInput( InputEvent &evt )
 {
 	ProcessChildrenInput(evt);
 
+	/*
 	if(m_parent == nullptr)
 	{
 		return;
 	}
+	*/
 
 	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
 	IntVec2 clientSize = g_windowContext->GetTureClientBounds();
 
 	Vec2 relativePosition;
-	relativePosition.x = RangeMapFloat(mousePos.x, 0.f, clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
-	relativePosition.y = RangeMapFloat(mousePos.y, 0.f, clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
+	relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
+	relativePosition.y = RangeMapFloat((float)mousePos.y, 0.f, (float)clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
 
 	AABB2 BoxDimensions = GetWidgetDimensions(AABB2(Vec2::ZERO, Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 	AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
 
 	if( IsPointInAABBB2(boxDimensions, relativePosition))
 	{
-		g_devConsole->PrintString(m_color, "Is in button");
-	}
-	else
-	{
+		UIButton* button = dynamic_cast<UIButton*>(this);
 
+		if(button != nullptr && !evt.m_consumed)
+		{
+			std::string key = "clickType";
+			evt.m_clickType = evt.m_args.GetValue(key, "");
+			if(evt.m_clickType == "LBDown")
+			{
+				button->Click();
+				evt.m_consumed = true;
+			}
+		}
 	}
+	
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -70,8 +83,8 @@ void UIWidget::Render()
 
 	//Cursor Relative Position in UI space
 	Vec2 relativePosition;
-	relativePosition.x = RangeMapFloat(mousePos.x, 0.f, clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
-	relativePosition.y = RangeMapFloat(mousePos.y, 0.f, clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
+	relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
+	relativePosition.y = RangeMapFloat((float)mousePos.y, 0.f, (float)clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
 
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
@@ -148,8 +161,8 @@ void UIWidget::RenderMouseData() const
 
 	AABB2 CamBounds = AABB2(Vec2(CamSize.x * -0.5f, CamSize.y * -0.5f), Vec2(CamSize.x * 0.5f, CamSize.y * 0.5f));
 
-	correctedPos.x = RangeMapFloat(mousePos.x, parentBounds.m_minBounds.x, parentBounds.m_maxBounds.x, CamBounds.m_minBounds.x, CamBounds.m_maxBounds.x);
-	correctedPos.y = RangeMapFloat(mousePos.y, parentBounds.m_minBounds.y, parentBounds.m_maxBounds.y, CamBounds.m_minBounds.y, CamBounds.m_maxBounds.y);
+	correctedPos.x = RangeMapFloat((float)mousePos.x, parentBounds.m_minBounds.x, parentBounds.m_maxBounds.x, CamBounds.m_minBounds.x, CamBounds.m_maxBounds.x);
+	correctedPos.y = RangeMapFloat((float)mousePos.y, parentBounds.m_minBounds.y, parentBounds.m_maxBounds.y, CamBounds.m_minBounds.y, CamBounds.m_maxBounds.y);
 
 
 
@@ -274,6 +287,17 @@ void UIWidget::RenderChildren()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void UIWidget::DestroyChildren()
+{
+	for (int childIndex = 0; childIndex < (int)m_children.size(); ++childIndex)
+	{
+		delete m_children[childIndex];
+		m_children[childIndex] = nullptr;
+		m_children.erase(m_children.begin() + childIndex);
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 InputEvent::InputEvent( const std::string& name, const EventArgs& args )
 {
 	m_name = name;
@@ -285,4 +309,51 @@ InputEvent::InputEvent( const std::string& name, const EventArgs& args )
 InputEvent::~InputEvent()
 {
 
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+Event::Event( std::string const &commandLine )
+{
+	std::vector<std::string> splitStrings = SplitStringOnDelimiter(commandLine, ' ');
+
+	m_name = splitStrings[0];
+
+	for(int stringIndex = 1; stringIndex < static_cast<int>(splitStrings.size()); stringIndex++)
+	{
+		//split on =
+		std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(splitStrings[stringIndex], '=');
+		if(KeyValSplit.size() != 2)
+		{
+			continue;
+		}
+		else
+		{
+			m_args.SetValue(KeyValSplit[0], KeyValSplit[1]);
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+Event::~Event()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+UIButton::UIButton( Game* game, UIWidget* parent )
+	: UIWidget(game, parent)
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+UIButton::~UIButton()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void UIButton::SetOnClick( const std::string& onClickEvent )
+{
+	m_eventOnClick = onClickEvent;
 }

@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/NamedStrings.hpp"
 #include "Engine/Math//AABB2.hpp"
 #include "Engine/Math/MathUtils.hpp"
@@ -9,6 +10,7 @@
 #include <string>
 
 class UIRadioGroup;
+class Game;
 
 //------------------------------------------------------------------------------------------------------------------------------
 class InputEvent
@@ -19,7 +21,7 @@ public:
 
 	inline bool			WasConsumed() {return m_consumed;};
 
-private:
+public:
 	bool m_consumed = false;
 	std::string m_name;
 	std::string m_clickType;
@@ -31,7 +33,7 @@ private:
 class UIWidget
 {
 public:
-	UIWidget(UIWidget* parent); 
+	UIWidget(Game* game, UIWidget* parent); 
 	virtual ~UIWidget(); // virtual dctr - why?  Baseline this should kill all my children; 
 
 	void					UpdateBounds( AABB2 const &container ); 
@@ -62,7 +64,7 @@ public:
 	template <typename T>
 	T* CreateChild(const AABB2& bounds, const Vec4& size = Vec4( 1.f, 1.f, 0.0f, 0.0f ), const Vec4& position = Vec4( .5f, .5f, 0.0f, 0.0f ), const Vec2& pivot = Vec2( .5f, .5f ), const Rgba& color = Rgba::DARK_GREY) 
 	{
-		T* child = new T(this);
+		T* child = new T(m_game, this);
 
 		child->UpdateBounds(bounds);
 		child->SetSize(size);
@@ -70,7 +72,8 @@ public:
 		child->SetPivot(pivot);
 		child->SetColor(color);
 
-		return AddChild(child);
+		m_children.push_back(child);
+		return child;
 	}
 
 protected:
@@ -83,6 +86,7 @@ protected:
 private:
 	// heirarchy information
 	UIWidget *m_parent         = nullptr; 
+	Game* m_game		       = nullptr;
 	std::vector<UIWidget*> m_children; 
 
 	// human settable independent variables; 
@@ -115,8 +119,8 @@ class UILabel : public UIWidget
 class Event
 {
 public:
-	Event();
 	Event( std::string const &commandLine );
+	~Event();
 
 public:
 	std::string m_name; 
@@ -125,19 +129,17 @@ public:
 
 class UIButton : public UIWidget
 {
-	// implement me
-	// ...
+public:
+	UIButton(Game* game, UIWidget* parent);
+	~UIButton();
 
-	/*
+	void SetOnClick(const std::string& onClickEvent);
+
 	void Click()
 	{
-		Event evt( m_eventClick ); 
-		// m_name; 
-		// m_args; 
-
-		EventFire( evt.GetName(), evt.GetArgs() );  
+		Event evt( m_eventOnClick ); 
+		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
 	}
-	*/
 
 	std::string m_eventOnClick = "play map=level0.map";
 }; 

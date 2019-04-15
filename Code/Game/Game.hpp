@@ -19,6 +19,7 @@ class Shader;
 class SpriteAnimDefenition;
 class Texture;
 class TextureView;
+class UIButton;
 class UIWidget;
 
 struct Camera;
@@ -47,6 +48,8 @@ public:
 	static bool				ToggleLight3(EventArgs& args);
 	static bool				ToggleLight4(EventArgs& args);
 	static bool				ToggleAllPointLights(EventArgs& args);
+
+	static bool				GoToGame(EventArgs& args);
 
 	static bool				ReLoadMap(EventArgs& args);
 
@@ -222,5 +225,5 @@ public:
 
 	//UI References
 	UIWidget*							m_menuParent = nullptr;
-	UIWidget*							m_menuButton = nullptr;
+	UIButton*							m_menuButton = nullptr;
 };

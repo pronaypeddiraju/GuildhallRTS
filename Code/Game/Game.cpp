@@ -135,6 +135,14 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::GoToGame( EventArgs& args )
+{
+	UNUSED(args);
+	s_gameReference->m_gameState = STATE_PLAY;
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 STATIC bool Game::ReLoadMap( EventArgs& args )
 {
 	IntVec2 mapDimensions = IntVec2::ZERO;
@@ -282,6 +290,7 @@ void Game::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn("ToggleLight4", ToggleLight4);
 	g_eventSystem->SubscribeEventCallBackFn("ToggleAllPointLights", ToggleAllPointLights);
 
+	g_eventSystem->SubscribeEventCallBackFn( "GoToGame", GoToGame);
 	g_eventSystem->SubscribeEventCallBackFn("RemakeMap", ReLoadMap);
 
 	/*
@@ -692,6 +701,9 @@ void Game::DebugEnabled()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::Shutdown()
 {
+	delete m_menuParent;
+	m_menuParent = nullptr;
+
 	delete m_map;
 	m_map = nullptr;
 
@@ -1266,7 +1278,7 @@ bool Game::IsAlive()
 void Game::CreateUIWidgets()
 {
 	//Create the parent widget
-	m_menuParent = new UIWidget(nullptr);
+	m_menuParent = new UIWidget(this, nullptr);
 	m_menuParent->SetColor(Rgba::GREEN);
 	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
@@ -1284,7 +1296,8 @@ void Game::CreateUIWidgets()
 	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
 	Vec4 position = Vec4(0.5f, 0.5, 0.f, 0.f);
 
-	m_menuButton = m_menuParent->CreateChild<UIWidget>(bounds, size, position);
+	m_menuButton = m_menuParent->CreateChild<UIButton>(bounds, size, position);
+	m_menuButton->SetOnClick("GoToGame");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
