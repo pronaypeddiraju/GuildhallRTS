@@ -266,6 +266,9 @@ void Game::SetupMouseData()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::SetupCameras()
 {
+	IntVec2 client = g_windowContext->GetTureClientBounds();
+	float aspect = (float)client.x / (float)client.y;
+
 	//Create the Camera and setOrthoView
 	m_mainCamera = new Camera();
 	m_mainCamera->SetColorTarget(nullptr);
@@ -281,15 +284,15 @@ void Game::SetupCameras()
 	//Create a RTSCamera
 	m_RTSCam = new RTSCamera();
 	m_RTSCam->SetColorTarget(nullptr);
-	m_RTSCam->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, SCREEN_ASPECT);
+	m_RTSCam->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, aspect);
 
 	//Set Projection Perspective for new Cam
 	m_camPosition = Vec3(0.f, 0.f, -10.f);
 	m_mainCamera->SetColorTarget(nullptr);
-	m_mainCamera->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, SCREEN_ASPECT);
+	m_mainCamera->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, aspect);
 
 	//Set the ortho perspective for the UI camera
-	m_UICamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * CANVAS_ASPECT, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * CANVAS_ASPECT, CANVAS_HEIGHT * 0.5f));
+	m_UICamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * aspect, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * aspect, CANVAS_HEIGHT * 0.5f));
 
 	m_clearScreenColor = new Rgba(0.f, 0.f, 0.5f, 1.f);
 }
@@ -956,6 +959,11 @@ void Game::RenderEditState() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderEditUI() const
 {
+	IntVec2 client = g_windowContext->GetTureClientBounds();
+	Vec2 boundsSize = Vec2((float)client.x, (float)client.y); 
+
+	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
 	g_renderContext->BeginCamera(*m_UICamera);	
 
 	m_editParent->Render();
@@ -1060,7 +1068,13 @@ void Game::RenderMainMenuState() const
 void Game::RenderMenuUI() const
 {
 	//Render the Menu UI 
-	//mainMenu.UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(20.f, 10.f)));
+	/*
+	IntVec2 client = g_windowContext->GetTureClientBounds();
+	Vec2 boundsSize = Vec2(client.x, client.y); 
+	m_menuParent->UpdateBounds(AABB2(Vec2(UI_SCREEN_HEIGHT * UI_SCREEN_ASPECT * -0.5f, UI_SCREEN_HEIGHT * -0.5f), Vec2(UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_HEIGHT * 0.5f)));
+	*/
+
+	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
 	g_renderContext->BeginCamera(*m_UICamera);	
 
@@ -1227,7 +1241,10 @@ void Game::Update( float deltaTime )
 
 		PerformInitActions();
 
-		m_devConsoleCamera->SetOrthoView(Vec2(-WORLD_WIDTH * 0.5f * SCREEN_ASPECT, -WORLD_HEIGHT * 0.5f), Vec2(WORLD_WIDTH * 0.5f * SCREEN_ASPECT, WORLD_HEIGHT * 0.5f));
+		ColorTargetView* target = g_renderContext->GetFrameColorTarget();
+		float aspect = (float)target->m_width / (float)target->m_height;
+
+		m_devConsoleCamera->SetOrthoView(Vec2(-WORLD_WIDTH * 0.5f * aspect, -WORLD_HEIGHT * 0.5f), Vec2(WORLD_WIDTH * 0.5f * aspect, WORLD_HEIGHT * 0.5f));
 		m_devConsoleSetup = true;
 	}
 
@@ -1405,17 +1422,20 @@ void Game::CreateEditUIWidgets()
 	// Menu Widgets
 	m_editParent = new UIWidget(this, nullptr);
 	m_editParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
-	m_editParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
+	IntVec2 client = g_windowContext->GetTureClientBounds();
+
+	Vec2 boundsSize = Vec2((float)client.x, (float)client.y); 
+	m_editParent->UpdateBounds(AABB2(Vec2::ZERO, Vec2(UI_SCREEN_HEIGHT * UI_SCREEN_ASPECT, UI_SCREEN_HEIGHT)));
 
 	//Create the radio group
 	m_editRadGroup = m_editParent->CreateChild<UIRadioGroup>(m_editParent->GetWorldBounds());
 
-	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
-	Vec4 size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
-	Vec4 position = Vec4(0.f, 1.f, 250.f, -150.f);
-	
+	Vec4 size = Vec4( 0.0f, 0.0f, 64.0f, 64.0f );
+	Vec4 position = Vec4(0.f, 1.f, 250.f, -150.f);;
+
 	//Create the first Button
-	UIButton* button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	UIButton* button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
 	button->SetButtonTexture("stone_diffuse.png");
@@ -1424,11 +1444,9 @@ void Game::CreateEditUIWidgets()
 	button->SetRadioType(true);
 
 	//Create the 2nd button
-	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
-	size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
 	position = Vec4(0.f, 1.f, 350.f, -150.f);
 
-	button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
 	button->SetButtonTexture("stone_normal.png");
@@ -1437,11 +1455,9 @@ void Game::CreateEditUIWidgets()
 	button->hoverColor = Rgba::GREEN;
 
 	//Create the 3rd button
-	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
-	size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
 	position = Vec4(0.f, 1.f, 450.f, -150.f);
 
-	button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
 	button->SetButtonTexture("stone_spec.png");
@@ -1450,11 +1466,9 @@ void Game::CreateEditUIWidgets()
 	button->hoverColor = Rgba::GREEN;
 
 	//Create the 4th button
-	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
-	size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
 	position = Vec4(0.f, 1.f, 550.f, -150.f);
 
-	button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
 	button->SetButtonTexture("Test_StbiFlippedAndOpenGL.png");

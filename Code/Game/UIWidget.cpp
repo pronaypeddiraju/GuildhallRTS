@@ -31,6 +31,14 @@ void UIWidget::UpdateBounds( AABB2 const &container )
 {
 	m_worldBounds = GetWidgetDimensions(container);
 	//m_worldBounds = container;
+	
+	/*
+	int numChildren = (int)m_children.size();
+	for(int i = 0; i < numChildren; i++)
+	{
+		m_children[i]->UpdateBounds(m_worldBounds);
+	}
+	*/
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -293,15 +301,15 @@ AABB2 UIWidget::GetWidgetDimensions( const AABB2& parentBounds )
 
 	//Get the size of the local box
 	Vec2 BL = Vec2::ZERO;
-	Vec2 TR = Vec2(parentWidth * m_virtualSize.x, parentHeight * m_virtualSize.y);
+	Vec2 TR = Vec2(parentWidth * m_virtualSize.x + m_virtualSize.z, parentHeight * m_virtualSize.y + m_virtualSize.w);
 
 	AABB2 relativeBounds(GetRelativePosToParent(parentBounds.m_minBounds), GetRelativePosToParent(parentBounds.m_maxBounds));
 
 	//Move it to the correct position
 	Vec2 center = parentBounds.GetBottomLeft2D() + Vec2(m_virtualPosition.x * parentWidth, m_virtualPosition.y * parentHeight);
 	m_position = center;
-	BL = center + Vec2(parentWidth * m_virtualSize.x, parentHeight * m_virtualSize.y)  * -1.f * m_pivot;
-	TR = center + Vec2(parentWidth * m_virtualSize.x, parentHeight * m_virtualSize.y) * 1.f * m_pivot;
+	BL = center + Vec2(parentWidth * m_virtualSize.x + m_virtualSize.z, parentHeight * m_virtualSize.y + m_virtualSize.w)  * -1.f * m_pivot;
+	TR = center + Vec2(parentWidth * m_virtualSize.x + m_virtualSize.z, parentHeight * m_virtualSize.y + m_virtualSize.w) * 1.f * m_pivot;
 
 	//Add any offsets
 	BL += Vec2(m_virtualPosition.z, m_virtualPosition.w);
@@ -317,7 +325,7 @@ Vec2 UIWidget::GetRelativePosToParent( const Vec2& positionInWorld )
 {
 	Vec2 correctedPos;
 	IntVec2 CamSize = g_renderContext->GetCurrentScreenDimensions();
-	
+
 	AABB2 parentBounds;
 	/*
 	if(m_parent != nullptr)				{	parentBounds = m_parent->GetWorldBounds();												   }
@@ -330,6 +338,24 @@ Vec2 UIWidget::GetRelativePosToParent( const Vec2& positionInWorld )
 
 	correctedPos.x = RangeMapFloat(positionInWorld.x, parentBounds.m_minBounds.x, parentBounds.m_maxBounds.x, CamBounds.m_minBounds.x, CamBounds.m_maxBounds.x);
 	correctedPos.y = RangeMapFloat(positionInWorld.y, parentBounds.m_minBounds.y, parentBounds.m_maxBounds.y, CamBounds.m_minBounds.y, CamBounds.m_maxBounds.y);
+	return correctedPos;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+Vec2 UIWidget::GetRelativePosToScreen( const Vec2& positionOnScreen )
+{
+	Vec2 correctedPos;
+	IntVec2 CamSize = g_renderContext->GetCurrentScreenDimensions();
+	IntVec2 clientSize = g_windowContext->GetTureClientBounds();
+
+	AABB2 parentBounds;
+
+	parentBounds = AABB2(Vec2::ZERO, Vec2((float)clientSize.x, (float)clientSize.y));
+
+	AABB2 CamBounds = AABB2(Vec2(CamSize.x * -0.5f, CamSize.y * -0.5f), Vec2(CamSize.x * 0.5f, CamSize.y * 0.5f));
+
+	correctedPos.x = RangeMapFloat(positionOnScreen.x, parentBounds.m_minBounds.x, parentBounds.m_maxBounds.x, CamBounds.m_minBounds.x, CamBounds.m_maxBounds.x);
+	correctedPos.y = RangeMapFloat(positionOnScreen.y, parentBounds.m_minBounds.y, parentBounds.m_maxBounds.y, CamBounds.m_minBounds.y, CamBounds.m_maxBounds.y);
 	return correctedPos;
 }
 

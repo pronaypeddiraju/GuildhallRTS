@@ -74,6 +74,9 @@ public:
 	AABB2					GetWidgetDimensions( const AABB2& parentBounds );
 
 	Vec2					GetRelativePosToParent( const Vec2& positionInWorld );
+	
+	// Function used to range map only for rendering
+	Vec2					GetRelativePosToScreen( const Vec2& positionOnScreen );
 
 public:
 	// templated helper I like having
