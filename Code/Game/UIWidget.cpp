@@ -134,15 +134,16 @@ void UIWidget::RenderForWidgetType()
 		relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
 		relativePosition.y = RangeMapFloat((float)mousePos.y, 0.f, (float)clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
 
+		UIButton* button2 = dynamic_cast<UIButton*>(this);
+
 		if( IsPointInAABBB2(boxDimensions, relativePosition))
 		{
-			UIButton* button = dynamic_cast<UIButton*>(this);
 
-			button->OnHover();
+			button2->OnHover();
 		}
 		else
 		{
-			button->OnUnHover();
+			button2->OnUnHover();
 		}
 
 		//Add verts for the box

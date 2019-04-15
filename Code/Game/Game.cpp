@@ -304,6 +304,7 @@ void Game::PerformInitActions()
 	CreateInitialLight();
 
 	CreateMenuUIWidgets();
+	CreateGameUIWidgets();
 	CreateEditUIWidgets();
 
 	m_gameState = STATE_MENU;
@@ -632,6 +633,11 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			m_gameState = STATE_EDIT;
 			break;
 		}
+		case NUM_6:
+		{
+			m_showGameControls = !m_showGameControls;
+			break;
+		}
 		default:
 		break;
 	}
@@ -855,9 +861,47 @@ void Game::RenderGameState() const
 	AABB2 infoBox = AABB2(Vec2(-640.0f, 340.f), Vec2(640.f, 360.f));
 	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "PLAY MODE", Rgba::YELLOW, 1.f, Vec2::ALIGN_CENTERED);
 	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	
+	AABB2 titleBox = AABB2(Vec2(-600.0f, 260.f), Vec2(100.f, 280.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "NUM_6 : Toggle Controls", Rgba::YELLOW, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
 	g_renderContext->DrawVertexArray(textVerts);
 
+	if(m_showGameControls)
+	{
+		RenderGameUI();
+	}
+
 	g_renderContext->EndCamera();
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderGameUI() const
+{
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	std::vector<Vertex_PCU> textVerts;
+	
+	AABB2 titleBox = AABB2(Vec2(-600.0f, 240.f), Vec2(100.f, 260.f));
+	//m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "NUM_1 to NUM_5 : State Switching", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	
+	titleBox = AABB2(Vec2(-600.0f, 220.f), Vec2(100.f, 240.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "W,A,S,D : Move", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
+	titleBox = AABB2(Vec2(-600.0f, 200.f), Vec2(100.f, 220.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "MOUSE : Panning", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
+	titleBox = AABB2(Vec2(-600.0f, 180.f), Vec2(100.f, 200.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "SCROLL WHEEL: Zoom into map", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
+	titleBox = AABB2(Vec2(-600.0f, 160.f), Vec2(100.f, 180.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "LCTRL: Rotate Camera", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	
+	titleBox = AABB2(Vec2(-600.0f, 140.f), Vec2(100.f, 160.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, " ` KEY: Developer Console", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+
+	g_renderContext->DrawVertexArray(textVerts);
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1340,6 +1384,13 @@ void Game::CreateMenuUIWidgets()
 	label = m_menuParent->CreateChild<UILabel>(m_menuParent->GetWorldBounds(), size, position);
 	label->SetLabelText("Age of Emptiness III");
 	label->SetColor(Rgba::WHITE);
+
+	size = Vec4(0.35f, 0.35f, 0.f, 0.f);
+	position = Vec4(0.35f, 1.0, 0.f, -160.f);
+
+	label = m_menuParent->CreateChild<UILabel>(m_menuParent->GetWorldBounds(), size, position);
+	label->SetLabelText("A truly empty 3D experience");
+	label->SetColor(Rgba::DARK_GREY);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1366,6 +1417,26 @@ void Game::CreateEditUIWidgets()
 
 	UILabel* label = m_playButton->CreateChild<UILabel>(m_playButton->GetWorldBounds(), size, position);
 	label->SetLabelText("EDIT");
+	label->SetColor(Rgba::WHITE);
+	*/
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::CreateGameUIWidgets()
+{
+	/*
+	// Menu Widgets
+	m_gameParent = new UIWidget(this, nullptr);
+	m_gameParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
+	m_gameParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
+	/*
+	//Init
+	Vec4 size = Vec4(0.4f, 0.3f, 0.f, 0.f);
+	Vec4 position = Vec4(0.4f, 1.0, 0.f, -120.f);
+
+	UILabel* label = m_gameParent->CreateChild<UILabel>(m_gameParent->GetWorldBounds(), size, position);
+	label->SetLabelText("NUM_1: Go to init state");
 	label->SetColor(Rgba::WHITE);
 	*/
 }

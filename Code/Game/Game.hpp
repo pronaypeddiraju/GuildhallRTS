@@ -67,6 +67,7 @@ public:
 	void								PerformInitActions();
 	void								CreateMenuUIWidgets();
 	void								CreateEditUIWidgets();
+	void								CreateGameUIWidgets();
 
 	void								GetandSetShaders();
 	void								LoadGameTextures();
@@ -104,6 +105,7 @@ public:
 	void								RenderMainMenuState() const;
 	void								RenderMenuUI() const;
 	void								RenderGameState() const;
+	void								RenderGameUI() const;
 	void								RenderEditState() const;
 	void								RenderEditUI() const;
 	void								RenderControlsToUI() const;
@@ -142,6 +144,7 @@ private:
 	bool								m_devConsoleSetup = false;
 	bool								m_isDebugSetup = false;
 	bool								m_inputSetup = false;
+	bool								m_showGameControls = false;
 	float								m_cameraSpeed = 0.3f; 
 
 public:
@@ -235,4 +238,5 @@ public:
 	UIButton*							m_editButton = nullptr;
 
 	UIWidget*							m_editParent = nullptr;
+	UIWidget*							m_gameParent = nullptr;
 };
