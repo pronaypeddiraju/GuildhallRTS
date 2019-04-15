@@ -1341,23 +1341,29 @@ void Game::CreateMenuUIWidgets()
 	m_menuParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
 	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
-	//Create the Play Button
+	//Create the radio group
+	m_menuRadGroup = m_menuParent->CreateChild<UIRadioGroup>(m_menuParent->GetWorldBounds());
+
 	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
 	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
 	Vec4 position = Vec4(0.75f, 0.f, 0.f, 220.f);
-	m_playButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
+	//Create the Play Button
+	m_playButton = m_menuRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
 	m_playButton->SetOnClick("GoToGame");
 	m_playButton->SetColor(Rgba::WHITE);
+	m_playButton->unHovercolor = Rgba::WHITE;
+	m_playButton->SetRadioType(true);
 	
 	//Create the Edit button
 	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
 	size = Vec4(0.1f, 0.1f, 0.f, 0.f);
 	position = Vec4(0.75f, 0.f, 0.f, 130.f);
 
-	m_editButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
+	m_editButton = m_menuRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
 	m_editButton->SetOnClick("GoToEdit");
 	m_editButton->SetColor(Rgba::WHITE);
-
+	m_editButton->unHovercolor = Rgba::WHITE;
+	m_editButton->SetRadioType(true);
 
 	size = Vec4(1.f, .75f, 0.f, 0.f);
 	position = Vec4(0.5f, 0.5, 0.f, 0.f);
@@ -1401,24 +1407,61 @@ void Game::CreateEditUIWidgets()
 	m_editParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
 	m_editParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
-	//Make a Radio Group here
+	//Create the radio group
+	m_editRadGroup = m_editParent->CreateChild<UIRadioGroup>(m_editParent->GetWorldBounds());
 
-	/*
-	//Create the Play Button
 	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
-	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
-	Vec4 position = Vec4(0.75f, 0.75, 0.f, 0.f);
-	m_playButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
-	m_playButton->SetOnClick("GoToGame");
-	m_playButton->SetColor(Rgba::WHITE);
+	Vec4 size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
+	Vec4 position = Vec4(0.f, 1.f, 250.f, -150.f);
+	
+	//Create the first Button
+	UIButton* button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button->SetOnClick("isActive=true");
+	button->SetColor(Rgba::WHITE);
+	button->SetButtonTexture("stone_diffuse.png");
+	button->unHovercolor = Rgba::WHITE;
+	button->hoverColor = Rgba::GREEN;
+	button->SetRadioType(true);
 
-	size = Vec4(1.f, .75f, 0.f, 0.f);
-	position = Vec4(0.5f, 0.5, 0.f, 0.f);
+	//Create the 2nd button
+	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
+	position = Vec4(0.f, 1.f, 350.f, -150.f);
 
-	UILabel* label = m_playButton->CreateChild<UILabel>(m_playButton->GetWorldBounds(), size, position);
-	label->SetLabelText("EDIT");
-	label->SetColor(Rgba::WHITE);
-	*/
+	button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button->SetOnClick("isActive=true");
+	button->SetColor(Rgba::WHITE);
+	button->SetButtonTexture("stone_normal.png");
+	button->SetRadioType(true);
+	button->unHovercolor = Rgba::WHITE;
+	button->hoverColor = Rgba::GREEN;
+
+	//Create the 3rd button
+	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
+	position = Vec4(0.f, 1.f, 450.f, -150.f);
+
+	button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button->SetOnClick("isActive=true");
+	button->SetColor(Rgba::WHITE);
+	button->SetButtonTexture("stone_spec.png");
+	button->SetRadioType(true);
+	button->unHovercolor = Rgba::WHITE;
+	button->hoverColor = Rgba::GREEN;
+
+	//Create the 4th button
+	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	size = Vec4(0.1f * UI_NEGATIVE_ASPECT, 0.1f, 0.f, 0.f);
+	position = Vec4(0.f, 1.f, 550.f, -150.f);
+
+	button = m_editRadGroup->CreateChild<UIButton>(m_menuRadGroup->GetWorldBounds(), size, position);
+	button->SetOnClick("isActive=true");
+	button->SetColor(Rgba::WHITE);
+	button->SetButtonTexture("Test_StbiFlippedAndOpenGL.png");
+	button->SetRadioType(true);
+	button->unHovercolor = Rgba::WHITE;
+	button->hoverColor = Rgba::GREEN;
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

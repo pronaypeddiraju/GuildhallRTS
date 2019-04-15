@@ -23,6 +23,7 @@ constexpr float MIN_ZOOM_STEPS = -10.f;
 
 constexpr float UI_SCREEN_ASPECT = 1.77f;
 constexpr float UI_SCREEN_HEIGHT = 720.f;
+constexpr float UI_NEGATIVE_ASPECT = 0.5625;
 
 class RenderContext;
 class InputSystem;

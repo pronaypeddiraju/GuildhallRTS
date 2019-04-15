@@ -92,7 +92,7 @@ void UIWidget::Render()
 	}
 	else
 	{
-		//we have a parent UI Widget
+		//We have a parent, render for different widget types
 		RenderForWidgetType();
 	}
 
@@ -114,15 +114,6 @@ void UIWidget::RenderForWidgetType()
 
 		std::vector<Vertex_PCU> boxVerts;
 		AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
-
-		if(button->m_buttonTexture != nullptr)
-		{
-			g_renderContext->BindTextureViewWithSampler(0U, button->m_buttonTexture);
-		}
-		else
-		{
-			g_renderContext->BindTextureViewWithSampler(0U, nullptr);
-		}
 		
 		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 
@@ -134,22 +125,45 @@ void UIWidget::RenderForWidgetType()
 		relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
 		relativePosition.y = RangeMapFloat((float)mousePos.y, 0.f, (float)clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
 
+		Rgba color = m_color;
 		UIButton* button2 = dynamic_cast<UIButton*>(this);
+
+		//Add verts for the box
+		if(button->m_buttonTexture != nullptr)
+		{
+			g_renderContext->BindTextureViewWithSampler(0U, button->m_buttonTexture);
+			AddVertsForAABB2D(boxVerts, boxDimensions, color);
+			g_renderContext->DrawVertexArray(boxVerts);
+		}
+		else
+		{
+			g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+			color = Rgba::CLEAR;
+			AddVertsForAABB2D(boxVerts, boxDimensions, color);
+			g_renderContext->DrawVertexArray(boxVerts);
+		}
 
 		if( IsPointInAABBB2(boxDimensions, relativePosition))
 		{
-
 			button2->OnHover();
+			color = m_color;
+
+			boxVerts.clear();
+			g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+			AddVertsForBoundingBox(boxVerts, boxDimensions, color, 0.05f * boxDimensions.GetWidth());
+			g_renderContext->DrawVertexArray(boxVerts);
 		}
 		else
 		{
 			button2->OnUnHover();
+			color = m_color;
+
+			boxVerts.clear();
+			g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+			AddVertsForBoundingBox(boxVerts, boxDimensions, color, 0.05f * boxDimensions.GetWidth());
+			g_renderContext->DrawVertexArray(boxVerts);
 		}
 
-		//Add verts for the box
-		AddVertsForBoundingBox(boxVerts, boxDimensions, m_color, 10.f);
-
-		g_renderContext->DrawVertexArray(boxVerts);
 	}
 	break;
 	case UI_LABEL:
@@ -164,7 +178,7 @@ void UIWidget::RenderForWidgetType()
 		
 		if(button != nullptr)
 		{
-			m_color = button->m_color;
+			m_color = button->unHovercolor;
 		}
 
 		std::vector<Vertex_PCU> textVerts;
@@ -179,6 +193,7 @@ void UIWidget::RenderForWidgetType()
 	break;
 	default:
 	{
+		/*
 		AABB2 parentBounds = m_parent->GetWorldBounds();
 		AABB2 BoxDimensions = GetWidgetDimensions(parentBounds);
 
@@ -190,6 +205,7 @@ void UIWidget::RenderForWidgetType()
 		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 
 		g_renderContext->DrawVertexArray(boxVerts);
+		*/
 	}
 	break;
 	}
@@ -432,6 +448,12 @@ void UIButton::SetOnHover( const std::string& onHoverEvent )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void UIButton::SetRadioType( bool radioType )
+{
+	m_isRadioType = radioType;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 UILabel::UILabel( Game* game, UIWidget* parent )
 	: UIWidget(game, parent)
 {
@@ -448,4 +470,17 @@ UILabel::~UILabel()
 void UILabel::SetLabelText( const std::string& labelText )
 {
 	m_labelText = labelText;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+UIRadioGroup::UIRadioGroup(Game* game, UIWidget* parent)
+	: UIWidget(game, parent)
+{
+	SetWidgetType(UI_RADIO_GROUP);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+UIRadioGroup::~UIRadioGroup()
+{
+
 }

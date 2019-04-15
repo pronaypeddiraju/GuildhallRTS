@@ -21,6 +21,7 @@ class Texture;
 class TextureView;
 class UIButton;
 class UIWidget;
+class UIRadioGroup;
 
 struct Camera;
 
@@ -234,6 +235,8 @@ public:
 
 	//UI References
 	UIWidget*							m_menuParent = nullptr;
+	UIRadioGroup*						m_menuRadGroup = nullptr;
+	UIRadioGroup*						m_editRadGroup = nullptr;
 	UIButton*							m_playButton = nullptr;
 	UIButton*							m_editButton = nullptr;
 

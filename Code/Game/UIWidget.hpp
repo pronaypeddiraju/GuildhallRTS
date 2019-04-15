@@ -20,6 +20,7 @@ enum eWidgetType
 	UI_WIDGET,
 	UI_BUTTON,
 	UI_LABEL,
+	UI_RADIO_GROUP,
 
 	DEFAULT_WIDGET = UI_WIDGET
 };
@@ -160,6 +161,7 @@ public:
 	void SetOnClick(const std::string& onClickEvent);
 	void SetButtonTexture(const std::string& texturePath);
 	void SetOnHover(const std::string& onHoverEvent);
+	void SetRadioType(bool radioType);
 
 	void Click()
 	{
@@ -174,7 +176,7 @@ public:
 		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
 		*/
 
-		SetColor(Rgba(0.4f, 0.9f, 0.9f, 1.f));
+		SetColor(hoverColor);
 	}
 
 	void OnUnHover()
@@ -184,12 +186,17 @@ public:
 		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
 		*/
 
-		SetColor(Rgba::WHITE);
+		SetColor(unHovercolor);
 	}
 
+public:
 	std::string m_eventOnClick = "play map=level0.map";
 	std::string m_eventOnHover = "play map=level0.map";
 	TextureView* m_buttonTexture = nullptr;
+	bool m_isRadioType = false;
+
+	Rgba hoverColor = Rgba(0.4f, 0.9f, 0.9f, 1.f);
+	Rgba unHovercolor = Rgba::CLEAR;
 }; 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -217,5 +224,10 @@ class UISlider : public UIWidget
 // to be selected at a time - ie, mutually exclusive selection
 class UIRadioGroup : public UIWidget
 {
-	// implement me
+public:
+	UIRadioGroup(Game* game, UIWidget* parent);
+	~UIRadioGroup();
+
+public:
+	std::vector<UIButton*> m_radioChildren;
 }; 
