@@ -8,8 +8,24 @@
 #include <vector>
 #include <string>
 
-struct InputEvent;
 class UIRadioGroup;
+
+//------------------------------------------------------------------------------------------------------------------------------
+class InputEvent
+{
+public:
+	InputEvent(const std::string& name, const EventArgs& args);
+	~InputEvent();
+
+	inline bool			WasConsumed() {return m_consumed;};
+
+private:
+	bool m_consumed = false;
+	std::string m_name;
+	std::string m_clickType;
+	EventArgs m_args;
+
+};
 
 //------------------------------------------------------------------------------------------------------------------------------
 class UIWidget
@@ -21,10 +37,12 @@ public:
 	void					UpdateBounds( AABB2 const &container ); 
 	void					ProcessInput( InputEvent &evt ); // handles input - may consume the event (but it is still passed about to help update state)
 	void					Render(); // assumes a camera has already been set; 
+	void					RenderMouseData() const;
 
-	void					SetColor(const Rgba& color);
+	void					SetColor( const Rgba& color );
 	void					SetSize( const Vec4& size);
 	void					SetPosition( const Vec4& position);
+	void					SetPivot( const Vec2& pivoit);
 
 	UIWidget*				AddChild( UIWidget *widget ); 
 	void					RemoveChild( UIWidget *widget ); 
@@ -42,11 +60,17 @@ public:
 public:
 	// templated helper I like having
 	template <typename T>
-	T* CreateChild() 
+	T* CreateChild(const AABB2& bounds, const Vec4& size = Vec4( 1.f, 1.f, 0.0f, 0.0f ), const Vec4& position = Vec4( .5f, .5f, 0.0f, 0.0f ), const Vec2& pivot = Vec2( .5f, .5f ), const Rgba& color = Rgba::DARK_GREY) 
 	{
-		// create a widget of type T, and automatically add it to my children; 
-		// ...
-		//IMPLEMENT_ME
+		T* child = new T(this);
+
+		child->UpdateBounds(bounds);
+		child->SetSize(size);
+		child->SetPosition(position);
+		child->SetPivot(pivot);
+		child->SetColor(color);
+
+		return AddChild(child);
 	}
 
 protected:

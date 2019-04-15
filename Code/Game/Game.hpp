@@ -221,6 +221,6 @@ public:
 	GameInput*							m_gameInput;
 
 	//UI References
-	UIWidget*							m_parentWidget = nullptr;
-	UIWidget*							m_child = nullptr;
+	UIWidget*							m_menuParent = nullptr;
+	UIWidget*							m_menuButton = nullptr;
 };

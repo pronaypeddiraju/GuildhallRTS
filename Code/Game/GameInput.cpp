@@ -8,6 +8,7 @@
 #include "Game/Game.hpp"
 #include "Game/Map.hpp"
 #include "Game/RTSCamera.hpp"
+#include "Game/UIWidget.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 GameInput::GameInput(Game* game)
@@ -172,6 +173,24 @@ float GameInput::GetScreenHeight()
 //------------------------------------------------------------------------------------------------------------------------------
 bool GameInput::HandleMouseLBDown()
 {
+	std::string eventString = "clickType=LBDown";
+
+	switch (m_game->m_gameState)
+	{
+	case STATE_MENU:
+	{
+		EventArgs args;
+
+		std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(eventString, '=');
+		args.SetValue(KeyValSplit[0], KeyValSplit[1]);
+
+		InputEvent event("MouseEvent", args);
+		m_game->m_menuParent->ProcessInput(event);
+		return event.WasConsumed();
+	}
+	break;
+	}
+
 	return false;
 }
 

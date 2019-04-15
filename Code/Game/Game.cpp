@@ -137,8 +137,6 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 //------------------------------------------------------------------------------------------------------------------------------
 STATIC bool Game::ReLoadMap( EventArgs& args )
 {
-	UNUSED(args);
-
 	IntVec2 mapDimensions = IntVec2::ZERO;
 
 	//Print the data we read
@@ -160,6 +158,7 @@ STATIC bool Game::ReLoadMap( EventArgs& args )
 	return true;	
 }
 
+/*
 //------------------------------------------------------------------------------------------------------------------------------
 STATIC bool Game::RemakeMap( const std::string& remakeString )
 {
@@ -219,6 +218,7 @@ STATIC bool Game::RemakeMap( const std::string& remakeString )
 		return true;	
 	}
 }
+*/
 
 //------------------------------------------------------------------------------------------------------------------------------
 Game* Game::s_gameReference = nullptr;
@@ -1029,7 +1029,7 @@ void Game::RenderMenuUI() const
 
 	g_renderContext->BeginCamera(*m_UICamera);	
 
-	m_parentWidget->Render();
+	m_menuParent->Render();
 
 	g_renderContext->EndCamera();
 }
@@ -1266,17 +1266,25 @@ bool Game::IsAlive()
 void Game::CreateUIWidgets()
 {
 	//Create the parent widget
-	m_parentWidget = new UIWidget(nullptr);
-	m_parentWidget->SetColor(Rgba::GREEN);
-	m_parentWidget->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+	m_menuParent = new UIWidget(nullptr);
+	m_menuParent->SetColor(Rgba::GREEN);
+	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
 	//Create a child wiget
-	m_child = new UIWidget(m_parentWidget);
-	m_child->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(10.f, 10.f)));
-	m_child->SetSize(Vec4(0.1f, 0.1f, 0.f, 0.f));
-	m_child->SetPosition(Vec4(0.5f, 0.5, 0.f, 0.f));
-	m_child->SetColor(Rgba::RED);
-	m_parentWidget->AddChild(m_child);
+	/*
+	m_menuButton = new UIWidget(m_menuParent);
+	m_menuButton->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(10.f, 10.f)));
+	m_menuButton->SetSize(Vec4(0.1f, 0.1f, 0.f, 0.f));
+	m_menuButton->SetPosition(Vec4(0.5f, 0.5, 0.f, 0.f));
+	m_menuButton->SetColor(Rgba::RED);
+	m_menuParent->AddChild(m_menuButton);
+	*/
+
+	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(10.f, 10.f));
+	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
+	Vec4 position = Vec4(0.5f, 0.5, 0.f, 0.f);
+
+	m_menuButton = m_menuParent->CreateChild<UIWidget>(bounds, size, position);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
