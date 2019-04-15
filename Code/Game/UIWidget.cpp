@@ -16,6 +16,7 @@ UIWidget::UIWidget(Game* game, UIWidget* parent)
 {
 	m_parent = parent;
 	m_game = game;
+	m_font = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -29,19 +30,13 @@ UIWidget::~UIWidget()
 void UIWidget::UpdateBounds( AABB2 const &container )
 {
 	m_worldBounds = GetWidgetDimensions(container);
+	//m_worldBounds = container;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void UIWidget::ProcessInput( InputEvent &evt )
 {
 	ProcessChildrenInput(evt);
-
-	/*
-	if(m_parent == nullptr)
-	{
-		return;
-	}
-	*/
 
 	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
 	IntVec2 clientSize = g_windowContext->GetTureClientBounds();
@@ -75,16 +70,7 @@ void UIWidget::ProcessInput( InputEvent &evt )
 void UIWidget::Render()
 {
 	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile(m_defaultShaderName));
-	BitmapFont* font = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
-
-	//Get the mouse position in client space
-	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
-	IntVec2 clientSize = g_windowContext->GetTureClientBounds();
-
-	//Cursor Relative Position in UI space
-	Vec2 relativePosition;
-	relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
-	relativePosition.y = RangeMapFloat((float)mousePos.y, 0.f, (float)clientSize.y, UI_SCREEN_HEIGHT * 0.5f, -UI_SCREEN_HEIGHT * 0.5f);
+	m_font = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
@@ -93,7 +79,6 @@ void UIWidget::Render()
 	if(m_parent == nullptr)
 	{
 		//We are the parent to all, draw the screen
-		//IntVec2 screenDimensions = g_renderContext->GetCurrentScreenDimensions();
 		AABB2 parentBounds = m_worldBounds;
 		AABB2 BoxDimensions = GetWidgetDimensions(parentBounds);
 
@@ -108,7 +93,62 @@ void UIWidget::Render()
 	else
 	{
 		//we have a parent UI Widget
+		RenderForWidgetType();
+	}
 
+	//Render my children here
+	RenderChildren();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void UIWidget::RenderForWidgetType()
+{
+	switch( m_widgetType )
+	{
+	case UI_BUTTON:
+	{
+		UIButton* button = dynamic_cast<UIButton*>(this);
+
+		AABB2 parentBounds = m_parent->GetWorldBounds();
+		AABB2 BoxDimensions = GetWidgetDimensions(parentBounds);
+
+		std::vector<Vertex_PCU> boxVerts;
+		AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
+		AddVertsForBoundingBox(boxVerts, boxDimensions, m_color, 10.f);
+
+		if(button->m_buttonTexture != nullptr)
+		{
+			g_renderContext->BindTextureViewWithSampler(0U, button->m_buttonTexture);
+		}
+		else
+		{
+			g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+		}
+		
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
+		g_renderContext->DrawVertexArray(boxVerts);
+	}
+	break;
+	case UI_LABEL:
+	{
+		UILabel* label = dynamic_cast<UILabel*>(this);
+
+		AABB2 parentBounds = m_parent->GetWorldBounds();
+		AABB2 BoxDimensions = GetWidgetDimensions(parentBounds);
+
+		std::vector<Vertex_PCU> textVerts;
+		AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
+		m_font->AddVertsForTextInBox2D(textVerts, boxDimensions, BoxDimensions.GetHeight() * label->m_virtualSize.y, label->m_labelText, label->m_color);
+
+		g_renderContext->BindTextureViewWithSampler(0U, m_font->GetTexture());
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
+		g_renderContext->DrawVertexArray(textVerts);
+	}
+	break;
+	default:
+	{
 		AABB2 parentBounds = m_parent->GetWorldBounds();
 		AABB2 BoxDimensions = GetWidgetDimensions(parentBounds);
 
@@ -116,34 +156,13 @@ void UIWidget::Render()
 		AABB2 boxDimensions(GetRelativePosToParent(BoxDimensions.GetBottomLeft2D()), GetRelativePosToParent(BoxDimensions.GetTopRight2D()));
 		AddVertsForAABB2D(boxVerts, boxDimensions, m_color);
 
+		g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+
 		g_renderContext->DrawVertexArray(boxVerts);
-
-		if( IsPointInAABBB2(boxDimensions, relativePosition))
-		{
-			std::vector<Vertex_PCU> boxTextVerts;
-			std::string textValue = "Max: " + std::to_string(boxDimensions.m_maxBounds.x) + ", " + std::to_string(boxDimensions.m_maxBounds.y);
-			font->AddVertsForText2D(boxTextVerts, boxDimensions.m_maxBounds, 10.f, textValue);
-
-			textValue = "Min: " + std::to_string(boxDimensions.m_minBounds.x) + ", " + std::to_string(boxDimensions.m_minBounds.y);
-			font->AddVertsForText2D(boxTextVerts, boxDimensions.m_minBounds, 10.f, textValue);
-
-			g_renderContext->BindTextureView(0U, font->GetTexture());
-			g_renderContext->DrawVertexArray(boxTextVerts);
-		}
-
 	}
-
-	//Render my children here
-	RenderChildren();
-	
-	std::vector<Vertex_PCU> textVerts;
-	std::string textValue = "Relative Pos: " + std::to_string(relativePosition.x) + ", " + std::to_string(relativePosition.y);
-	font->AddVertsForText2D(textVerts, Vec2(0.0f, 0.f), 10.f, textValue);
-	std::string textValue2 = "Client Pos: " + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y);
-	font->AddVertsForText2D(textVerts, Vec2(0.0f, 10.f), 10.f, textValue2);
-
-	g_renderContext->BindTextureView(0U, font->GetTexture());
-	g_renderContext->DrawVertexArray(textVerts);
+	break;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -215,6 +234,12 @@ void UIWidget::RemoveChild( UIWidget *widget )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void UIWidget::SetWidgetType( eWidgetType widgetType )
+{
+	m_widgetType = widgetType;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 AABB2 UIWidget::GetWidgetDimensions( const AABB2& parentBounds )
 {
 	float parentWidth = parentBounds.GetWidth();
@@ -223,6 +248,8 @@ AABB2 UIWidget::GetWidgetDimensions( const AABB2& parentBounds )
 	//Get the size of the local box
 	Vec2 BL = Vec2::ZERO;
 	Vec2 TR = Vec2(parentWidth * m_virtualSize.x, parentHeight * m_virtualSize.y);
+
+	AABB2 relativeBounds(GetRelativePosToParent(parentBounds.m_minBounds), GetRelativePosToParent(parentBounds.m_maxBounds));
 
 	//Move it to the correct position
 	Vec2 center = parentBounds.GetBottomLeft2D() + Vec2(m_virtualPosition.x * parentWidth, m_virtualPosition.y * parentHeight);
@@ -246,8 +273,12 @@ Vec2 UIWidget::GetRelativePosToParent( const Vec2& positionInWorld )
 	IntVec2 CamSize = g_renderContext->GetCurrentScreenDimensions();
 	
 	AABB2 parentBounds;
+	/*
 	if(m_parent != nullptr)				{	parentBounds = m_parent->GetWorldBounds();												   }
 	else 								{	parentBounds = AABB2(Vec2::ZERO, Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT));}
+	*/
+
+	parentBounds = AABB2(Vec2::ZERO, Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT));
 
 	AABB2 CamBounds = AABB2(Vec2(CamSize.x * -0.5f, CamSize.y * -0.5f), Vec2(CamSize.x * 0.5f, CamSize.y * 0.5f));
 
@@ -343,7 +374,7 @@ Event::~Event()
 UIButton::UIButton( Game* game, UIWidget* parent )
 	: UIWidget(game, parent)
 {
-
+	SetWidgetType(UI_BUTTON);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -356,4 +387,29 @@ UIButton::~UIButton()
 void UIButton::SetOnClick( const std::string& onClickEvent )
 {
 	m_eventOnClick = onClickEvent;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void UIButton::SetButtonTexture( const std::string& texturePath )
+{
+	m_buttonTexture = g_renderContext->GetOrCreateTextureViewFromFile(texturePath);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+UILabel::UILabel( Game* game, UIWidget* parent )
+	: UIWidget(game, parent)
+{
+	SetWidgetType(UI_LABEL);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+UILabel::~UILabel()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void UILabel::SetLabelText( const std::string& labelText )
+{
+	m_labelText = labelText;
 }

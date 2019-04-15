@@ -138,7 +138,18 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 STATIC bool Game::GoToGame( EventArgs& args )
 {
 	UNUSED(args);
-	s_gameReference->m_gameState = STATE_PLAY;
+
+	s_gameReference->m_gameState = STATE_LOAD;
+	s_gameReference->m_beginMapLoad = true;
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::GoToEdit( EventArgs& args )
+{
+	UNUSED(args);
+	s_gameReference->m_gameState = STATE_LOAD;
+	s_gameReference->m_beginEditLoad = true;
 	return true;
 }
 
@@ -166,70 +177,8 @@ STATIC bool Game::ReLoadMap( EventArgs& args )
 	return true;	
 }
 
-/*
 //------------------------------------------------------------------------------------------------------------------------------
-STATIC bool Game::RemakeMap( const std::string& remakeString )
-{
-	//Split the string to sensible key value pairs
-	std::vector<std::string> splitStrings = SplitStringOnDelimiter(remakeString, ' ');
-	if(splitStrings[0] != "Remake")
-	{
-		return false;
-	}
-
-	if(splitStrings[1] != "Map")
-	{
-		return false;
-	}
-
-	else
-	{
-		g_devConsole->PrintString(DevConsole::CONSOLE_INFO, "Data Received:");
-		std::string printS = "> Exec ";
-		for(int i =0; i < static_cast<int>(splitStrings.size()); i++)
-		{
-			printS += " " + splitStrings[i];
-		}
-		g_devConsole->PrintString(DevConsole::CONSOLE_INFO, printS);
-
-
-		int mapX = 0;
-		int mapY = 0;
-
-		for(int stringIndex = 2; stringIndex < static_cast<int>(splitStrings.size()); stringIndex++)
-		{
-			//Split string on ,
-			std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(splitStrings[stringIndex], ',');
-
-			if(KeyValSplit.size() != 2)
-			{
-				g_devConsole->PrintString(DevConsole::CONSOLE_ERROR ," ! The number of arguments read are not valid");
-				g_devConsole->PrintString(DevConsole::CONSOLE_ERROR_DESC, "    Execute requires 2 arguments. A key and value pair split by ,");
-			}
-			else
-			{
-				//Print the data we read
-				printS = " Action: Remake Map Size " + KeyValSplit[0] + " , " + KeyValSplit[1];
-				mapX = atoi(KeyValSplit[0].c_str());
-				mapY = atoi(KeyValSplit[1].c_str());
-				g_devConsole->PrintString(DevConsole::CONSOLE_ECHO, printS);
-			}
-		}
-
-		//If we have reached this point, we have valid data
-		if(s_gameReference != nullptr)
-		{
-			//The game is valid
-			s_gameReference->m_map->Create(mapX, mapY);
-		}
-
-		return true;	
-	}
-}
-*/
-
-//------------------------------------------------------------------------------------------------------------------------------
-Game* Game::s_gameReference = nullptr;
+STATIC Game* Game::s_gameReference = nullptr;
 
 //------------------------------------------------------------------------------------------------------------------------------
 Vec2 Game::GetClientToUIScreenPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
@@ -252,7 +201,8 @@ Game::Game()
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
 	g_debugRenderer->SetDebugFont(m_squirrelFont);
 
-
+	m_shader = g_renderContext->CreateOrGetShaderFromFile(m_xmlShaderPath);
+	m_shader->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
 
 	m_gameInput = new GameInput(this);
 
@@ -275,8 +225,6 @@ void Game::StartUp()
 	SetupMouseData();
 	SetupCameras();
 
-	PerformInitActions();
-
 	g_devConsole->PrintString(Rgba::BLUE, "this is a test string");
 	g_devConsole->PrintString(Rgba::RED, "this is also a test string");
 	g_devConsole->PrintString(Rgba::GREEN, "damn this dev console lit!");
@@ -291,6 +239,7 @@ void Game::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn("ToggleAllPointLights", ToggleAllPointLights);
 
 	g_eventSystem->SubscribeEventCallBackFn( "GoToGame", GoToGame);
+	g_eventSystem->SubscribeEventCallBackFn( "GoToEdit", GoToEdit);
 	g_eventSystem->SubscribeEventCallBackFn("RemakeMap", ReLoadMap);
 
 	/*
@@ -354,12 +303,8 @@ void Game::PerformInitActions()
 	CreateInitialMeshes();
 	CreateInitialLight();
 
-	CreateUIWidgets();
-
-	m_map = new Map();
-	m_map->Load("InitMap");
-
-	m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
+	CreateMenuUIWidgets();
+	CreateEditUIWidgets();
 
 	m_gameState = STATE_MENU;
 }
@@ -821,7 +766,6 @@ void Game::Render() const
 	case STATE_MENU:
 	{
 		RenderMainMenuState();
-		RenderMenuUI();
 	}
 	break;
 	case STATE_LOAD:
@@ -844,9 +788,9 @@ void Game::Render() const
 	}
 
 	//Show the controls for the UI Camera
-	RenderControlsToUI();
+	//RenderControlsToUI();
 
-	//Uncomment this after fixing memory issues with DebugRender system
+	//Uncomment this when debugging
 	//DebugRenderToCamera();
 	
 	if(g_devConsole->IsOpen())
@@ -907,28 +851,70 @@ void Game::RenderGameState() const
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	m_UICamera->SetModelMatrix(Matrix44::IDENTITY);
 
+	std::vector<Vertex_PCU> textVerts;
+	AABB2 infoBox = AABB2(Vec2(-640.0f, 340.f), Vec2(640.f, 360.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "PLAY MODE", Rgba::YELLOW, 1.f, Vec2::ALIGN_CENTERED);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->DrawVertexArray(textVerts);
+
 	g_renderContext->EndCamera();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderEditState() const
 {
-	g_renderContext->BindShader(m_shader);
-	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
-	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	// Move the camera to where it is in the scene
+	Matrix44 camTransform = Matrix44::MakeFromEuler( m_mainCamera->GetEuler(), m_rotationOrder ); 
+	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
+	m_mainCamera->SetModelMatrix(camTransform);
 
-	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->BeginCamera(*m_RTSCam); 
+
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
+	float intensity = Clamp(m_ambientIntensity, 0.f, 1.f);
+	g_renderContext->SetAmbientLight( Rgba::WHITE, intensity ); 
+
+	float emissive = Clamp(m_emissiveFactor, 0.1f, 1.f);
+	g_renderContext->m_cpuLightBuffer.emissiveFactor = emissive;
+
+	// enable a point light as some position in the world with a normal quadratic falloff; 
+	if(m_enableDirectional)
+	{
+		g_renderContext->DisableDirectionalLight();
+	}
+	else 
+	{
+		g_renderContext->EnableDirectionalLight();
+	}
+
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	m_map->Render();
+
+	g_renderContext->EndCamera();
+
+	g_renderContext->BeginCamera(*m_UICamera); 
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	m_UICamera->SetModelMatrix(Matrix44::IDENTITY);
+
 	std::vector<Vertex_PCU> textVerts;
-	AABB2 titleBox = AABB2(Vec2(-400.0f, -100.f), Vec2(400.f, 100.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 100.f, "Edit!", Rgba::WHITE);
+	AABB2 infoBox = AABB2(Vec2(-640.0f, 340.f), Vec2(640.f, 360.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "EDIT MODE", Rgba::YELLOW, 1.f, Vec2::ALIGN_CENTERED);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
 	g_renderContext->DrawVertexArray(textVerts);
 
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
-	std::vector<Vertex_PCU> boxVerts;
-	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
-	g_renderContext->DrawVertexArray(boxVerts);
+	g_renderContext->EndCamera();
+
+	RenderEditUI();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderEditUI() const
+{
+	g_renderContext->BeginCamera(*m_UICamera);	
+
+	m_editParent->Render();
 
 	g_renderContext->EndCamera();
 }
@@ -976,13 +962,15 @@ void Game::RenderInitState() const
 
 	std::vector<Vertex_PCU> textVerts;
 	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 100.f, "Init", Rgba::WHITE);
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Initializing Game.", Rgba::WHITE);
 	g_renderContext->DrawVertexArray(textVerts);
 
+	/*
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	std::vector<Vertex_PCU> boxVerts;
 	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
 	g_renderContext->DrawVertexArray(boxVerts);
+	*/
 
 	g_renderContext->EndCamera();
 }
@@ -998,14 +986,9 @@ void Game::RenderLoadState() const
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
 	std::vector<Vertex_PCU> textVerts;
-	AABB2 titleBox = AABB2(Vec2(-400.0f, -200.f), Vec2(400.f, 200.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 400.f, "Load", Rgba::WHITE);
+	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Loading....", Rgba::WHITE);
 	g_renderContext->DrawVertexArray(textVerts);
-
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
-	std::vector<Vertex_PCU> boxVerts;
-	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
-	g_renderContext->DrawVertexArray(boxVerts);
 
 	g_renderContext->EndCamera();
 }
@@ -1014,23 +997,19 @@ void Game::RenderLoadState() const
 void Game::RenderMainMenuState() const
 {
 	g_renderContext->BindShader(m_shader);
-	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
-	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 
 	g_renderContext->BeginCamera(*m_UICamera); 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
-	std::vector<Vertex_PCU> textVerts;
-	AABB2 titleBox = AABB2(Vec2(-400.0f, -200.f), Vec2(400.f, 0.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 400.f, "Menu", Rgba::WHITE);
-	g_renderContext->DrawVertexArray(textVerts);
-
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	g_renderContext->BindTextureViewWithSampler(0U, m_backgroundTexture);
 	std::vector<Vertex_PCU> boxVerts;
-	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
+	AABB2 screenBox = AABB2(Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * -0.5f, UI_SCREEN_HEIGHT * -0.5f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_HEIGHT * 0.5f));
+	AddVertsForAABB2D(boxVerts, screenBox, Rgba::WHITE);
 	g_renderContext->DrawVertexArray(boxVerts);
 
 	g_renderContext->EndCamera();
+
+	RenderMenuUI();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1144,7 +1123,17 @@ void Game::PostRender()
 		m_isDebugSetup = true;
 	}
 
-	//Uncomment this once you get the DebugRender System working
+	if(m_beginMapLoad)
+	{
+		m_gameState = STATE_PLAY;
+	}
+
+	if(m_beginEditLoad)
+	{
+		m_gameState = STATE_EDIT;
+	}
+
+	//Uncomment this when debugging
 	//DebugRenderToScreen();
 }
 
@@ -1155,6 +1144,28 @@ void Game::Update( float deltaTime )
 	UpdateLightPositions();
 
 	//UpdateMouseInputs(deltaTime);
+
+	if(m_beginMapLoad)
+	{
+		if(m_map == nullptr)
+		{
+			m_map = new Map();
+			m_map->Load("InitMap");
+		}
+
+		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
+	}
+
+	if(m_beginEditLoad)
+	{
+		if(m_map == nullptr)
+		{
+			m_map = new Map();
+			m_map->Load("InitMap");
+		}
+
+		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
+	}
 
 	m_gameInput->Update(deltaTime);
 
@@ -1168,6 +1179,10 @@ void Game::Update( float deltaTime )
 
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
 	{
+		//We have rendered the 1st frame
+
+		PerformInitActions();
+
 		m_devConsoleCamera->SetOrthoView(Vec2(-WORLD_WIDTH * 0.5f * SCREEN_ASPECT, -WORLD_HEIGHT * 0.5f), Vec2(WORLD_WIDTH * 0.5f * SCREEN_ASPECT, WORLD_HEIGHT * 0.5f));
 		m_devConsoleSetup = true;
 	}
@@ -1275,29 +1290,69 @@ bool Game::IsAlive()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Game::CreateUIWidgets()
+void Game::CreateMenuUIWidgets()
 {
-	//Create the parent widget
+	// Menu Widgets
 	m_menuParent = new UIWidget(this, nullptr);
-	m_menuParent->SetColor(Rgba::GREEN);
+	m_menuParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
 	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
-	//Create a child wiget
-	/*
-	m_menuButton = new UIWidget(m_menuParent);
-	m_menuButton->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(10.f, 10.f)));
-	m_menuButton->SetSize(Vec4(0.1f, 0.1f, 0.f, 0.f));
-	m_menuButton->SetPosition(Vec4(0.5f, 0.5, 0.f, 0.f));
-	m_menuButton->SetColor(Rgba::RED);
-	m_menuParent->AddChild(m_menuButton);
-	*/
-
-	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(10.f, 10.f));
+	//Create the Play Button
+	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
 	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
-	Vec4 position = Vec4(0.5f, 0.5, 0.f, 0.f);
+	Vec4 position = Vec4(0.75f, 0.75, 0.f, 0.f);
+	m_playButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
+	m_playButton->SetOnClick("GoToGame");
+	m_playButton->SetColor(Rgba::WHITE);
+	
+	//Create the Edit button
+	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	size = Vec4(0.1f, 0.1f, 0.f, 0.f);
+	position = Vec4(0.75f, 0.75, 0.f, -100.f);
 
-	m_menuButton = m_menuParent->CreateChild<UIButton>(bounds, size, position);
-	m_menuButton->SetOnClick("GoToGame");
+	m_editButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
+	m_editButton->SetOnClick("GoToEdit");
+	m_editButton->SetColor(Rgba::WHITE);
+
+
+	size = Vec4(1.f, .75f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5, 0.f, 0.f);
+	
+	UILabel* label = m_playButton->CreateChild<UILabel>(m_playButton->GetWorldBounds(), size, position);
+	label->SetLabelText("PLAY");
+	label->SetColor(Rgba::WHITE);
+
+	label = m_editButton->CreateChild<UILabel>(m_editButton->GetWorldBounds(), size, position);
+	label->SetLabelText("EDIT");
+	label->SetColor(Rgba::WHITE);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::CreateEditUIWidgets()
+{
+	// Menu Widgets
+	m_editParent = new UIWidget(this, nullptr);
+	m_editParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
+	m_editParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
+	//Make a Radio Group here
+
+	/*
+	//Create the Play Button
+	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
+	Vec4 position = Vec4(0.75f, 0.75, 0.f, 0.f);
+	m_playButton = m_menuParent->CreateChild<UIButton>(m_menuParent->GetWorldBounds(), size, position);
+	m_playButton->SetOnClick("GoToGame");
+	m_playButton->SetColor(Rgba::WHITE);
+
+	size = Vec4(1.f, .75f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5, 0.f, 0.f);
+
+	UILabel* label = m_playButton->CreateChild<UILabel>(m_playButton->GetWorldBounds(), size, position);
+	label->SetLabelText("EDIT");
+	label->SetColor(Rgba::WHITE);
+	*/
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1423,15 +1478,13 @@ void Game::LoadGameTextures()
 	m_textureTest = g_renderContext->GetOrCreateTextureViewFromFile(m_testImagePath);
 	m_boxTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_boxTexturePath);
 	m_sphereTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_sphereTexturePath);
+	m_backgroundTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_backgroundPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::GetandSetShaders()
 {
-	//Get the Shader
-	m_shader = g_renderContext->CreateOrGetShaderFromFile(m_xmlShaderPath);
-	m_shader->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
-
+	//Get the Shaders
 	m_normalShader = g_renderContext->CreateOrGetShaderFromFile(m_normalColorShader);
 	m_normalShader->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
 

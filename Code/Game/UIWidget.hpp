@@ -9,8 +9,20 @@
 #include <vector>
 #include <string>
 
-class UIRadioGroup;
 class Game;
+class TextureView;
+class UIRadioGroup;
+class BitmapFont;
+
+//------------------------------------------------------------------------------------------------------------------------------
+enum eWidgetType
+{
+	UI_WIDGET,
+	UI_BUTTON,
+	UI_LABEL,
+
+	DEFAULT_WIDGET = UI_WIDGET
+};
 
 //------------------------------------------------------------------------------------------------------------------------------
 class InputEvent
@@ -39,6 +51,7 @@ public:
 	void					UpdateBounds( AABB2 const &container ); 
 	void					ProcessInput( InputEvent &evt ); // handles input - may consume the event (but it is still passed about to help update state)
 	void					Render(); // assumes a camera has already been set; 
+	void					RenderForWidgetType();
 	void					RenderMouseData() const;
 
 	void					SetColor( const Rgba& color );
@@ -50,6 +63,8 @@ public:
 	void					RemoveChild( UIWidget *widget ); 
 
 	void					SetRadioGroup( UIRadioGroup *group ); // adds or removes me from a group
+
+	void					SetWidgetType( eWidgetType widgetType);
 
 	// accessors
 	inline Vec2				GetWorldPosition() const      { return m_position; }
@@ -66,11 +81,11 @@ public:
 	{
 		T* child = new T(m_game, this);
 
-		child->UpdateBounds(bounds);
 		child->SetSize(size);
 		child->SetPosition(position);
 		child->SetPivot(pivot);
 		child->SetColor(color);
+		child->UpdateBounds(bounds);
 
 		m_children.push_back(child);
 		return child;
@@ -105,16 +120,22 @@ private:
 	Rgba m_color = Rgba::CLEAR;
 
 	std::string	m_defaultShaderName	= "default_unlit.00.hlsl";
+
+	eWidgetType m_widgetType = DEFAULT_WIDGET;
+	BitmapFont* m_font = nullptr;
 }; 
 
 class UILabel : public UIWidget
 {
-	// implement me
-	// ...
+public:
+	UILabel(Game* game, UIWidget* parent);
+	~UILabel();
+
+	void	SetLabelText(const std::string& labelText);
+
+public:
+	std::string m_labelText = "";
 }; 
-
-
-//typedef NamedProperties EventArgs;
 
 class Event
 {
@@ -134,6 +155,7 @@ public:
 	~UIButton();
 
 	void SetOnClick(const std::string& onClickEvent);
+	void SetButtonTexture(const std::string& texturePath);
 
 	void Click()
 	{
@@ -142,6 +164,7 @@ public:
 	}
 
 	std::string m_eventOnClick = "play map=level0.map";
+	TextureView* m_buttonTexture = nullptr;
 }; 
 
 class UISlider : public UIWidget

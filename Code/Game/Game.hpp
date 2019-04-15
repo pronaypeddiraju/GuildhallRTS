@@ -50,10 +50,9 @@ public:
 	static bool				ToggleAllPointLights(EventArgs& args);
 
 	static bool				GoToGame(EventArgs& args);
-
+	static bool				GoToEdit(EventArgs& args);
 	static bool				ReLoadMap(EventArgs& args);
 
-	static bool				RemakeMap(const std::string& remakeString );
 	static Game*			s_gameReference; 
 
 
@@ -66,7 +65,8 @@ public:
 	void								SetupCameras();
 
 	void								PerformInitActions();
-	void								CreateUIWidgets();
+	void								CreateMenuUIWidgets();
+	void								CreateEditUIWidgets();
 
 	void								GetandSetShaders();
 	void								LoadGameTextures();
@@ -105,6 +105,7 @@ public:
 	void								RenderMenuUI() const;
 	void								RenderGameState() const;
 	void								RenderEditState() const;
+	void								RenderEditUI() const;
 	void								RenderControlsToUI() const;
 	void								RenderUsingMaterial() const;
 	void								RenderUsingLegacy() const;
@@ -146,9 +147,13 @@ private:
 public:
 	SoundID								m_testAudioID = NULL;
 	
+	bool								m_beginMapLoad = false;
+	bool								m_beginEditLoad = false;
+
 	TextureView*						m_textureTest = nullptr;
 	TextureView*						m_boxTexture = nullptr;
 	TextureView*						m_sphereTexture = nullptr;
+	TextureView*						m_backgroundTexture = nullptr;
 	BitmapFont*							m_squirrelFont = nullptr;
 	Image*								m_testImage = nullptr;
 	float								m_animTime = 0.f;
@@ -165,6 +170,7 @@ public:
 	std::string							m_sphereTexturePath = "2k_earth_daymap.jpg";
 	std::string							m_xmlShaderPath = "default_unlit.xml";
 	std::string							m_materialPath = "couch.mat";
+	std::string							m_backgroundPath = "title.png";
 
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
@@ -220,10 +226,13 @@ public:
 	GameState							m_gameState = STATE_INIT;
 
 	//Map (For now will be 1 single map)
-	Map*								m_map;
-	GameInput*							m_gameInput;
+	Map*								m_map = nullptr;
+	GameInput*							m_gameInput = nullptr;
 
 	//UI References
 	UIWidget*							m_menuParent = nullptr;
-	UIButton*							m_menuButton = nullptr;
+	UIButton*							m_playButton = nullptr;
+	UIButton*							m_editButton = nullptr;
+
+	UIWidget*							m_editParent = nullptr;
 };
