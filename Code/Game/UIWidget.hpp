@@ -13,6 +13,7 @@ class Game;
 class TextureView;
 class UIRadioGroup;
 class BitmapFont;
+class UIButton;
 
 //------------------------------------------------------------------------------------------------------------------------------
 enum eWidgetType
@@ -45,6 +46,8 @@ public:
 //------------------------------------------------------------------------------------------------------------------------------
 class UIWidget
 {
+	friend class UIRadioGroup;
+
 public:
 	UIWidget(Game* game, UIWidget* parent); 
 	virtual ~UIWidget(); // virtual dctr - why?  Baseline this should kill all my children; 
@@ -66,6 +69,8 @@ public:
 	void					SetRadioGroup( UIRadioGroup *group ); // adds or removes me from a group
 
 	void					SetWidgetType( eWidgetType widgetType);
+
+	inline UIWidget*		GetParent() {return m_parent;}
 
 	// accessors
 	inline Vec2				GetWorldPosition() const      { return m_position; }
@@ -130,6 +135,21 @@ private:
 }; 
 
 //------------------------------------------------------------------------------------------------------------------------------
+// A radio group allows for only a single item in the group 
+// to be selected at a time - ie, mutually exclusive selection
+class UIRadioGroup : public UIWidget
+{
+public:
+	UIRadioGroup(Game* game, UIWidget* parent);
+	~UIRadioGroup();
+
+	void SetChildrenUnSelected();
+
+public:
+	std::vector<UIButton*> m_radioChildren;
+}; 
+
+//------------------------------------------------------------------------------------------------------------------------------
 class UILabel : public UIWidget
 {
 public:
@@ -170,6 +190,14 @@ public:
 	{
 		Event evt( m_eventOnClick ); 
 		g_eventSystem->FireEvent( evt.m_name, evt.m_args ); 
+
+		if( m_isRadioType )
+		{
+			UIRadioGroup* parent = dynamic_cast<UIRadioGroup*>(GetParent());
+
+			parent->SetChildrenUnSelected();
+			m_isSelected = true;
+		}
 	}
 
 	void OnHover()
@@ -197,6 +225,7 @@ public:
 	std::string m_eventOnHover = "play map=level0.map";
 	TextureView* m_buttonTexture = nullptr;
 	bool m_isRadioType = false;
+	bool m_isSelected = false;
 
 	Rgba hoverColor = Rgba(0.4f, 0.9f, 0.9f, 1.f);
 	Rgba unHovercolor = Rgba::CLEAR;
@@ -220,17 +249,4 @@ class UISlider : public UIWidget
 	*/
 
 	std::string m_eventOnChange = "changeRadius"; 
-}; 
-
-//------------------------------------------------------------------------------------------------------------------------------
-// A radio group allows for only a single item in the group 
-// to be selected at a time - ie, mutually exclusive selection
-class UIRadioGroup : public UIWidget
-{
-public:
-	UIRadioGroup(Game* game, UIWidget* parent);
-	~UIRadioGroup();
-
-public:
-	std::vector<UIButton*> m_radioChildren;
 }; 

@@ -510,3 +510,18 @@ UIRadioGroup::~UIRadioGroup()
 {
 
 }
+
+//------------------------------------------------------------------------------------------------------------------------------
+void UIRadioGroup::SetChildrenUnSelected()
+{
+	for(int i = 0; i < (int)m_children.size(); i++)
+	{
+		UIButton* button = dynamic_cast<UIButton*>(m_children[i]) ;
+
+		if(button != nullptr)
+		{
+			button->m_isSelected = false;
+		}
+	}
+}
+
