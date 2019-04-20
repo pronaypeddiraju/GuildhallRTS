@@ -75,6 +75,7 @@ public:
 	void								LoadGameMaterials();
 	void								CreateInitialMeshes();
 	void								CreateInitialLight();
+	void								LoadInitMesh();
 	
 	void								BeginFrame();
 	void								EndFrame();
@@ -175,6 +176,7 @@ public:
 	std::string							m_xmlShaderPath = "default_unlit.xml";
 	std::string							m_materialPath = "couch.mat";
 	std::string							m_backgroundPath = "pixelArt.jpg";
+	std::string							m_objectPath = "building/towncenter.obj";
 
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
@@ -201,6 +203,8 @@ public:
 
 	GPUMesh*							m_baseQuad = nullptr;
 	Matrix44							m_baseQuadTransform;
+
+	GPUMesh*							m_initMesh = nullptr;
 
 	//Lighting Assignment
 	int									m_lightSlot;

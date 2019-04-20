@@ -305,6 +305,7 @@ void Game::PerformInitActions()
 	LoadGameMaterials();
 	CreateInitialMeshes();
 	CreateInitialLight();
+	LoadInitMesh();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();
@@ -1561,6 +1562,12 @@ void Game::CreateInitialLight()
 	EnablePointLight(2U, m_dynamicLight1Pos, Vec3(0.f, -1.f, 0.f), Rgba::BLUE, 1.f, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.1f, 0.f));
 	EnablePointLight(3U, m_dynamicLight2Pos, Vec3(0.f, 0.f, 1.f), Rgba::YELLOW, 1.f, Vec3(0.f, 1.f, 0.1f), Vec3(0.f, 0.1f, 0.f));
 	EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 1.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::LoadInitMesh()
+{
+	m_initMesh = g_renderContext->CreateOrGetMeshFromFile(m_objectPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,10 @@
+<mesh id="building/towncenter"
+   src="model/test/test_cube.obj"
+	invert="false"
+	tangents="true"
+	scale="1.0f"
+	transform="-y -z -x" />
+
+   <material src="model/test/test_cube.mat" />
+
+</mesh>
