@@ -14,6 +14,7 @@ class GameInput;
 class GPUMesh;
 class Image;
 class Map;
+class Model;
 class RTSCamera;
 class Shader;
 class SpriteAnimDefenition;
@@ -177,6 +178,7 @@ public:
 	std::string							m_materialPath = "couch.mat";
 	std::string							m_backgroundPath = "pixelArt.jpg";
 	std::string							m_objectPath = "building/towncenter.obj";
+	std::string							m_objectMatPath = "building/towncenter.mat";
 
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
@@ -204,7 +206,7 @@ public:
 	GPUMesh*							m_baseQuad = nullptr;
 	Matrix44							m_baseQuadTransform;
 
-	GPUMesh*							m_initMesh = nullptr;
+	Model*								m_initMesh = nullptr;
 
 	//Lighting Assignment
 	int									m_lightSlot;

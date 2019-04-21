@@ -1,5 +1,5 @@
 <material id="building/towncenter"
-  shader="shader/lit.shader">
+  shader="default_lit.xml">
 
   <diffuse  src="image/texture/building.color.jpg" />
   <normal   src="image/texture/building.normal.png" />

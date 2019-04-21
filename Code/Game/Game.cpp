@@ -20,6 +20,7 @@
 #include "Engine/Renderer/CPUMesh.hpp"
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
+#include "Engine/Renderer/Model.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/Shader.hpp"
@@ -686,6 +687,9 @@ void Game::Shutdown()
 	delete m_baseQuad;
 	m_baseQuad = nullptr;
 
+	delete m_initMesh;
+	m_initMesh = nullptr;
+
 	//FreeResources();
 }
 
@@ -938,6 +942,10 @@ void Game::RenderEditState() const
 
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
+
+	//g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	//g_renderContext->BindMaterial(m_initMesh->m_material);
+	//g_renderContext->DrawMesh(m_initMesh->m_mesh);
 
 	g_renderContext->EndCamera();
 
@@ -1567,7 +1575,8 @@ void Game::CreateInitialLight()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadInitMesh()
 {
-	m_initMesh = g_renderContext->CreateOrGetMeshFromFile(m_objectPath);
+    m_initMesh = new Model(g_renderContext, m_objectPath);
+	m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->GetDefaultMaterialName());
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
