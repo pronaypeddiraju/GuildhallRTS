@@ -540,45 +540,37 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case A_KEY:
 		{
 			//Handle left movement
-			/*
 			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetIVector() * -1.f;
 			worldMovementDirection *= (m_cameraSpeed);
 
 			m_camPosition += worldMovementDirection; 
-			*/
 		}
 		break;
 		case W_KEY:
 		{
-			/*
 			//Handle forward movement
-			Vec3 worldMovementDirection = m_RTSCam->m_cameraModel.GetJVector();
+			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetKVector();
 			worldMovementDirection *= (m_cameraSpeed); 
 
 			m_camPosition += worldMovementDirection; 
-			*/
 		}
 		break;
 		case S_KEY:
 		{
 			//Handle backward movement
-			/*
-			Vec3 worldMovementDirection = m_RTSCam->m_cameraModel.GetJVector() * -1.f;
+			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetKVector() * -1.f;
 			worldMovementDirection *= (m_cameraSpeed); 
 
 			m_camPosition += worldMovementDirection; 
-			*/
 		}
 		break;
 		case D_KEY:
 		{
 			//Handle right movement
-			/*
-			Vec3 worldMovementDirection = m_RTSCam->m_cameraModel.GetIVector();
+			Vec3 worldMovementDirection = m_mainCamera->m_cameraModel.GetIVector();
 			worldMovementDirection *= (m_cameraSpeed); 
 
 			m_camPosition += worldMovementDirection; 
-			*/
 		}
 		break;
 		case F4_KEY:
@@ -920,7 +912,7 @@ void Game::RenderEditState() const
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 
-	g_renderContext->BeginCamera(*m_RTSCam); 
+	g_renderContext->BeginCamera(*m_mainCamera);
 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
@@ -943,8 +935,15 @@ void Game::RenderEditState() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
 
-	Matrix44 tranform = Matrix44::MakeUniformScale3D(100.f);
-	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	Matrix44 tranform = Matrix44::IDENTITY;
+   	tranform.SetIVector(Vec3(0.f, -(1.f/256.f), 0.f));
+   	tranform.SetJVector(Vec3(0.f, 0.f, -(1.f / 256.f)));
+   	tranform.SetKVector(Vec3(-(1.f / 256.f), 0.f, 0.f));
+// 	tranform.SetIVector(Vec3(0.f, -1.f, 0.f));
+// 	tranform.SetJVector(Vec3(0.f, 0.f, -1.f));
+// 	tranform.SetKVector(Vec3(-1.f, 0.f, 0.f));
+
+	g_renderContext->SetModelMatrix(tranform);
 	g_renderContext->BindMaterial(m_initMesh->m_material);
 	g_renderContext->DrawMesh(m_initMesh->m_mesh);
 
@@ -1211,8 +1210,6 @@ void Game::Update( float deltaTime )
 
 	UpdateLightPositions();
 
-	//UpdateMouseInputs(deltaTime);
-
 	if(m_beginMapLoad)
 	{
 		if(m_map == nullptr)
@@ -1256,6 +1253,16 @@ void Game::Update( float deltaTime )
 
 		m_devConsoleCamera->SetOrthoView(Vec2(-WORLD_WIDTH * 0.5f * aspect, -WORLD_HEIGHT * 0.5f), Vec2(WORLD_WIDTH * 0.5f * aspect, WORLD_HEIGHT * 0.5f));
 		m_devConsoleSetup = true;
+	}
+
+	if (m_gameState == STATE_EDIT)
+	{
+		UpdateMouseInputs(deltaTime);
+		g_windowContext->SetMouseMode(MOUSE_MODE_RELATIVE);
+	}
+	else
+	{
+		g_windowContext->SetMouseMode(MOUSE_MODE_ABSOLUTE);
 	}
 
 	//UpdateCamera(deltaTime);
@@ -1578,7 +1585,7 @@ void Game::LoadInitMesh()
 {
     m_initMesh = new Model(g_renderContext, m_objectPath);
 	//m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->GetDefaultMaterialName());
-	m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile("test/test_cube.mat");
+	m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_objectMatPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 <material id="test/cube"
   shader="default_unlit.xml">
 
-  <diffuse  src="model/test/test_color.png" />
-  <normal   src="flat" />
+  <diffuse  src="test/test_color.png" />
+  <normal   src="FLAT.png" />
 
   <sampler idx="0" type="linear" />
 
