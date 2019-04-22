@@ -5,6 +5,6 @@
 	scale="1.0f"
 	transform="-y -z -x" />
 
-   <material src="model/test/test_cube.mat" />
+   <material src="test/test_cube.mat" />
 
 </mesh>

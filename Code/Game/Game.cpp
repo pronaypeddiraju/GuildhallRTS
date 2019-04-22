@@ -936,9 +936,9 @@ void Game::RenderEditState() const
 	m_map->Render();
 
 	Matrix44 tranform = Matrix44::IDENTITY;
-   	tranform.SetIVector(Vec3(0.f, -(1.f/256.f), 0.f));
-   	tranform.SetJVector(Vec3(0.f, 0.f, -(1.f / 256.f)));
-   	tranform.SetKVector(Vec3(-(1.f / 256.f), 0.f, 0.f));
+//    	tranform.SetIVector(Vec3(0.f, -(1.f/256.f), 0.f));
+//    	tranform.SetJVector(Vec3(0.f, 0.f, -(1.f / 256.f)));
+//    	tranform.SetKVector(Vec3(-(1.f / 256.f), 0.f, 0.f));
 // 	tranform.SetIVector(Vec3(0.f, -1.f, 0.f));
 // 	tranform.SetJVector(Vec3(0.f, 0.f, -1.f));
 // 	tranform.SetKVector(Vec3(-1.f, 0.f, 0.f));
@@ -1584,8 +1584,8 @@ void Game::CreateInitialLight()
 void Game::LoadInitMesh()
 {
     m_initMesh = new Model(g_renderContext, m_objectPath);
-	//m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->GetDefaultMaterialName());
-	m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_objectMatPath);
+	//m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->m_defaultMaterial);
+	//m_initMesh->m_modelMatrix
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

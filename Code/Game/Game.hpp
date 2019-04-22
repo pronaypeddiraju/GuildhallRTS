@@ -177,7 +177,7 @@ public:
 	std::string							m_xmlShaderPath = "default_unlit.xml";
 	std::string							m_materialPath = "couch.mat";
 	std::string							m_backgroundPath = "pixelArt.jpg";
-	std::string							m_objectPath = "building/towncenter.obj";
+	std::string							m_objectPath = "building/towncenter.mesh";
 	std::string							m_objectMatPath = "building/towncenter.mat";
 
 	Camera*								m_mainCamera = nullptr;
