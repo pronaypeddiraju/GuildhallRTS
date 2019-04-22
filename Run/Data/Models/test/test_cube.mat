@@ -1,5 +1,5 @@
 <material id="test/cube"
-  shader="shader/lit.shader">
+  shader="default_unlit.xml">
 
   <diffuse  src="model/test/test_color.png" />
   <normal   src="flat" />

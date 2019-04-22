@@ -943,9 +943,10 @@ void Game::RenderEditState() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
 
-	//g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
-	//g_renderContext->BindMaterial(m_initMesh->m_material);
-	//g_renderContext->DrawMesh(m_initMesh->m_mesh);
+	Matrix44 tranform = Matrix44::MakeUniformScale3D(100.f);
+	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+	g_renderContext->BindMaterial(m_initMesh->m_material);
+	g_renderContext->DrawMesh(m_initMesh->m_mesh);
 
 	g_renderContext->EndCamera();
 
@@ -1576,7 +1577,8 @@ void Game::CreateInitialLight()
 void Game::LoadInitMesh()
 {
     m_initMesh = new Model(g_renderContext, m_objectPath);
-	m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->GetDefaultMaterialName());
+	//m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->GetDefaultMaterialName());
+	m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile("test/test_cube.mat");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
