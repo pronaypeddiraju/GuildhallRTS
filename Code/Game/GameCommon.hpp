@@ -28,7 +28,9 @@ constexpr float UI_NEGATIVE_ASPECT = 0.5625;
 class RenderContext;
 class InputSystem;
 class AudioSystem;
+class App;
 
 extern RenderContext* g_renderContext;
 extern InputSystem* g_inputSystem;
 extern AudioSystem* g_audio;
+extern App* g_theApp;

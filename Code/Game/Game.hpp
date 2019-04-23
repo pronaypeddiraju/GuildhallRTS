@@ -18,6 +18,7 @@ class Model;
 class RTSCamera;
 class Shader;
 class SpriteAnimDefenition;
+class StopWatch;
 class Texture;
 class TextureView;
 class UIButton;
@@ -248,4 +249,7 @@ public:
 
 	UIWidget*							m_editParent = nullptr;
 	UIWidget*							m_gameParent = nullptr;
+
+	StopWatch*							m_stopWatch = nullptr;
+	int									m_lapCounter = 0;
 };

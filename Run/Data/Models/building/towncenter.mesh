@@ -2,7 +2,7 @@
 	src="building/towncenter.obj"
 	invert="false"
 	tangents="true"
-	scale = "0.00390625.f"
+	scale = "0.01f"
 	transform="-y -z -x">
 
 	<material index="0" src="building/towncenter.mat" />

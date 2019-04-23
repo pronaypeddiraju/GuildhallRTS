@@ -5,6 +5,7 @@
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/NamedStrings.hpp"
+#include "Engine/Core/StopWatch.hpp"
 #include "Engine/Core/Time.hpp"
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Core/WindowContext.hpp"
@@ -208,6 +209,9 @@ Game::Game()
 	m_gameInput = new GameInput(this);
 
 	s_gameReference = this;
+
+	m_stopWatch = new StopWatch(nullptr);
+	m_stopWatch->Start(5.f);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1207,6 +1211,12 @@ void Game::PostRender()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::Update( float deltaTime )
 {
+	if (m_stopWatch->Decrement())
+	{
+		std::string elapsed = "StopWatch elapsed count : " + std::to_string(m_stopWatch->GetElapseCount());
+		g_devConsole->PrintString(Rgba::YELLOW, elapsed);
+		m_lapCounter = m_stopWatch->GetElapseCount();
+	}
 
 	UpdateLightPositions();
 
