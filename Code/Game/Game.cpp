@@ -310,7 +310,7 @@ void Game::PerformInitActions()
 	LoadGameMaterials();
 	CreateInitialMeshes();
 	CreateInitialLight();
-	LoadInitMesh();
+	//LoadInitMesh();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();

@@ -10,6 +10,7 @@
 
 //------------------------------------------------------------------------------------------------------------------------------
 class BitmapFont;
+class ColorTargetView;
 class GameInput;
 class GPUMesh;
 class Image;
@@ -20,6 +21,7 @@ class Shader;
 class SpriteAnimDefenition;
 class StopWatch;
 class Texture;
+class Texture2D;
 class TextureView;
 class UIButton;
 class UIWidget;
@@ -252,4 +254,7 @@ public:
 
 	StopWatch*							m_stopWatch = nullptr;
 	int									m_lapCounter = 0;
+
+	Texture2D*							m_renderTexture = nullptr;
+	ColorTargetView*					m_renderCTV = nullptr;
 };
