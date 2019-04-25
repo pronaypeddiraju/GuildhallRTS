@@ -150,6 +150,7 @@ STATIC bool Game::GoToGame( EventArgs& args )
 STATIC bool Game::GoToEdit( EventArgs& args )
 {
 	UNUSED(args);
+
 	s_gameReference->m_gameState = STATE_LOAD;
 	s_gameReference->m_beginEditLoad = true;
 	return true;
@@ -310,7 +311,6 @@ void Game::PerformInitActions()
 	LoadGameMaterials();
 	CreateInitialMeshes();
 	CreateInitialLight();
-	//LoadInitMesh();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();
@@ -803,6 +803,11 @@ void Game::Render() const
 	//Uncomment this when debugging
 	//DebugRenderToCamera();
 	
+	if (g_devConsole->GetFrameCount() > 1)
+	{
+		g_renderContext->ApplyEffect(nullptr, nullptr, m_toneMap);
+	}
+
 	if(g_devConsole->IsOpen())
 	{	
 		g_renderContext->BindShader(m_shader);
@@ -916,7 +921,7 @@ void Game::RenderEditState() const
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 
-	g_renderContext->BeginCamera(*m_mainCamera);
+	g_renderContext->BeginCamera(*m_RTSCam);
 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
@@ -939,15 +944,7 @@ void Game::RenderEditState() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
 
-	Matrix44 tranform = Matrix44::IDENTITY;
-//    	tranform.SetIVector(Vec3(0.f, -(1.f/256.f), 0.f));
-//    	tranform.SetJVector(Vec3(0.f, 0.f, -(1.f / 256.f)));
-//    	tranform.SetKVector(Vec3(-(1.f / 256.f), 0.f, 0.f));
-// 	tranform.SetIVector(Vec3(0.f, -1.f, 0.f));
-// 	tranform.SetJVector(Vec3(0.f, 0.f, -1.f));
-// 	tranform.SetKVector(Vec3(-1.f, 0.f, 0.f));
-
-	g_renderContext->SetModelMatrix(tranform);
+	g_renderContext->SetModelMatrix(m_townCenterTransform);
 	g_renderContext->BindMaterial(m_initMesh->m_material);
 	g_renderContext->DrawMesh(m_initMesh->m_mesh);
 
@@ -1199,10 +1196,10 @@ void Game::PostRender()
 		m_gameState = STATE_PLAY;
 	}
 
-	if(m_beginEditLoad)
-	{
-		m_gameState = STATE_EDIT;
-	}
+// 	if(m_beginEditLoad)
+// 	{
+// 		m_gameState = STATE_EDIT;
+// 	}
 
 	//Uncomment this when debugging
 	//DebugRenderToScreen();
@@ -1239,7 +1236,11 @@ void Game::Update( float deltaTime )
 			m_map->Load("InitMap");
 		}
 
+		LoadInitMesh();
+
 		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
+
+		m_gameState = STATE_EDIT;
 	}
 
 	m_gameInput->Update(deltaTime);
@@ -1263,16 +1264,6 @@ void Game::Update( float deltaTime )
 
 		m_devConsoleCamera->SetOrthoView(Vec2(-WORLD_WIDTH * 0.5f * aspect, -WORLD_HEIGHT * 0.5f), Vec2(WORLD_WIDTH * 0.5f * aspect, WORLD_HEIGHT * 0.5f));
 		m_devConsoleSetup = true;
-	}
-
-	if (m_gameState == STATE_EDIT)
-	{
-		UpdateMouseInputs(deltaTime);
-		g_windowContext->SetMouseMode(MOUSE_MODE_RELATIVE);
-	}
-	else
-	{
-		g_windowContext->SetMouseMode(MOUSE_MODE_ABSOLUTE);
 	}
 
 	//UpdateCamera(deltaTime);
@@ -1316,6 +1307,8 @@ void Game::Update( float deltaTime )
 	CheckCollisions();
 
 	ClearGarbageEntities();	
+
+	m_townCenterTransform = Matrix44::SetTranslation3D(m_RTSCam->m_focalPoint, m_townCenterTransform);
 
 }
 
@@ -1529,6 +1522,7 @@ void Game::CreateGameUIWidgets()
 void Game::LoadGameMaterials()
 {
 	m_testMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialPath);
+	m_toneMap = g_renderContext->CreateOrGetMaterialFromFile(m_tonemapPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1593,9 +1587,10 @@ void Game::CreateInitialLight()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadInitMesh()
 {
-    m_initMesh = new Model(g_renderContext, m_objectPath);
-	//m_initMesh->m_material = g_renderContext->CreateOrGetMaterialFromFile(m_initMesh->m_mesh->m_defaultMaterial);
-	//m_initMesh->m_modelMatrix
+	if (m_initMesh == nullptr)
+	{
+		m_initMesh = new Model(g_renderContext, m_objectPath);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

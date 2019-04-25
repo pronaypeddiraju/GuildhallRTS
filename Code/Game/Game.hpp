@@ -179,6 +179,7 @@ public:
 	std::string							m_sphereTexturePath = "2k_earth_daymap.jpg";
 	std::string							m_xmlShaderPath = "default_unlit.xml";
 	std::string							m_materialPath = "couch.mat";
+	std::string							m_tonemapPath = "tonemap.mat";
 	std::string							m_backgroundPath = "pixelArt.jpg";
 	std::string							m_objectPath = "building/towncenter.mesh";
 	std::string							m_objectMatPath = "building/towncenter.mat";
@@ -210,6 +211,7 @@ public:
 	Matrix44							m_baseQuadTransform;
 
 	Model*								m_initMesh = nullptr;
+	Matrix44							m_townCenterTransform;
 
 	//Lighting Assignment
 	int									m_lightSlot;
@@ -230,6 +232,7 @@ public:
 
 	//Material
 	Material*							m_testMaterial = nullptr;
+	Material*							m_toneMap = nullptr;
 	bool								m_useMaterial = true;
 
 	float								m_emissiveFactor = 0.f;
@@ -255,6 +258,7 @@ public:
 	StopWatch*							m_stopWatch = nullptr;
 	int									m_lapCounter = 0;
 
+	//Stuff for fullscreen FX
 	Texture2D*							m_renderTexture = nullptr;
 	ColorTargetView*					m_renderCTV = nullptr;
 };

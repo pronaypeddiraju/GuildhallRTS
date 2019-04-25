@@ -1,0 +1,4 @@
+<material id="ToneMapEffect"
+  shader="tonemap.hlsl">
+  
+</material>
