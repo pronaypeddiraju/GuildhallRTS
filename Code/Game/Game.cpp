@@ -141,6 +141,7 @@ STATIC bool Game::GoToGame( EventArgs& args )
 {
 	UNUSED(args);
 
+	s_gameReference->m_lastState = s_gameReference->m_gameState;
 	s_gameReference->m_gameState = STATE_LOAD;
 	s_gameReference->m_beginMapLoad = true;
 	return true;
@@ -151,6 +152,7 @@ STATIC bool Game::GoToEdit( EventArgs& args )
 {
 	UNUSED(args);
 
+	s_gameReference->m_lastState = s_gameReference->m_gameState;
 	s_gameReference->m_gameState = STATE_LOAD;
 	s_gameReference->m_beginEditLoad = true;
 	return true;
@@ -226,6 +228,7 @@ Game::~Game()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::StartUp()
 {
+	m_lastState = STATE_NULL;
 	m_gameState = STATE_INIT;
 	
 	SetupMouseData();
@@ -316,6 +319,7 @@ void Game::PerformInitActions()
 	CreateGameUIWidgets();
 	CreateEditUIWidgets();
 
+	m_lastState = STATE_INIT;
 	m_gameState = STATE_MENU;
 }
 
@@ -611,27 +615,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		}
 		case NUM_1:
 		{
-			m_gameState = STATE_INIT;
-			break;
-		}
-		case NUM_2:
-		{
-			m_gameState = STATE_MENU;
-			break;
-		}
-		case NUM_3:
-		{
-			m_gameState = STATE_LOAD;
-			break;
-		}
-		case NUM_4:
-		{
-			m_gameState = STATE_PLAY;
-			break;
-		}
-		case NUM_5:
-		{
-			m_gameState = STATE_EDIT;
+			m_isPaused = true;
 			break;
 		}
 		case NUM_6:
@@ -706,6 +690,11 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 		case UP_ARROW:
 		case RIGHT_ARROW:
 		case LEFT_ARROW:
+		case NUM_1:
+		{
+			m_isPaused = false;
+			break;
+		}
 		//g_audio->PlaySound( m_testAudioID );
 		break;
 		default:
@@ -800,12 +789,9 @@ void Game::Render() const
 	//Show the controls for the UI Camera
 	//RenderControlsToUI();
 
-	//Uncomment this when debugging
-	//DebugRenderToCamera();
-	
-	if (g_devConsole->GetFrameCount() > 1)
+	if(m_isPaused)
 	{
-		g_renderContext->ApplyEffect(nullptr, nullptr, m_toneMap);
+		RenderPauseScreen();
 	}
 
 	if(g_devConsole->IsOpen())
@@ -815,6 +801,9 @@ void Game::Render() const
 		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
 	}	
+
+	//Uncomment this when debugging
+	DebugRenderToCamera();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1013,6 +1002,34 @@ void Game::RenderControlsToUI() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderPauseScreen() const
+{
+	/*
+	if (m_stopWatch->Decrement())
+	{
+		std::string elapsed = "StopWatch elapsed count : " + std::to_string(m_stopWatch->GetElapseCount());
+		g_devConsole->PrintString(Rgba::YELLOW, elapsed);
+		m_lapCounter = m_stopWatch->GetElapseCount();
+	}
+	*/
+
+	if (g_devConsole->GetFrameCount() > 1)
+	{
+		//Decrement our stop watch here
+		float time = static_cast<float>(GetCurrentTimeSeconds());
+		float intensity = (sin(time) + 1.f) * 0.5f;
+
+		TonemapBufferT buffer;
+		buffer.intensity = intensity;
+
+		m_toneMap->SetUniforms(&buffer, sizeof(buffer));
+		
+		g_renderContext->ApplyEffect(m_toneMap);
+		g_renderContext->BindTextureView(0U, nullptr);
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderInitState() const
 {
 	g_renderContext->BindShader(m_shader);
@@ -1193,13 +1210,9 @@ void Game::PostRender()
 
 	if(m_beginMapLoad)
 	{
+		m_lastState = m_gameState;
 		m_gameState = STATE_PLAY;
 	}
-
-// 	if(m_beginEditLoad)
-// 	{
-// 		m_gameState = STATE_EDIT;
-// 	}
 
 	//Uncomment this when debugging
 	//DebugRenderToScreen();
@@ -1208,15 +1221,21 @@ void Game::PostRender()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::Update( float deltaTime )
 {
-	if (m_stopWatch->Decrement())
+	//First just return if we are paused
+	if (m_isPaused)
 	{
-		std::string elapsed = "StopWatch elapsed count : " + std::to_string(m_stopWatch->GetElapseCount());
-		g_devConsole->PrintString(Rgba::YELLOW, elapsed);
-		m_lapCounter = m_stopWatch->GetElapseCount();
+		//Add any logic to be done for pause state here
+		m_stopWatch->Start(3);
+		return;
 	}
 
+	//Update the moving lights
 	UpdateLightPositions();
 
+	//Update the FX Buffer
+	//g_renderContext->UpdateFxBuffer(m_stopWatch->GetNormalizedElapsedTime());
+
+	//If we can load the map, let's load it
 	if(m_beginMapLoad)
 	{
 		if(m_map == nullptr)
@@ -1228,6 +1247,7 @@ void Game::Update( float deltaTime )
 		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
 	}
 
+	//If we can load the edit data let's do that too (Move this to a better place)
 	if(m_beginEditLoad)
 	{
 		if(m_map == nullptr)
@@ -1240,9 +1260,12 @@ void Game::Update( float deltaTime )
 
 		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
 
+		m_lastState = m_gameState;
 		m_gameState = STATE_EDIT;
 	}
 
+	//Update all game input
+	CheckXboxInputs();
 	m_gameInput->Update(deltaTime);
 
 	Vec2 framePan = m_gameInput->GetFramePan();
@@ -1253,10 +1276,10 @@ void Game::Update( float deltaTime )
 
 	m_RTSCam->Update(deltaTime);
 
+
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
 	{
 		//We have rendered the 1st frame
-
 		PerformInitActions();
 
 		ColorTargetView* target = g_renderContext->GetFrameColorTarget();
@@ -1266,13 +1289,7 @@ void Game::Update( float deltaTime )
 		m_devConsoleSetup = true;
 	}
 
-	//UpdateCamera(deltaTime);
 	g_renderContext->m_frameCount++;
-
-	CheckXboxInputs();
-	m_animTime += deltaTime;
-
-	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
 
 	//Update the mouse position
 	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
@@ -1280,8 +1297,8 @@ void Game::Update( float deltaTime )
 
 	DebugRenderOptionsT options;
 	const char* text = "Current Time %f";
-	
-	//g_debugRenderer->DebugAddToLog(options, text, Rgba::YELLOW, 0.f, currentTime);
+	float currentTime = static_cast<float>(GetCurrentTimeSeconds());
+	g_debugRenderer->DebugAddToLog(options, text, Rgba::YELLOW, 0.f, currentTime);
 
 	text = "F5 to Toggle Material/Legacy mode";
 	g_debugRenderer->DebugAddToLog(options, text, Rgba::WHITE, 0.f);
@@ -1294,20 +1311,15 @@ void Game::Update( float deltaTime )
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 	
-	//float currentTime = static_cast<float>(GetCurrentTimeSeconds());
-
+	//Update the cube and sphere transforms
 	// Set the cube to rotate around y (which is up currently),
 	// and move the object to the left by 5 units (-x)
 	//m_cubeTransform = Matrix44::MakeFromEuler( Vec3(60.0f * currentTime, 0.0f, 0.0f), m_rotationOrder ); 
-	m_cubeTransform = Matrix44::SetTranslation3D( Vec3(-5.0f, 0.0f, 0.0f), m_cubeTransform);
 
-	m_sphereTransform = Matrix44::MakeFromEuler( Vec3(0.0f, -45.0f * currentTime, 0.0f) ); 
-	m_sphereTransform = Matrix44::SetTranslation3D( Vec3(5.0f, 0.0f, 0.0f), m_sphereTransform);
+	//m_sphereTransform = Matrix44::MakeFromEuler( Vec3(0.0f, -45.0f * currentTime, 0.0f) ); 
+	//m_sphereTransform = Matrix44::SetTranslation3D( Vec3(5.0f, 0.0f, 0.0f), m_sphereTransform);
 
-	CheckCollisions();
-
-	ClearGarbageEntities();	
-
+	//Update the town center's matrix
 	m_townCenterTransform = Matrix44::SetTranslation3D(m_RTSCam->m_focalPoint, m_townCenterTransform);
 
 }
@@ -1522,7 +1534,12 @@ void Game::CreateGameUIWidgets()
 void Game::LoadGameMaterials()
 {
 	m_testMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialPath);
+
 	m_toneMap = g_renderContext->CreateOrGetMaterialFromFile(m_tonemapPath);
+	TonemapBufferT buffer;
+	buffer.intensity = 1.f;
+
+	m_toneMap->SetUniforms(&buffer, sizeof(buffer));
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1576,12 +1593,12 @@ void Game::UpdateLightPositions()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateInitialLight()
 {
-	EnableDirectionalLight(Vec3(1.f, 1.f, 1.f), Vec3(0.f, 0.f, 1.f));
+	EnableDirectionalLight(Vec3(1.f, 1.f, 1.f), Vec3(0.f, 0.f, 1.f), Rgba::DARK_GREY, 0.f);
 
-	EnablePointLight(1U, m_dynamicLight0Pos, Vec3(1.f, 0.f, 0.5f),Rgba::GREEN);
-	EnablePointLight(2U, m_dynamicLight1Pos, Vec3(0.f, -1.f, 0.f), Rgba::BLUE, 1.f, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.1f, 0.f));
-	EnablePointLight(3U, m_dynamicLight2Pos, Vec3(0.f, 0.f, 1.f), Rgba::YELLOW, 1.f, Vec3(0.f, 1.f, 0.1f), Vec3(0.f, 0.1f, 0.f));
-	EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 1.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
+	EnablePointLight(1U, m_dynamicLight0Pos, Vec3(1.f, 0.f, 0.5f),Rgba::GREEN, 0.f);
+	EnablePointLight(2U, m_dynamicLight1Pos, Vec3(0.f, -1.f, 0.f), Rgba::BLUE, 0.f, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.1f, 0.f));
+	EnablePointLight(3U, m_dynamicLight2Pos, Vec3(0.f, 0.f, 1.f), Rgba::YELLOW, 0.f, Vec3(0.f, 1.f, 0.1f), Vec3(0.f, 0.1f, 0.f));
+	EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 0.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

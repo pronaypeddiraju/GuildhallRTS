@@ -37,6 +37,7 @@ enum GameState
 	STATE_LOAD,
 	STATE_PLAY,
 	STATE_EDIT,
+	STATE_NULL
 };
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -115,6 +116,7 @@ public:
 	void								RenderEditState() const;
 	void								RenderEditUI() const;
 	void								RenderControlsToUI() const;
+	void								RenderPauseScreen() const;
 	void								RenderUsingMaterial() const;
 	void								RenderUsingLegacy() const;
 
@@ -165,7 +167,6 @@ public:
 	TextureView*						m_backgroundTexture = nullptr;
 	BitmapFont*							m_squirrelFont = nullptr;
 	Image*								m_testImage = nullptr;
-	float								m_animTime = 0.f;
 
 	//D3D11 stuff
 	Shader*								m_shader = nullptr;
@@ -240,6 +241,7 @@ public:
 
 	//Game data
 	GameState							m_gameState = STATE_INIT;
+	GameState							m_lastState = STATE_NULL;
 
 	//Map (For now will be 1 single map)
 	Map*								m_map = nullptr;
@@ -261,4 +263,7 @@ public:
 	//Stuff for fullscreen FX
 	Texture2D*							m_renderTexture = nullptr;
 	ColorTargetView*					m_renderCTV = nullptr;
+
+	bool								m_isPaused = false;
+	UniformBuffer*						m_tonemapUBO = nullptr;
 };

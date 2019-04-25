@@ -6,13 +6,13 @@
 //--------------------------------------------------------------------------------------
 // Constants
 //--------------------------------------------------------------------------------------
-//cbuffer tonemap : register(b8)
-//{
-//   float4x4 TONEMAP_TRANSFORM; 
+cbuffer tonemap : register(b8)
+{
+// float4x4 TONEMAP_TRANSFORM; 
 //
-//  float TONEMAP_STRENGTH; 
-//   float3 tonemap_pad00; 
-//};
+   float TONEMAP_STRENGTH; 
+   float3 tonemap_pad00; 
+};
 
 // triangle that spans NDC
 static const float3 FULLSCREEN_TRI[] = {
@@ -72,8 +72,8 @@ float4 FragmentFunction( v2f_t input ) : SV_Target0
    float colorAvg = color.x + color.y + color.z + color.w;
    colorAvg *= 0.33f;
 
-   float4 final_color = float4(colorAvg, colorAvg, colorAvg, colorAvg);
+   float4 final_color = float4(colorAvg, colorAvg, colorAvg, 1.f);
 
-   return final_color;
-   //return lerp( color, final_color, TONEMAP_STRENGTH ); 
+   //return final_color;
+   return lerp( color, final_color, TONEMAP_STRENGTH ); 
 }
