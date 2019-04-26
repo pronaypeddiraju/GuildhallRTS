@@ -1075,8 +1075,7 @@ void Game::RenderMainMenuState() const
 	g_renderContext->BeginCamera(*m_UICamera); 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
-	//g_renderContext->BindTextureViewWithSampler(0U, m_backgroundTexture);
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+	g_renderContext->BindTextureViewWithSampler(0U, m_backgroundTexture);
 	std::vector<Vertex_PCU> boxVerts;
 	AABB2 screenBox = AABB2(Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * -0.5f, UI_SCREEN_HEIGHT * -0.5f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_HEIGHT * 0.5f));
 	AddVertsForAABB2D(boxVerts, screenBox, Rgba::WHITE);
