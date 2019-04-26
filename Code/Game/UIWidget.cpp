@@ -153,8 +153,17 @@ void UIWidget::RenderForWidgetType()
 
 		if( IsPointInAABBB2(boxDimensions, relativePosition))
 		{
-			button2->OnHover();
-			color = m_color;
+			if (!m_game->m_isPaused)
+			{
+				button2->OnHover();
+				color = m_color;
+			}
+
+			if (m_parent == m_game->m_pauseRadGroup)
+			{
+				button2->OnHover();
+				color = m_color;
+			}
 
 			boxVerts.clear();
 			g_renderContext->BindTextureViewWithSampler(0U, nullptr);

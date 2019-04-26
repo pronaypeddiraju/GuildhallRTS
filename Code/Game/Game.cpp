@@ -352,7 +352,7 @@ void Game::PerformInitActions()
 	LoadGameMaterials();
 	CreateInitialMeshes();
 	CreateInitialLight();
-	//LoadInitMesh();
+	LoadInitMesh();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();
@@ -1021,10 +1021,10 @@ void Game::RenderEditUI() const
 	IntVec2 client = g_windowContext->GetTureClientBounds();
 	Vec2 boundsSize = Vec2((float)client.x, (float)client.y); 
 
-	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+	m_editParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
 	g_renderContext->BeginCamera(*m_UICamera);	
-
+	
 	m_editParent->Render();
 
 	g_renderContext->EndCamera();
@@ -1290,10 +1290,14 @@ void Game::PostRender()
 void Game::Update( float deltaTime )
 {
 	//First just return if we are paused
-	if (m_isPaused && m_pauseTimer < m_stopWatch->GetDuration())
+	if (m_pauseTimer < m_stopWatch->GetDuration())
 	{
 		//Add any logic to be done for pause state here	
 		m_pauseTimer += deltaTime;
+	}
+
+	if (m_isPaused)
+	{
 		return;
 	}
 
