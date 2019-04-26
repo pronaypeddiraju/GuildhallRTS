@@ -58,8 +58,11 @@ public:
 	static bool				GoToGame(EventArgs& args);
 	static bool				GoToEdit(EventArgs& args);
 	static bool				ReLoadMap(EventArgs& args);
+	static bool				ResumeGame(EventArgs& args);
+	static bool				ReturnToMenu(EventArgs& args);
+	static bool				QuitGame(EventArgs& args);
 
-	static Game*			s_gameReference; 
+	static Game*			s_gameReference;
 
 
 	Vec2					GetClientToUIScreenPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds );
@@ -74,6 +77,7 @@ public:
 	void								CreateMenuUIWidgets();
 	void								CreateEditUIWidgets();
 	void								CreateGameUIWidgets();
+	void								CreatePauseUIWidgets();
 
 	void								GetandSetShaders();
 	void								LoadGameTextures();
@@ -188,6 +192,7 @@ public:
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
 	Camera*								m_UICamera = nullptr;
+	Camera*								m_pauseCamera = nullptr;
 	RTSCamera*							m_RTSCam = nullptr;
 	Rgba*								m_clearScreenColor = nullptr;
 	
@@ -268,4 +273,12 @@ public:
 	UniformBuffer*						m_tonemapUBO = nullptr;
 
 	float								m_pauseTimer = 0.f;
+
+	UIWidget*							m_pauseParent = nullptr;
+	UIRadioGroup*						m_pauseRadGroup = nullptr;
+	UIButton*							m_resumeButton = nullptr;
+	UIButton*							m_returnMenuButton = nullptr;
+	UIButton*							m_quitButton = nullptr;
+	bool								m_loadingMesh = true;
+	bool								m_returnToMenu = false;
 };

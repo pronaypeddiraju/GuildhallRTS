@@ -28,6 +28,7 @@
 #include "Engine/Renderer/TextureView.hpp"
 
 //Game Systems
+#include "Game/App.hpp"
 #include "Game/GameInput.hpp"
 #include "Game/Map.hpp"
 #include "Game/RTSCamera.hpp"
@@ -140,7 +141,7 @@ STATIC bool Game::ToggleAllPointLights( EventArgs& args )
 STATIC bool Game::GoToGame( EventArgs& args )
 {
 	UNUSED(args);
-
+	s_gameReference->m_returnToMenu = false;
 	s_gameReference->m_lastState = s_gameReference->m_gameState;
 	s_gameReference->m_gameState = STATE_LOAD;
 	s_gameReference->m_beginMapLoad = true;
@@ -151,7 +152,7 @@ STATIC bool Game::GoToGame( EventArgs& args )
 STATIC bool Game::GoToEdit( EventArgs& args )
 {
 	UNUSED(args);
-
+	s_gameReference->m_returnToMenu = false;
 	s_gameReference->m_lastState = s_gameReference->m_gameState;
 	s_gameReference->m_gameState = STATE_LOAD;
 	s_gameReference->m_beginEditLoad = true;
@@ -180,6 +181,34 @@ STATIC bool Game::ReLoadMap( EventArgs& args )
 	}
 
 	return true;	
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ResumeGame(EventArgs& args)
+{
+	UNUSED(args);
+	s_gameReference->m_isPaused = false;
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::ReturnToMenu(EventArgs& args)
+{
+	UNUSED(args);
+	s_gameReference->m_lastState = s_gameReference->m_gameState;
+	s_gameReference->m_beginEditLoad = false;
+	s_gameReference->m_beginMapLoad = false;
+	s_gameReference->m_gameState = STATE_MENU;
+	s_gameReference->m_returnToMenu = true;
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::QuitGame(EventArgs& args)
+{
+	UNUSED(args);
+	g_theApp->HandleQuitRequested();
+	return true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -250,7 +279,11 @@ void Game::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn( "GoToGame", GoToGame);
 	g_eventSystem->SubscribeEventCallBackFn( "GoToEdit", GoToEdit);
 	g_eventSystem->SubscribeEventCallBackFn("RemakeMap", ReLoadMap);
-
+	
+	g_eventSystem->SubscribeEventCallBackFn("ResumeGame", ResumeGame);
+	g_eventSystem->SubscribeEventCallBackFn("ReturnToMenu", ReturnToMenu);
+	g_eventSystem->SubscribeEventCallBackFn("QuitGame", QuitGame);
+	   
 	/*
 	//Only to keep track of what input does what
 	DebugRenderOptionsT options;
@@ -286,6 +319,10 @@ void Game::SetupCameras()
 	m_UICamera = new Camera();
 	m_UICamera->SetColorTarget(nullptr);
 
+	//Create the Pause Camera
+	m_pauseCamera = new Camera();
+	m_pauseCamera->SetColorTarget(nullptr);
+
 	//Create a devConsole Cam
 	m_devConsoleCamera = new Camera();
 	m_devConsoleCamera->SetColorTarget(nullptr);
@@ -302,6 +339,7 @@ void Game::SetupCameras()
 
 	//Set the ortho perspective for the UI camera
 	m_UICamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * aspect, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * aspect, CANVAS_HEIGHT * 0.5f));
+	m_pauseCamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * aspect, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * aspect, CANVAS_HEIGHT * 0.5f));
 
 	m_clearScreenColor = new Rgba(0.f, 0.f, 0.5f, 1.f);
 }
@@ -314,11 +352,12 @@ void Game::PerformInitActions()
 	LoadGameMaterials();
 	CreateInitialMeshes();
 	CreateInitialLight();
-	LoadInitMesh();
+	//LoadInitMesh();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();
 	CreateEditUIWidgets();
+	CreatePauseUIWidgets();
 
 	m_lastState = STATE_INIT;
 	m_gameState = STATE_MENU;
@@ -616,10 +655,13 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		}
 		case NUM_1:
 		{
-			if (!m_isPaused && m_gameState != STATE_MENU)
+			if (m_gameState != STATE_MENU)
 			{
-				m_isPaused = true;
-				m_pauseTimer = 0.f;
+				if (!m_isPaused)
+				{
+					m_pauseTimer = 0.f;
+				}
+				m_isPaused = !m_isPaused;
 			}
 			break;
 		}
@@ -645,11 +687,17 @@ void Game::Shutdown()
 	delete m_menuParent;
 	m_menuParent = nullptr;
 
+	delete m_pauseParent;
+	m_pauseParent = nullptr;
+
 	delete m_map;
 	m_map = nullptr;
 
 	delete m_mainCamera;
 	m_mainCamera = nullptr;
+
+	delete m_pauseCamera;
+	m_pauseCamera = nullptr;
 
 	delete m_devConsoleCamera;
 	m_devConsoleCamera = nullptr;
@@ -696,10 +744,10 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 		case RIGHT_ARROW:
 		case LEFT_ARROW:
 		case NUM_1:
-		{
-			m_isPaused = false;
-			break;
-		}
+// 		{
+// 			m_isPaused = false;
+// 			break;
+// 		}
 		//g_audio->PlaySound( m_testAudioID );
 		break;
 		default:
@@ -759,6 +807,7 @@ void Game::Render() const
 	m_UICamera->SetColorTarget(colorTargetView);
 	m_devConsoleCamera->SetColorTarget(colorTargetView);
 	m_RTSCam->SetColorTarget(colorTargetView);
+	m_pauseCamera->SetColorTarget(colorTargetView);
 
 	switch( m_gameState )
 	{
@@ -910,6 +959,12 @@ void Game::RenderGameUI() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderEditState() const
 {
+	if (m_lastState == STATE_LOAD)
+	{
+		RenderLoadState();
+		return;
+	}
+
 	// Move the camera to where it is in the scene
 	Matrix44 camTransform = Matrix44::MakeFromEuler( m_mainCamera->GetEuler(), m_rotationOrder ); 
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
@@ -1009,6 +1064,11 @@ void Game::RenderControlsToUI() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderPauseScreen() const
 {
+	if (m_gameState == STATE_MENU)
+	{
+		return;
+	}
+
 	if (g_devConsole->GetFrameCount() > 1)
 	{
 		//Decrement our stop watch here
@@ -1022,6 +1082,18 @@ void Game::RenderPauseScreen() const
 		
 		g_renderContext->ApplyEffect(m_toneMap);
 		g_renderContext->BindTextureView(0U, nullptr);
+	}
+
+	if (m_isPaused)
+	{
+		m_pauseCamera->SetColorTarget(g_renderContext->GetFrameColorTarget());
+		m_pauseParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
+		g_renderContext->BeginCamera(*m_pauseCamera);
+
+		m_pauseParent->Render();
+
+		g_renderContext->EndCamera();
 	}
 }
 
@@ -1225,6 +1297,23 @@ void Game::Update( float deltaTime )
 		return;
 	}
 
+	if (m_gameState == STATE_MENU)
+	{
+		m_isPaused = false;
+	}
+
+	//Update all game input
+	CheckXboxInputs();
+	m_gameInput->Update(deltaTime);
+
+	Vec2 framePan = m_gameInput->GetFramePan();
+	m_RTSCam->PanFocalPoint(framePan);
+
+	float angleOffset = m_gameInput->GetFrameRotation();
+	m_RTSCam->SetAngleOffset(angleOffset);
+
+	m_RTSCam->Update(deltaTime);
+
 	//Update the moving lights
 	UpdateLightPositions();
 
@@ -1234,6 +1323,8 @@ void Game::Update( float deltaTime )
 	//If we can load the map, let's load it
 	if(m_beginMapLoad)
 	{
+		m_lastState = STATE_LOAD;
+
 		if(m_map == nullptr)
 		{
 			m_map = new Map();
@@ -1252,25 +1343,13 @@ void Game::Update( float deltaTime )
 			m_map->Load("InitMap");
 		}
 
-		//LoadInitMesh();
+		LoadInitMesh();
 
 		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
 
 		m_lastState = m_gameState;
 		m_gameState = STATE_EDIT;
 	}
-
-	//Update all game input
-	CheckXboxInputs();
-	m_gameInput->Update(deltaTime);
-
-	Vec2 framePan = m_gameInput->GetFramePan();
-	m_RTSCam->PanFocalPoint(framePan);
-
-	float angleOffset = m_gameInput->GetFrameRotation();
-	m_RTSCam->SetAngleOffset(angleOffset);
-
-	m_RTSCam->Update(deltaTime);
 
 
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
@@ -1527,6 +1606,87 @@ void Game::CreateGameUIWidgets()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Game::CreatePauseUIWidgets()
+{
+	// Menu Widgets
+	m_pauseParent = new UIWidget(this, nullptr);
+	m_pauseParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
+	m_pauseParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
+
+	//Create the radio group
+	m_pauseRadGroup = m_pauseParent->CreateChild<UIRadioGroup>(m_pauseParent->GetWorldBounds());
+
+	AABB2 bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	Vec4 size = Vec4(0.1f, 0.1f, 0.f, 0.f);
+	Vec4 position = Vec4(0.5f, 0.5f, -150.f, -120.f);
+	//Create the Resume Button
+	m_resumeButton = m_pauseRadGroup->CreateChild<UIButton>(m_pauseRadGroup->GetWorldBounds(), size, position);
+	m_resumeButton->SetOnClick("ResumeGame");
+	m_resumeButton->SetColor(Rgba::WHITE);
+	m_resumeButton->unHovercolor = Rgba::WHITE;
+	m_resumeButton->SetRadioType(true);
+
+	//Create the Menu button
+	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	size = Vec4(0.1f, 0.1f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5f, 0.f, -120.f);
+
+	m_returnMenuButton = m_pauseRadGroup->CreateChild<UIButton>(m_pauseRadGroup->GetWorldBounds(), size, position);
+	m_returnMenuButton->SetOnClick("ReturnToMenu");
+	m_returnMenuButton->SetColor(Rgba::WHITE);
+	m_returnMenuButton->unHovercolor = Rgba::WHITE;
+	m_returnMenuButton->SetRadioType(true);
+
+	//Create the Menu button
+	bounds = AABB2(Vec2(0.f, 0.f), Vec2(30.f, 30.f));
+	size = Vec4(0.1f, 0.1f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5f, 150.f, -120.f);
+
+	m_quitButton = m_pauseRadGroup->CreateChild<UIButton>(m_pauseRadGroup->GetWorldBounds(), size, position);
+	m_quitButton->SetOnClick("QuitGame");
+	m_quitButton->SetColor(Rgba::WHITE);
+	m_quitButton->unHovercolor = Rgba::WHITE;
+	m_quitButton->SetRadioType(true);
+
+	size = Vec4(1.f, .75f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5, 0.f, 0.f);
+
+	UILabel* label = m_resumeButton->CreateChild<UILabel>(m_resumeButton->GetWorldBounds(), size, position);
+	label->SetLabelText("RESUME");
+	label->SetColor(Rgba::WHITE);
+
+	label = m_returnMenuButton->CreateChild<UILabel>(m_returnMenuButton->GetWorldBounds(), size, position);
+	label->SetLabelText("MENU");
+	label->SetColor(Rgba::WHITE);
+
+	label = m_quitButton->CreateChild<UILabel>(m_quitButton->GetWorldBounds(), size, position);
+	label->SetLabelText("QUIT");
+	label->SetColor(Rgba::WHITE);
+
+	//Age of emptiness
+	size = Vec4(0.4f, 0.45f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5, 0.f, 0.f);
+
+	label = m_pauseParent->CreateChild<UILabel>(m_pauseParent->GetWorldBounds(), size, position);
+	label->SetLabelText("GAME PAUSED");
+	label->SetColor(Rgba::YELLOW);
+
+	size = Vec4(0.4f, 0.4f, 0.f, 0.f);
+	position = Vec4(0.5f, 0.5f, 0.f, 0.f);
+
+	label = m_pauseParent->CreateChild<UILabel>(m_pauseParent->GetWorldBounds(), size, position);
+	label->SetLabelText("GAME PAUSED");
+	label->SetColor(Rgba::ORANGE);
+
+	size = Vec4(0.35f, 0.35f, 0.f, 0.f);
+	position = Vec4(0.5, 0.5, 0.f, -50.f);
+
+	label = m_pauseParent->CreateChild<UILabel>(m_pauseParent->GetWorldBounds(), size, position);
+	label->SetLabelText("Pronay->SetJoy( currentMapVisibility );");
+	label->SetColor(Rgba::DARK_GREY);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadGameMaterials()
 {
 	m_testMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialPath);
@@ -1600,15 +1760,23 @@ void Game::CreateInitialLight()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadInitMesh()
 {
+	m_lastState = STATE_LOAD;
 	if (m_initMesh == nullptr)
 	{
 		m_initMesh = new Model(g_renderContext, m_objectPath);
 	}
+	m_lastState = m_gameState;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::BeginFrame()
 {
+	if (m_returnToMenu == true)
+	{
+		m_pauseTimer = 0.f;
+		m_gameState = STATE_MENU;
+	}
+
 	m_gameInput->BeginFrame();
 }
 

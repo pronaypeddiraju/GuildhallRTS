@@ -191,6 +191,18 @@ bool GameInput::HandleMouseLBDown()
 	break;
 	}
 
+	if (m_game->m_isPaused)
+	{
+		EventArgs args;
+
+		std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(eventString, '=');
+		args.SetValue(KeyValSplit[0], KeyValSplit[1]);
+
+		InputEvent event("MouseEvent", args);
+		m_game->m_pauseParent->ProcessInput(event);
+		return event.WasConsumed();
+	}
+
 	return false;
 }
 
