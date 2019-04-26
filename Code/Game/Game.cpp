@@ -314,6 +314,7 @@ void Game::PerformInitActions()
 	LoadGameMaterials();
 	CreateInitialMeshes();
 	CreateInitialLight();
+	LoadInitMesh();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();
@@ -1011,8 +1012,8 @@ void Game::RenderPauseScreen() const
 	if (g_devConsole->GetFrameCount() > 1)
 	{
 		//Decrement our stop watch here
-		float time = static_cast<float>(GetCurrentTimeSeconds());
-		float intensity = (sin(time) + 1.f);
+		//float time = static_cast<float>(GetCurrentTimeSeconds());
+		//float intensity = (sin(time) + 1.f);
 
 		TonemapBufferT buffer;
 		buffer.intensity = m_pauseTimer;
@@ -1251,7 +1252,7 @@ void Game::Update( float deltaTime )
 			m_map->Load("InitMap");
 		}
 
-		LoadInitMesh();
+		//LoadInitMesh();
 
 		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());
 
