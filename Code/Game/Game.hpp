@@ -266,4 +266,6 @@ public:
 
 	bool								m_isPaused = false;
 	UniformBuffer*						m_tonemapUBO = nullptr;
+
+	float								m_pauseTimer = 0.f;
 };

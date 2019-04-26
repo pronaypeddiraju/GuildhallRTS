@@ -214,7 +214,7 @@ Game::Game()
 	s_gameReference = this;
 
 	m_stopWatch = new StopWatch(nullptr);
-	m_stopWatch->Start(5.f);
+	m_stopWatch->Start(3.f);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -615,7 +615,11 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		}
 		case NUM_1:
 		{
-			m_isPaused = true;
+			if (!m_isPaused && m_gameState != STATE_MENU)
+			{
+				m_isPaused = true;
+				m_pauseTimer = 0.f;
+			}
 			break;
 		}
 		case NUM_6:
@@ -1004,24 +1008,15 @@ void Game::RenderControlsToUI() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderPauseScreen() const
 {
-	/*
-	if (m_stopWatch->Decrement())
-	{
-		std::string elapsed = "StopWatch elapsed count : " + std::to_string(m_stopWatch->GetElapseCount());
-		g_devConsole->PrintString(Rgba::YELLOW, elapsed);
-		m_lapCounter = m_stopWatch->GetElapseCount();
-	}
-	*/
-
 	if (g_devConsole->GetFrameCount() > 1)
 	{
 		//Decrement our stop watch here
 		float time = static_cast<float>(GetCurrentTimeSeconds());
-		float intensity = (sin(time) + 1.f) * 0.5f;
+		float intensity = (sin(time) + 1.f);
 
 		TonemapBufferT buffer;
-		buffer.intensity = intensity;
-
+		buffer.intensity = m_pauseTimer;
+		
 		m_toneMap->SetUniforms(&buffer, sizeof(buffer));
 		
 		g_renderContext->ApplyEffect(m_toneMap);
@@ -1080,7 +1075,8 @@ void Game::RenderMainMenuState() const
 	g_renderContext->BeginCamera(*m_UICamera); 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
-	g_renderContext->BindTextureViewWithSampler(0U, m_backgroundTexture);
+	//g_renderContext->BindTextureViewWithSampler(0U, m_backgroundTexture);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	std::vector<Vertex_PCU> boxVerts;
 	AABB2 screenBox = AABB2(Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * -0.5f, UI_SCREEN_HEIGHT * -0.5f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_HEIGHT * 0.5f));
 	AddVertsForAABB2D(boxVerts, screenBox, Rgba::WHITE);
@@ -1222,10 +1218,10 @@ void Game::PostRender()
 void Game::Update( float deltaTime )
 {
 	//First just return if we are paused
-	if (m_isPaused)
+	if (m_isPaused && m_pauseTimer < m_stopWatch->GetDuration())
 	{
-		//Add any logic to be done for pause state here
-		m_stopWatch->Start(3);
+		//Add any logic to be done for pause state here	
+		m_pauseTimer += deltaTime;
 		return;
 	}
 

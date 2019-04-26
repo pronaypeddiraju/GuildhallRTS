@@ -69,10 +69,12 @@ float4 FragmentFunction( v2f_t input ) : SV_Target0
 {
    float4 color = tDiffuse.Sample( sLinear, input.uv ); 
 
-   float colorAvg = color.x + color.y + color.z + color.w;
-   colorAvg *= 0.33f;
+   float colorAvg = color.x + color.y + color.z;
+   color.x = color.x * 0.2126f;
+   color.y = color.y * 0.7152f;
+   color.z = color.z * 0.0722f;
 
-   float4 final_color = float4(colorAvg, colorAvg, colorAvg, 1.f);
+   float4 final_color = float4(color.xyz, colorAvg * 0.33f);
 
    //return final_color;
    return lerp( color, final_color, TONEMAP_STRENGTH ); 
