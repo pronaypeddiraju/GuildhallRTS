@@ -63,7 +63,8 @@ void UIWidget::ProcessInput( InputEvent &evt )
 		if(button != nullptr && !evt.m_consumed)
 		{
 			std::string key = "clickType";
-			evt.m_clickType = evt.m_args.GetValue(key, "");
+			std::string defaultValue = "";
+			evt.m_clickType = evt.m_args.GetValue(key, defaultValue);
 			if(evt.m_clickType == "LBDown")
 			{
 				button->Click();
@@ -410,11 +411,13 @@ void UIWidget::DestroyChildren()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-InputEvent::InputEvent( const std::string& name, const EventArgs& args )
+InputEvent::InputEvent( const std::string& name, EventArgs& args )
 {
 	m_name = name;
 	m_args = args;
-	m_clickType = args.GetValue("clickType", "");	
+	std::string key = "clickType";
+	std::string defaultValue = "";
+	m_clickType = args.GetValue(key, defaultValue);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

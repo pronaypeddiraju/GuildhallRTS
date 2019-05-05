@@ -2,7 +2,7 @@
 #pragma once
 #include "Engine/Commons/EngineCommon.hpp"
 #include "Engine/Core/EventSystems.hpp"
-#include "Engine/Core/NamedStrings.hpp"
+#include "Engine/Core/NamedProperties.hpp"
 #include "Engine/Math//AABB2.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/Vec4.hpp"
@@ -30,7 +30,7 @@ enum eWidgetType
 class InputEvent
 {
 public:
-	InputEvent(const std::string& name, const EventArgs& args);
+	InputEvent(const std::string& name, EventArgs& args);
 	~InputEvent();
 
 	inline bool			WasConsumed() {return m_consumed;};
