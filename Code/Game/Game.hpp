@@ -219,6 +219,9 @@ public:
 	Model*								m_initMesh = nullptr;
 	Matrix44							m_townCenterTransform;
 
+	GPUMesh*							m_capsule = nullptr;
+	Matrix44							m_capsuleModel;
+
 	//Lighting Assignment
 	int									m_lightSlot;
 	float								m_ambientIntensity = 1.f;

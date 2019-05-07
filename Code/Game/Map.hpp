@@ -7,6 +7,7 @@
 typedef unsigned int uint;
 
 //------------------------------------------------------------------------------------------------------------------------------
+struct Ray3D;
 struct Vertex_Lit;
 class Material;
 class GPUMesh;
@@ -37,6 +38,8 @@ public:
 
 	// Accessors
 	AABB2 GetXYBounds() const; // used for constraining the camera's focal point
+
+	uint RaycastTerrain(float* out, const Ray3D& ray);
 
 private:
 	void GenerateTerrainMesh(); // creates the mesh and material from the tiles; 

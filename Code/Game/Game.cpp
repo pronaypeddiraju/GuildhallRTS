@@ -14,6 +14,7 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/Matrix44.hpp"
 #include "Engine/Math/RandomNumberGenerator.hpp"
+#include "Engine/Math/Ray3D.hpp"
 #include "Engine/Math/Vertex_Lit.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
 #include "Engine/Renderer/Camera.hpp"
@@ -720,6 +721,9 @@ void Game::Shutdown()
 	delete m_baseQuad;
 	m_baseQuad = nullptr;
 
+	delete m_capsule;
+	m_capsule = nullptr;
+
 	delete m_initMesh;
 	m_initMesh = nullptr;
 
@@ -868,7 +872,7 @@ void Game::RenderGameState() const
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 
-	g_renderContext->BeginCamera(*m_RTSCam); 
+	g_renderContext->BeginCamera(*m_mainCamera); 
 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
@@ -902,6 +906,12 @@ void Game::RenderGameState() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
 
+	//Render the cube
+	//g_renderContext->BindTextureViewWithSampler(0U, m_boxTexturePath);  
+	g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->SetModelMatrix(m_cubeTransform);
+	g_renderContext->DrawMesh(m_cube);
+
 	g_renderContext->EndCamera();
 
 	g_renderContext->BeginCamera(*m_UICamera); 
@@ -918,6 +928,8 @@ void Game::RenderGameState() const
 	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "NUM_6 : Toggle Controls", Rgba::YELLOW, 1.f, Vec2::ALIGN_LEFT_CENTERED);
 
 	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->BindMaterial(m_testMaterial);
 
 	if(m_showGameControls)
 	{
@@ -1197,6 +1209,10 @@ void Game::RenderUsingMaterial() const
 	//g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	g_renderContext->DrawMesh( m_quad );
+
+	//Render the capsule here
+	g_renderContext->SetModelMatrix(m_capsuleModel);
+	g_renderContext->DrawMesh(m_capsule);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1227,6 +1243,10 @@ void Game::RenderUsingLegacy() const
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	g_renderContext->DrawMesh( m_quad );
+
+	//Render the capsule her
+	g_renderContext->SetModelMatrix(m_capsuleModel);
+	g_renderContext->DrawMesh(m_capsule);
 
 }
 
@@ -1355,7 +1375,6 @@ void Game::Update( float deltaTime )
 		m_gameState = STATE_EDIT;
 	}
 
-
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
 	{
 		//We have rendered the 1st frame
@@ -1372,7 +1391,7 @@ void Game::Update( float deltaTime )
 
 	//Update the mouse position
 	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
-	IntVec2 clientBounds = g_windowContext->GetClientBounds();
+	IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
 
 	DebugRenderOptionsT options;
 	const char* text = "Current Time %f";
@@ -1390,6 +1409,19 @@ void Game::Update( float deltaTime )
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 	
+	//RenderUsingMaterial();
+	Ray3D ray = m_mainCamera->ScreenPointToWorldRay(intVecPos, clientBounds);
+
+	float out[2];
+	uint pointCount = m_map->RaycastTerrain(out, ray);
+	if (pointCount == 1)
+	{
+		Vec3 hitPoint = ray.GetPointAtTime(out[0]);
+
+		m_cubeTransform = Matrix44::IDENTITY;
+		m_cubeTransform = Matrix44::SetTranslation3D(hitPoint, m_cubeTransform);
+	}
+
 	//Update the cube and sphere transforms
 	// Set the cube to rotate around y (which is up currently),
 	// and move the object to the left by 5 units (-x)
@@ -1400,7 +1432,6 @@ void Game::Update( float deltaTime )
 
 	//Update the town center's matrix
 	m_townCenterTransform = Matrix44::SetTranslation3D(m_RTSCam->m_focalPoint, m_townCenterTransform);
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1827,6 +1858,14 @@ void Game::CreateInitialMeshes()
 	m_baseQuadTransform = Matrix44::IDENTITY;
 	m_baseQuadTransform = Matrix44::MakeFromEuler(Vec3(-90.f, 0.f, 0.f));
 	m_baseQuadTransform = Matrix44::SetTranslation3D(Vec3(0.f, -1.f, 0.f), m_baseQuadTransform);
+
+	mesh.Clear();
+	CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 1.f), Vec3(0.f, -1.f, 1.f), 2.f, Rgba::YELLOW);
+
+	m_capsule = new GPUMesh(g_renderContext);
+	m_capsule->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
+
+	m_capsuleModel = Matrix44::IDENTITY;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

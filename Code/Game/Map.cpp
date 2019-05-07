@@ -3,6 +3,8 @@
 
 // Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Math/Plane3D.hpp"
+#include "Engine/Math/Ray3D.hpp"
 #include "Engine/Math/Vertex_Lit.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
@@ -182,4 +184,11 @@ void Map::RenderTerrain( Material* matOverride /*= nullptr */ ) const
 AABB2 Map::GetXYBounds() const
 {
 	return m_mapBounds;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+uint Map::RaycastTerrain(float* out, const Ray3D& ray)
+{
+	Plane3D terrainPlane(Vec3(0.f, 0.f, -1.f), 0.f);
+	return Raycast(out, ray, terrainPlane);
 }
