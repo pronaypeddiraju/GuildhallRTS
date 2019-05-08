@@ -3,6 +3,7 @@
 //Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
 #include "Engine/Math/Vec3.hpp"
+#include "Engine/Math/Capsule3D.hpp"
 
 //Game Systems
 #include "Game/GameHandle.hpp"
@@ -40,6 +41,8 @@ public:
 	Vec2					GetPosition() const;
 	GameHandle				GetHandle() const;
 
+	Capsule3D				CreateEntityCapsule() const;
+
 	// return just one result if it hits - return the closest result
 	// depending on its physics collision
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
@@ -49,8 +52,8 @@ public:
 	eEntityFlags	m_flags;
 
 	// info
-	Vec2			m_position;
-	Vec2			m_targetPosition;
+	Vec2			m_position = Vec2::ZERO;
+	Vec2			m_targetPosition = Vec2::ZERO;
 
 	// stats
 	float			m_speed;
@@ -58,6 +61,6 @@ public:
 	// UI collision
 	float			m_height = 1.f;
 	float			m_radius = 0.5f;
-	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
+	Vec3			m_orientation = Vec3::UP; //Am I standing? Am I lying down?
 };
 

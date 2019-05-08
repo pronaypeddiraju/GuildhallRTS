@@ -11,6 +11,7 @@
 #include "Game/RTSCamera.hpp"
 #include "Game/UIWidget.hpp"
 #include "Game/GameHandle.hpp"
+#include "RTSCommand.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 GameInput::GameInput(Game* game)
@@ -340,6 +341,34 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		}
 
 		m_frameRotation += m_rotationSpeed;
+	}
+	break;
+	case SPACE_KEY:
+	{
+		if (Game::s_gameReference->m_gameState != STATE_EDIT && Game::s_gameReference->m_gameState != STATE_PLAY)
+		{
+ 			return;
+		}
+
+		//Create entity here using the command
+		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
+		IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePos, clientBounds);
+		float out[2];
+		uint count = m_game->m_map->RaycastTerrain(out, ray);
+		if (count == 0)
+		{
+			return;
+		}
+		else
+		{
+			Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
+			Vec3 point = camPosition + ray.m_direction * out[0];
+
+			//Use the command on game here
+			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y));
+			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+		}
 	}
 	break;
 	}

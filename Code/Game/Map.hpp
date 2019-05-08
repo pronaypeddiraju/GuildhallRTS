@@ -14,6 +14,7 @@ struct Vertex_Lit;
 class Entity;
 class GameHandle;
 class GPUMesh;
+class CPUMesh;
 class Material;
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -34,12 +35,13 @@ public:
 	bool				Load( char const* filename );          
 	bool				Create( int mapWidth, int mapHeight ); 
 
-	void				Update(); 
-	void				UpdateEntities(); 
+	void				Update(float deltaTime); 
+	void				UpdateEntities(float deltaTime);
 	void				Render() const; // assumes a camera is already bound
 	void				Shutdown();
 
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
+	void				RenderEntities() const;
 
 	// Accessors
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
@@ -68,9 +70,12 @@ private:
 	std::vector<uint>		m_mapIndices;
 
 	std::string				m_materialName = "terrain.mat";
-
+	
 	GPUMesh*				m_terrainMesh = nullptr; 
 	Material*				m_terrainMaterial = nullptr; 
+
+	CPUMesh*				m_entityCPUMesh = nullptr;
+	GPUMesh*				m_entityMesh = nullptr; 
 
 	AABB2					m_mapBounds;
 

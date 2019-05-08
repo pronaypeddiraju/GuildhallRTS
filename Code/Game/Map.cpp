@@ -6,6 +6,7 @@
 #include "Engine/Math/Plane3D.hpp"
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Math/Vertex_Lit.hpp"
+#include "Engine/Renderer/CPUMesh.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
@@ -147,15 +148,25 @@ bool Map::Create( int mapWidth, int mapHeight )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Map::Update()
+void Map::Update(float deltaTime)
 {
-	//Do nothing for now
+	UpdateEntities(deltaTime);
+}
+
+void Map::UpdateEntities(float deltaTime)
+{
+	int numEntities = (int)m_entities.size();
+	for (int index = 0; index < numEntities; index++)
+	{
+		m_entities[index]->Update(deltaTime);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Map::Render() const
 {
 	RenderTerrain(m_terrainMaterial);
+	RenderEntities();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -181,6 +192,46 @@ void Map::RenderTerrain( Material* matOverride /*= nullptr */ ) const
 		g_renderContext->BindMaterial(m_terrainMaterial);
 	}
 	g_renderContext->DrawMesh(m_terrainMesh);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::RenderEntities() const
+{
+	int numEntities = (int)m_entities.size();
+	for (int index = 0; index < numEntities; index++)
+	{
+		g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_lit.hlsl"));
+		g_renderContext->BindTextureView(0U, nullptr);
+
+		CPUMesh mesh;
+		Capsule3D capsule;
+		capsule = m_entities[index]->CreateEntityCapsule();
+
+		if (m_entities[index]->IsSelectable())
+		{
+			//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::YELLOW);
+			CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::YELLOW);
+		}
+		else
+		{
+			CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::WHITE);
+		}
+
+		GPUMesh drawMesh = GPUMesh(g_renderContext);
+		drawMesh.CreateFromCPUMesh<Vertex_Lit>(&mesh);
+
+		//Setup the model matrix for the entity
+		Matrix44 mat = Matrix44::MakeXRotationDegrees(90.f);
+		Matrix44 translation = Matrix44::MakeTranslation3D(capsule.m_end);
+		Vec3 t = translation.GetTVector();
+		mat.SetTVector(t);
+		g_renderContext->BindModelMatrix(mat);
+
+		//Draw in wireframe
+		g_renderContext->SetRasterStateWireFrame();
+		g_renderContext->DrawMesh(&drawMesh);
+		g_renderContext->CreateAndSetDefaultRasterState();
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -278,7 +329,7 @@ uint Map::GetFreeEntityIndex()
 		}
 	}
 
-	m_entities.resize(m_entities.size() + sizeof(Entity));
+	m_entities.resize(m_entities.size() + 1);
 	return (uint)m_entities.size() - 1U;
 }
 

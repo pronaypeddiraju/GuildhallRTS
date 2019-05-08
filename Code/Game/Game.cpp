@@ -569,6 +569,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case LEFT_ARROW:
 		case SPACE_KEY:
 		case N_KEY:
+		break;
 		case F1_KEY:
 		{
 			//Setup the ambient intensity to lesser
@@ -873,7 +874,7 @@ void Game::RenderGameState() const
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 
-	g_renderContext->BeginCamera(*m_mainCamera); 
+	g_renderContext->BeginCamera(*m_RTSCam); 
 
 	g_renderContext->ClearColorTargets(Rgba::BLACK);
 
@@ -1345,6 +1346,8 @@ void Game::Update( float deltaTime )
 	//Update the FX Buffer
 	//g_renderContext->UpdateFxBuffer(m_stopWatch->GetNormalizedElapsedTime());
 
+	ProcessCommands();
+
 	//If we can load the map, let's load it
 	if(m_beginMapLoad)
 	{
@@ -1412,7 +1415,7 @@ void Game::Update( float deltaTime )
 	
 	//RenderUsingMaterial();
 	Ray3D ray = m_mainCamera->ScreenPointToWorldRay(intVecPos, clientBounds);
-
+	//g_debugRenderer->DebugRenderLine(ray.m_start, ray.m_direction * 80.f, 0.0f);
 	float out[2];
 	
 	uint pointCount = Raycast(out, ray, m_capsuleCPU);
@@ -1428,7 +1431,7 @@ void Game::Update( float deltaTime )
 	{
 		g_debugRenderer->DebugRenderCapsule(m_capsuleCPU, Vec3::ZERO, 0.f, nullptr);
 	}
-	
+
 	/*
 	uint pointCount = Raycast(out, ray, m_sphereDebug);
 	if (pointCount > 0U)
@@ -1503,6 +1506,15 @@ bool Game::HandleMouseScroll(float wheelDelta)
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::EnqueueCommand(RTSCommand *command)
 {
+	for (int index = 0; index < m_commandQueue.size(); index++)
+	{
+		if (m_commandQueue[index] == nullptr)
+		{
+			m_commandQueue[index] = command;
+			return;
+		}
+	}
+
 	m_commandQueue.push_back(command);
 }
 
@@ -1512,16 +1524,38 @@ void Game::ProcessCommands()
 	std::vector<RTSCommand*>::iterator itr;
 	itr = m_commandQueue.begin();
 	
+	int numCommands = (int)m_commandQueue.size();
+
+	for (int index = 0; index < numCommands; index++)
+	{
+		if (m_commandQueue[index] != nullptr)
+		{
+			m_commandQueue[index]->Execute();
+			delete m_commandQueue[index];
+			m_commandQueue[index] = nullptr;
+		}
+	}
+
+	/*
 	while (itr != m_commandQueue.end()) 
 	{
 		if (*itr != nullptr)
 		{
+			switch ((*itr)->m_commandType)
+			{
+			case CREATE_ENTITY: {} break;
+			case MOVE_ENTITY: {} break;
+			default:
+				break;
+			}
+
 			(*itr)->Execute();
 			delete (*itr);
 			*itr = nullptr;
 		}
 		itr++;
 	}
+	*/
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

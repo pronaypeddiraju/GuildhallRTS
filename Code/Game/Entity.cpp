@@ -25,7 +25,7 @@ Entity::~Entity()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Update(float deltaTime)
 {
-	UNUSED(deltaTime);
+	
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -77,9 +77,16 @@ GameHandle Entity::GetHandle() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-bool Entity::RaycastHit(float *out, const Ray3D& ray) const
+Capsule3D Entity::CreateEntityCapsule() const
 {
 	Capsule3D capsule = Capsule3D((Vec3(m_position) + m_orientation * m_height), m_position, m_radius);
+	return capsule;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::RaycastHit(float *out, const Ray3D& ray) const
+{
+	Capsule3D capsule = CreateEntityCapsule();
 	uint hits = Raycast(out, ray, capsule);
 
 	if (hits == 0)

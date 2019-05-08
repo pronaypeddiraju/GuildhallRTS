@@ -5,13 +5,14 @@
 #include "Game/Entity.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
-RTSCommand::RTSCommand()
+RTSCommand::RTSCommand(CommandTypeT commandType)
 {
-
+	m_commandType = commandType;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 CreateEntityCommand::CreateEntityCommand(Vec2 createPosition)
+	:	RTSCommand(CREATE_ENTITY)
 {
 	m_createPosition = createPosition;
 }
@@ -30,6 +31,7 @@ VIRTUAL void CreateEntityCommand::Execute()
 
 //------------------------------------------------------------------------------------------------------------------------------
 MoveCommand::MoveCommand(const GameHandle& unit, const Vec2& position)
+	: RTSCommand(MOVE_ENTITY)
 {
 	m_unit = unit;
 	m_position = position;
