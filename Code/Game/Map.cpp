@@ -7,6 +7,7 @@
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Math/Vertex_Lit.hpp"
 #include "Engine/Renderer/CPUMesh.hpp"
+#include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
@@ -309,15 +310,21 @@ Entity* Map::RaycastEntity(float *out, const Ray3D& ray, float maxDistance /*= I
 	{
 		Entity* entity = m_entities[index];
 		float time[2];
-		if (entity->IsSelectable() && entity->RaycastHit(&time[0], ray))
+
+		if (entity->IsSelectable() && entity->RaycastHit(time, ray))
 		{
-			if ((time[0] >= 0.0f) && (time[0] <= maxDistance) && (time[0] < bestTime))
+			float smaller = GetLowerValue(time[0], time[1]);
+
+			if ((smaller >= 0.0f) && (smaller <= maxDistance) && (smaller < bestTime))
 			{
 				bestEntity = entity;
-				bestTime = time[0];
+				bestTime = smaller;
 			}
 		}
 	}
+
+	Vec3 point = ray.m_start + (ray.m_direction * bestTime);
+	g_debugRenderer->DebugRenderLine(ray.m_start, point, 1.f);
 
 	*out = bestTime;
 	return bestEntity;

@@ -56,11 +56,11 @@ public:
 	Vec2			m_targetPosition = Vec2::ZERO;
 
 	// stats
-	float			m_speed;
+	float			m_speed = 2.f;
 
 	// UI collision
 	float			m_height = 1.f;
 	float			m_radius = 0.5f;
-	Vec3			m_orientation = Vec3::UP; //Am I standing? Am I lying down?
+	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
 };
 

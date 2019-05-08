@@ -1270,7 +1270,7 @@ void Game::DebugRenderToScreen() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugRenderToCamera() const
 {
-	Camera& debugCamera3D = *m_mainCamera;
+	Camera& debugCamera3D = *m_RTSCam;
 	debugCamera3D.m_colorTargetView = g_renderContext->GetFrameColorTarget();
 
 	g_renderContext->BindShader(m_shader);
@@ -1347,6 +1347,11 @@ void Game::Update( float deltaTime )
 	//g_renderContext->UpdateFxBuffer(m_stopWatch->GetNormalizedElapsedTime());
 
 	ProcessCommands();
+
+	if (m_gameState == STATE_PLAY)
+	{
+		m_map->Update(deltaTime);
+	}
 
 	//If we can load the map, let's load it
 	if(m_beginMapLoad)

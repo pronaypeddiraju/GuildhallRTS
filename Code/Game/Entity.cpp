@@ -3,6 +3,8 @@
 //Engine Systems
 #include "Engine/Math/Capsule3D.hpp"
 #include "Engine/Math/Ray3D.hpp"
+#include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Core/DevConsole.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 Entity::Entity()
@@ -15,6 +17,7 @@ Entity::Entity(GameHandle handle, Vec2 position)
 {
 	m_handle = handle;
 	m_position = position;
+	m_targetPosition = m_position;
 
 	m_flags = SetBit(m_flags, ENTITY_SELECTABLE_BIT);
 }
@@ -27,7 +30,18 @@ Entity::~Entity()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Update(float deltaTime)
 {
-	
+	//Lerp to the destination
+	Vec2 disp = m_targetPosition - m_position;
+	float magnitude = disp.GetLength();
+
+	if (magnitude < m_speed * deltaTime)
+	{
+		m_position = m_targetPosition;
+	}
+	else
+	{
+		m_position += disp.GetNormalized() * m_speed * deltaTime;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -81,6 +95,7 @@ GameHandle Entity::GetHandle() const
 //------------------------------------------------------------------------------------------------------------------------------
 Capsule3D Entity::CreateEntityCapsule() const
 {
+	//Account for radius + height here
 	Capsule3D capsule = Capsule3D((Vec3(m_position) + m_orientation * m_height), m_position, m_radius);
 	return capsule;
 }
@@ -90,6 +105,15 @@ bool Entity::RaycastHit(float *out, const Ray3D& ray) const
 {
 	Capsule3D capsule = Capsule3D((Vec3(m_position) + Vec3(0.f, 0.f, -1.f) * m_height), m_position, m_radius);
 	uint hits = Raycast(out, ray, capsule);
+
+	if (hits > 0) 
+	{
+		g_devConsole->PrintString(Rgba::WHITE, Stringf("Hits: %u", hits));
+		for (uint i = 0; i < hits; ++i)
+		{
+			g_devConsole->PrintString(Rgba::YELLOW, Stringf("  Time: %.2f", out[i]));
+		}
+	}
 
 	if (hits == 0)
 	{
