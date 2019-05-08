@@ -2,7 +2,9 @@
 #pragma once
 //Engine Systems
 #include "Engine/Audio/AudioSystem.hpp"
+#include "Engine/Math/Capsule3D.hpp"
 #include "Engine/Math/Matrix44.hpp"
+#include "Engine/Math/Sphere.hpp"
 #include "Engine/Math/Vertex_PCU.hpp"
 #include "Engine/Renderer/Material.hpp"
 //Game Systems
@@ -221,6 +223,8 @@ public:
 
 	GPUMesh*							m_capsule = nullptr;
 	Matrix44							m_capsuleModel;
+	Capsule3D							m_capsuleCPU = Capsule3D(Vec3(0.f, 1.f, 0.f), Vec3::ZERO, 0.5f);
+	Sphere								m_sphereDebug = Sphere(Vec3(0.f, 0.f, 0.f), 0.5f);
 
 	//Lighting Assignment
 	int									m_lightSlot;

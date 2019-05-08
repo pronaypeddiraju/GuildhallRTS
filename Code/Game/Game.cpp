@@ -908,9 +908,9 @@ void Game::RenderGameState() const
 
 	//Render the cube
 	//g_renderContext->BindTextureViewWithSampler(0U, m_boxTexturePath);  
-	g_renderContext->BindTextureView(0U, nullptr);
-	g_renderContext->SetModelMatrix(m_cubeTransform);
-	g_renderContext->DrawMesh(m_cube);
+	//g_renderContext->BindTextureView(0U, nullptr);
+	//g_renderContext->SetModelMatrix(m_capsuleModel);
+	//g_renderContext->DrawMesh(m_capsule);
 
 	g_renderContext->EndCamera();
 
@@ -1413,22 +1413,36 @@ void Game::Update( float deltaTime )
 	Ray3D ray = m_mainCamera->ScreenPointToWorldRay(intVecPos, clientBounds);
 
 	float out[2];
-	uint pointCount = m_map->RaycastTerrain(out, ray);
-	if (pointCount == 1)
+	
+	uint pointCount = Raycast(out, ray, m_capsuleCPU);
+	if (pointCount > 0U)
 	{
 		Vec3 hitPoint = ray.GetPointAtTime(out[0]);
 
-		m_cubeTransform = Matrix44::IDENTITY;
-		m_cubeTransform = Matrix44::SetTranslation3D(hitPoint, m_cubeTransform);
+		m_capsuleModel = Matrix44::IDENTITY;
+		//m_cubeTransform = Matrix44::SetTranslation3D(hitPoint, m_cubeTransform);
+		g_debugRenderer->DebugRenderCapsule(m_capsuleCPU, Vec3::ZERO, 0.f, m_textureTest);
 	}
+	else
+	{
+		g_debugRenderer->DebugRenderCapsule(m_capsuleCPU, Vec3::ZERO, 0.f, nullptr);
+	}
+	
+	/*
+	uint pointCount = Raycast(out, ray, m_sphereDebug);
+	if (pointCount > 0U)
+	{
+		Vec3 hitPoint = ray.GetPointAtTime(out[0]);
 
-	//Update the cube and sphere transforms
-	// Set the cube to rotate around y (which is up currently),
-	// and move the object to the left by 5 units (-x)
-	//m_cubeTransform = Matrix44::MakeFromEuler( Vec3(60.0f * currentTime, 0.0f, 0.0f), m_rotationOrder ); 
-
-	//m_sphereTransform = Matrix44::MakeFromEuler( Vec3(0.0f, -45.0f * currentTime, 0.0f) ); 
-	//m_sphereTransform = Matrix44::SetTranslation3D( Vec3(5.0f, 0.0f, 0.0f), m_sphereTransform);
+		m_capsuleModel = Matrix44::IDENTITY;
+		//m_cubeTransform = Matrix44::SetTranslation3D(hitPoint, m_cubeTransform);
+		g_debugRenderer->DebugRenderSphere(m_sphereDebug.m_point, m_sphereDebug.m_radius, 0.f, m_textureTest);
+	}
+	else
+	{
+		g_debugRenderer->DebugRenderSphere(m_sphereDebug.m_point, m_sphereDebug.m_radius, 0.f, nullptr);
+	}
+	*/
 
 	//Update the town center's matrix
 	m_townCenterTransform = Matrix44::SetTranslation3D(m_RTSCam->m_focalPoint, m_townCenterTransform);
@@ -1860,7 +1874,7 @@ void Game::CreateInitialMeshes()
 	m_baseQuadTransform = Matrix44::SetTranslation3D(Vec3(0.f, -1.f, 0.f), m_baseQuadTransform);
 
 	mesh.Clear();
-	CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 1.f), Vec3(0.f, -1.f, 1.f), 2.f, Rgba::YELLOW);
+	CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.f, 0.f), 0.5f, Rgba::YELLOW);
 
 	m_capsule = new GPUMesh(g_renderContext);
 	m_capsule->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
