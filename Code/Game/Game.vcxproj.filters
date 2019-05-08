@@ -34,6 +34,9 @@
     <ClCompile Include="UIWidget.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="GameHandle.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp">
@@ -55,5 +58,8 @@
     <ClInclude Include="RTSCamera.hpp" />
     <ClInclude Include="GameInput.hpp" />
     <ClInclude Include="UIWidget.hpp" />
+    <ClInclude Include="GameHandle.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

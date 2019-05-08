@@ -2,6 +2,7 @@
 #include "Game/GameInput.hpp"
 //Engine Systems
 #include "Engine/Core/WindowContext.hpp"
+#include "Engine/Math/Ray3D.hpp"
 #include "Engine/Renderer/Camera.hpp"
 
 //Game Systems
@@ -9,6 +10,7 @@
 #include "Game/Map.hpp"
 #include "Game/RTSCamera.hpp"
 #include "Game/UIWidget.hpp"
+#include "Game/GameHandle.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 GameInput::GameInput(Game* game)
@@ -54,6 +56,54 @@ void GameInput::Update( float deltaTime )
 
 	m_frameRotation *= deltaTime;
 
+	//A11:
+	IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
+	IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+	Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
+
+	float entityTime;
+	float mapTime;
+
+	Map* map = m_game->m_map;
+	/*
+	Entity *entity = map->RaycastEntity(&entityTime, ray);
+	if (map->RaycastTerrain(&mapTime, ray)) 
+	{
+		if (mapTime < entityTime) 
+		{
+			entity = nullptr;
+		}
+	}
+
+	Entity *selected = map->FindEntity(m_selectionHandle);
+	if (selected == nullptr) 
+	{
+		m_selectionHandle = GameHandle::INVALID;
+	}
+
+	if (entity != nullptr) 
+	{
+		entity->SetHoveredThisFrame();
+		if (mouse->WasButtonPressed(0)) 
+		{
+			m_selectionHandle = entity->GetHandle();
+			entity->SetSelectedThisFrame();
+			selected = ent;
+		}
+	}
+
+	if (selected != nullptr) {
+		if (mouse->WasButtonPressed(1)) 
+		{
+			MoveCommand *cmd = new MoveCommand();
+			cmd->m_unit = m_selectionHandle;
+			cmd->m_target = ray->evaluate(mapTime).xy();
+
+			// g_theGame->EnqueueCommand( cmd ); 
+			Game::GetInstance()->EnqueueCommand(cmd);
+		}
+	}
+	*/
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

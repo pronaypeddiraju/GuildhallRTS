@@ -8,6 +8,7 @@
 
 //Game Systems
 #include "Game/Game.hpp"
+#include "Game/GameHandle.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 class GameInput
@@ -85,4 +86,6 @@ public:
 	KeyButtonState m_mouseButtonRight;
 
 	AABB2 m_screenBounds;
+
+	GameHandle m_selectionHandle; // std::vector<GameHandle> m_selection; 
 }; 
