@@ -8,8 +8,8 @@ class GameHandle
 {
 public:
 	GameHandle();
-	explicit GameHandle(uint id);
-	GameHandle(uint cyclicID, uint index);
+	//explicit GameHandle(uint id);
+	explicit GameHandle(uint cyclicID, uint index);
 	~GameHandle();
 
 	uint GetIndex() const;

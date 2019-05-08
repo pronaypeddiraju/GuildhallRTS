@@ -25,6 +25,7 @@ public:
 	void								Update( float deltaTime ); 
 	void								UpdateKeyBoardPan();
 	void								UpdateMousePan();
+	void								UpdateGameControllerInput();
 
 	void								EndFrame();
 

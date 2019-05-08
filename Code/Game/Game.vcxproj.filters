@@ -37,6 +37,9 @@
     <ClCompile Include="GameHandle.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="RTSCommand.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp">
@@ -59,6 +62,9 @@
     <ClInclude Include="GameInput.hpp" />
     <ClInclude Include="UIWidget.hpp" />
     <ClInclude Include="GameHandle.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="RTSCommand.hpp">
       <Filter>Gameplay</Filter>
     </ClInclude>
   </ItemGroup>

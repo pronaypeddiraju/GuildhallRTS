@@ -9,6 +9,8 @@
 #include "Engine/Renderer/Material.hpp"
 //Game Systems
 #include "Game/GameCommon.hpp"
+//Others
+#include <vector>
 
 //------------------------------------------------------------------------------------------------------------------------------
 class BitmapFont;
@@ -19,6 +21,7 @@ class Image;
 class Map;
 class Model;
 class RTSCamera;
+class RTSCommand;
 class Shader;
 class SpriteAnimDefenition;
 class StopWatch;
@@ -147,6 +150,10 @@ public:
 	bool								HandleMouseRBUp();
 	bool								HandleMouseScroll(float wheelDelta);
 
+	//Commands
+	void								EnqueueCommand(RTSCommand *command);
+	void								ProcessCommands(); // process and free up memory 
+	void								ClearCommands();   // just free up memory 
 
 	//Shut down
 	void								Shutdown();
@@ -160,6 +167,8 @@ private:
 	bool								m_inputSetup = false;
 	bool								m_showGameControls = false;
 	float								m_cameraSpeed = 0.3f; 
+
+	std::vector<RTSCommand*>			m_commandQueue;
 
 public:
 	SoundID								m_testAudioID = NULL;

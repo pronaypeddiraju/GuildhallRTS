@@ -1,49 +1,63 @@
+//------------------------------------------------------------------------------------------------------------------------------
 #pragma once
-#include "Engine/Math/Vec2.hpp"
-#include "Game/Game.hpp"
-#include "Game/GameCommon.hpp"
+//Engine Systems
+#include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Math/Vec3.hpp"
+
+//Game Systems
+#include "Game/GameHandle.hpp"
+
+struct Ray3D;
+
 //------------------------------------------------------------------------------------------------------------------------------
 
+enum eEntityFlagBit : uint
+{
+	ENTITY_DESTROYED_BIT = BIT_FLAG(0),    // object is marked for destruction
+	ENTITY_SELECTABLE_BIT = BIT_FLAG(1),    // entity is selectable by the player
+};
+
+typedef uint eEntityFlags;
+
+//------------------------------------------------------------------------------------------------------------------------------
 class Entity
 {
 public:
-	Entity(Game* currentGame);
+	Entity();
+	explicit Entity(GameHandle handle, Vec2 position);
 	~Entity();
 
-	//Methods
-	void						Render();
-	void						RunFrame();
-	void						Update(float deltaTime);
+	void					Update(float deltaTime);
 
-	//AccessMethods
-	const Vec2&					GetPosition() const { return m_position; }
-	const Rgba&					GetColor() const { return m_color; }
-protected:
-	//Variables
-	Vec2						m_velocity = Vec2(0.f, 0.f);
-	float						m_rotationDegrees = 0.f;
-	float						m_uniformScale;
-	float						m_angularVelocity;
-	Vec2						m_direction = Vec2(0.f,0.f);
-	Rgba						m_color;
+	void					Destroy();
+	void					SetSelectable(bool isSelectable);
 
-	Game*						m_game = nullptr;
+	bool					IsDestroyed() const;
+	bool					IsSelectable() const;
 
-	bool						m_isAlive = true;
-	bool						m_isOffScreen;
+	void					SetPosition(Vec2 pos);
+	void					MoveTo(Vec2 target);
+	Vec2					GetPosition() const;
+	GameHandle				GetHandle() const;
 
-	//Debug Quantities
-	Vertex_PCU					m_DebugVertexCosmetic[48];
-	Vertex_PCU					m_DebugVertexPhysics[48];
-	unsigned int				m_NUM_DEBUG_VERTICES;
+	// return just one result if it hits - return the closest result
+	// depending on its physics collision
+	bool					RaycastHit(float *out, const Ray3D& ray) const;
+
 public:
-	//variables
-	bool						m_isGarbage;
-	float						m_physicsRadius;
-	float						m_cosmeticRadius;
-	Vec2						m_position = Vec2(0.f, 0.f);
+	GameHandle		m_handle;
+	eEntityFlags	m_flags;
 
-private:
-	//Methods
+	// info
+	Vec2			m_position;
+	Vec2			m_targetPosition;
+
+	// stats
+	float			m_speed;
+
+	// UI collision
+	float			m_height = 1.f;
+	float			m_radius = 0.5f;
+	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
 };
 

@@ -9,6 +9,9 @@
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
+//Game Systems
+#include "Game/GameHandle.hpp"
+#include "Game/Entity.hpp"
 
 extern RenderContext* g_renderContext;
 
@@ -187,8 +190,101 @@ AABB2 Map::GetXYBounds() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+Entity* Map::CreateEntity(const Vec2& pos)
+{
+	uint slot = GetFreeEntityIndex();
+	uint cyclicID = GetNextCyclicID();
+
+	GameHandle handle = GameHandle(cyclicID, slot);
+	Entity *entity = new Entity(handle, pos);
+	//entity->m_handle = handle;
+
+	// you may have to grow this vector...
+	m_entities[slot] = entity;
+	return entity;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+Entity* Map::FindEntity(const GameHandle& handle) const
+{
+	uint slot = handle.GetIndex();
+	Entity *entity = m_entities[slot];
+
+	// we only return the entity if it matches the handle
+	if ((entity != nullptr) && (entity->GetHandle() == handle))
+	{
+		return entity;
+	}
+	else 
+	{
+		return nullptr;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+Entity* Map::RaycastEntity(float *out, const Ray3D& ray, float maxDistance /*= INFINITY*/)
+{
+	Entity *bestEntity = nullptr;
+	float bestTime = INFINITY;
+
+	int numEntities = (int)m_entities.size();
+	for(int index = 0; index < numEntities; index++)
+	{
+		Entity* entity = m_entities[index];
+		float time;
+		if (entity->IsSelectable() && entity->RaycastHit(&time, ray))
+		{
+			if ((time >= 0.0f) && (time <= maxDistance) && (time < bestTime))
+			{
+				bestEntity = entity;
+				bestTime = time;
+			}
+		}
+	}
+
+	*out = bestTime;
+	return bestEntity;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 uint Map::RaycastTerrain(float* out, const Ray3D& ray)
 {
 	Plane3D terrainPlane(Vec3(0.f, 0.f, -1.f), 0.f);
 	return Raycast(out, ray, terrainPlane);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::PurgeDestroyedEntities()
+{
+	for (int index = 0; index < (int)m_entities.size(); index++)
+	{
+		if (m_entities[index]->IsDestroyed())
+		{
+			delete m_entities[index];
+			index++;
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+uint Map::GetFreeEntityIndex()
+{
+	//Find the first empty slot for an entity in the game
+	for (int index = 0; index < (int)m_entities.size(); index++)
+	{
+		if (m_entities[index] == nullptr)
+		{
+			return index;
+		}
+	}
+
+	m_entities.resize(m_entities.size() + sizeof(Entity));
+	return (uint)m_entities.size() - 1U;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+uint Map::GetNextCyclicID()
+{
+	m_cyclicID = m_cyclicID++;
+	return m_cyclicID;
 }

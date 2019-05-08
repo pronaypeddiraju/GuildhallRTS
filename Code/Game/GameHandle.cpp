@@ -1,6 +1,9 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/GameHandle.hpp"
 #include "Engine/Commons/ErrorWarningAssert.hpp"
+#include "Engine/Commons/EngineCommon.hpp"
+
+STATIC GameHandle GameHandle::INVALID = GameHandle(0, 0);
 
 //------------------------------------------------------------------------------------------------------------------------------
 GameHandle::GameHandle(uint cyclicID, uint index)
@@ -24,6 +27,11 @@ GameHandle::GameHandle()
 GameHandle::~GameHandle()
 {
 
+}
+
+uint GameHandle::GetIndex() const
+{
+	return (m_data & 0x0000ffff);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -33,6 +33,7 @@
 #include "Game/GameInput.hpp"
 #include "Game/Map.hpp"
 #include "Game/RTSCamera.hpp"
+#include "Game/RTSCommand.hpp"
 #include "Game/UIWidget.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1497,6 +1498,36 @@ bool Game::HandleMouseScroll(float wheelDelta)
 {
 	m_gameInput->HandleMouseScroll(wheelDelta);
 	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::EnqueueCommand(RTSCommand *command)
+{
+	m_commandQueue.push_back(command);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::ProcessCommands()
+{	
+	std::vector<RTSCommand*>::iterator itr;
+	itr = m_commandQueue.begin();
+	
+	while (itr != m_commandQueue.end()) 
+	{
+		if (*itr != nullptr)
+		{
+			(*itr)->Execute();
+			delete (*itr);
+			*itr = nullptr;
+		}
+		itr++;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::ClearCommands()
+{
+	m_commandQueue.clear();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
