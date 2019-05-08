@@ -49,10 +49,13 @@ public:
 	// Entity Methods
 	Entity*				CreateEntity(const Vec2& pos);
 	Entity*				FindEntity(const GameHandle& handle) const;
+	Entity*				GetEntityAtIndex(int index);
 
 	// Pick
 	Entity*				RaycastEntity(float *out, const Ray3D& ray, float maxDistance = INFINITY);
 	uint				RaycastTerrain(float* out, const Ray3D& ray);
+
+	int					GetNumEntities();
 
 private:
 	void				PurgeDestroyedEntities();   // cleanup destroyed entities, freeing up the slots; 

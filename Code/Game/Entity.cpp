@@ -15,6 +15,8 @@ Entity::Entity(GameHandle handle, Vec2 position)
 {
 	m_handle = handle;
 	m_position = position;
+
+	m_flags = SetBit(m_flags, ENTITY_SELECTABLE_BIT);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -86,7 +88,7 @@ Capsule3D Entity::CreateEntityCapsule() const
 //------------------------------------------------------------------------------------------------------------------------------
 bool Entity::RaycastHit(float *out, const Ray3D& ray) const
 {
-	Capsule3D capsule = CreateEntityCapsule();
+	Capsule3D capsule = Capsule3D((Vec3(m_position) + Vec3(0.f, 0.f, -1.f) * m_height), m_position, m_radius);
 	uint hits = Raycast(out, ray, capsule);
 
 	if (hits == 0)

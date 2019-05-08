@@ -12,6 +12,7 @@
 #include "Game/UIWidget.hpp"
 #include "Game/GameHandle.hpp"
 #include "RTSCommand.hpp"
+#include "Entity.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 GameInput::GameInput(Game* game)
@@ -237,6 +238,18 @@ bool GameInput::HandleMouseLBDown()
 {
 	std::string eventString = "clickType=LBDown";
 
+	if (m_game->m_isPaused)
+	{
+		EventArgs args;
+
+		std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(eventString, '=');
+		args.SetValue(KeyValSplit[0], KeyValSplit[1]);
+
+		InputEvent event("MouseEvent", args);
+		m_game->m_pauseParent->ProcessInput(event);
+		return event.WasConsumed();
+	}
+
 	switch (m_game->m_gameState)
 	{
 	case STATE_MENU:
@@ -251,18 +264,37 @@ bool GameInput::HandleMouseLBDown()
 		return event.WasConsumed();
 	}
 	break;
-	}
-
-	if (m_game->m_isPaused)
+	case STATE_PLAY:
 	{
-		EventArgs args;
+		IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
+		IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
+		
+		//Select the map if we hit that
+		float terrainOut[2];
+		bool hitTerrain = m_game->m_map->RaycastTerrain(terrainOut, ray);
 
-		std::vector<std::string> KeyValSplit = SplitStringOnDelimiter(eventString, '=');
-		args.SetValue(KeyValSplit[0], KeyValSplit[1]);
+		float out[2];
+		Entity* entity = m_game->m_map->RaycastEntity(out, ray);
 
-		InputEvent event("MouseEvent", args);
-		m_game->m_pauseParent->ProcessInput(event);
-		return event.WasConsumed();
+		if (terrainOut[0] < out[0])
+		{
+			entity = nullptr;
+			m_selectionHandle = GameHandle::INVALID;
+		}
+
+		if(entity)
+		{
+			entity->SetSelectable(true);
+			m_selectionHandle = entity->GetHandle();
+		}
+	}
+	break;
+	case STATE_EDIT:
+	{
+
+	}
+	break;
 	}
 
 	return false;

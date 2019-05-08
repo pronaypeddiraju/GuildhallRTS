@@ -13,6 +13,8 @@
 //Game Systems
 #include "Game/GameHandle.hpp"
 #include "Game/Entity.hpp"
+#include "Game/Game.hpp"
+#include "Game/GameInput.hpp"
 
 extern RenderContext* g_renderContext;
 
@@ -207,14 +209,25 @@ void Map::RenderEntities() const
 		Capsule3D capsule;
 		capsule = m_entities[index]->CreateEntityCapsule();
 
-		if (m_entities[index]->IsSelectable())
+		Entity* entity = FindEntity(Game::s_gameReference->m_gameInput->m_selectionHandle);
+
+		if (entity != nullptr)
 		{
-			//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::YELLOW);
-			CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::YELLOW);
+			if (m_entities[index]->GetHandle() == entity->GetHandle())
+			{
+				//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::YELLOW);
+				CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::YELLOW);
+			}
+			else
+			{
+				//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::WHITE);
+				CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::WHITE);
+			}
 		}
 		else
 		{
-			CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::WHITE);
+			//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::WHITE);
+			CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::WHITE);
 		}
 
 		GPUMesh drawMesh = GPUMesh(g_renderContext);
@@ -222,7 +235,7 @@ void Map::RenderEntities() const
 
 		//Setup the model matrix for the entity
 		Matrix44 mat = Matrix44::MakeXRotationDegrees(90.f);
-		Matrix44 translation = Matrix44::MakeTranslation3D(capsule.m_end);
+		Matrix44 translation = Matrix44::MakeTranslation3D(capsule.m_end + Vec3::BACK * capsule.m_radius);
 		Vec3 t = translation.GetTVector();
 		mat.SetTVector(t);
 		g_renderContext->BindModelMatrix(mat);
@@ -273,6 +286,19 @@ Entity* Map::FindEntity(const GameHandle& handle) const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+Entity* Map::GetEntityAtIndex(int index)
+{
+	if (index >= (int)m_entities.size())
+	{
+		return nullptr;
+	}
+	else
+	{
+		return m_entities[index];
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 Entity* Map::RaycastEntity(float *out, const Ray3D& ray, float maxDistance /*= INFINITY*/)
 {
 	Entity *bestEntity = nullptr;
@@ -282,13 +308,13 @@ Entity* Map::RaycastEntity(float *out, const Ray3D& ray, float maxDistance /*= I
 	for(int index = 0; index < numEntities; index++)
 	{
 		Entity* entity = m_entities[index];
-		float time;
-		if (entity->IsSelectable() && entity->RaycastHit(&time, ray))
+		float time[2];
+		if (entity->IsSelectable() && entity->RaycastHit(&time[0], ray))
 		{
-			if ((time >= 0.0f) && (time <= maxDistance) && (time < bestTime))
+			if ((time[0] >= 0.0f) && (time[0] <= maxDistance) && (time[0] < bestTime))
 			{
 				bestEntity = entity;
-				bestTime = time;
+				bestTime = time[0];
 			}
 		}
 	}
@@ -302,6 +328,12 @@ uint Map::RaycastTerrain(float* out, const Ray3D& ray)
 {
 	Plane3D terrainPlane(Vec3(0.f, 0.f, -1.f), 0.f);
 	return Raycast(out, ray, terrainPlane);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int Map::GetNumEntities()
+{
+	return (int)m_entities.size();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
