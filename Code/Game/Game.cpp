@@ -310,7 +310,7 @@ void Game::SetupMouseData()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::SetupCameras()
 {
-	IntVec2 client = g_windowContext->GetTureClientBounds();
+	IntVec2 client = g_windowContext->GetTrueClientBounds();
 	float aspect = (float)client.x / (float)client.y;
 
 	//Create the Camera and setOrthoView
@@ -333,6 +333,7 @@ void Game::SetupCameras()
 	m_RTSCam = new RTSCamera();
 	m_RTSCam->SetColorTarget(nullptr);
 	m_RTSCam->SetPerspectiveProjection( m_camFOVDegrees, 0.1f, 100.0f, aspect);
+	//m_RTSCam->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * aspect, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * aspect, CANVAS_HEIGHT * 0.5f));
 
 	//Set Projection Perspective for new Cam
 	m_camPosition = Vec3(0.f, 0.f, -10.f);
@@ -772,37 +773,6 @@ void Game::HandleCharacter( unsigned char charCode )
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Game::EnablePointLight( uint slot, const Vec3& position, const Vec3& direction, const Rgba& color /*= Rgba::WHITE*/, float intensity /*= 1.f*/, const Vec3& diffuseAttenuation, const Vec3& specularAttenuation ) const
-{
-	LightT pointLight;
-
-	pointLight.position = position;
-	pointLight.color = color;
-	pointLight.color.a = intensity;
-	pointLight.direction = direction;
-	pointLight.diffuseAttenuation = diffuseAttenuation;
-	pointLight.specularAttenuation = specularAttenuation;
-
-	g_renderContext->EnableLight(slot, pointLight);
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::EnableDirectionalLight( const Vec3& position, const Vec3& direction,  const Rgba& color /*= Rgba::WHITE*/, float intensity /*= 1.f*/, const Vec3& diffuseAttenuation, const Vec3& specularAttenuation) const
-{
-	LightT directionalLight;
-
-	directionalLight.position = position;
-	directionalLight.color = color;
-	directionalLight.color.a = intensity;
-	directionalLight.direction = direction;
-	directionalLight.isDirection = 1.f;
-	directionalLight.diffuseAttenuation = diffuseAttenuation;
-	directionalLight.specularAttenuation = specularAttenuation;
-
-	g_renderContext->EnableLight(0U, directionalLight);
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
 void Game::Render() const
 {
 	//Get the ColorTargetView from rendercontext
@@ -863,7 +833,7 @@ void Game::Render() const
 	}	
 
 	//Uncomment this when debugging
-	DebugRenderToCamera();
+	//DebugRenderToCamera();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -893,17 +863,6 @@ void Game::RenderGameState() const
 	{
 		g_renderContext->EnableDirectionalLight();
 	}
-
-	/*
-	if(m_useMaterial)
-	{
-		RenderUsingMaterial();
-	}
-	else
-	{
-		RenderUsingLegacy();
-	}
-	*/
 
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
@@ -1032,7 +991,7 @@ void Game::RenderEditState() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderEditUI() const
 {
-	IntVec2 client = g_windowContext->GetTureClientBounds();
+	IntVec2 client = g_windowContext->GetTrueClientBounds();
 	Vec2 boundsSize = Vec2((float)client.x, (float)client.y); 
 
 	m_editParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
@@ -1178,7 +1137,7 @@ void Game::RenderMenuUI() const
 {
 	//Render the Menu UI 
 	/*
-	IntVec2 client = g_windowContext->GetTureClientBounds();
+	IntVec2 client = g_windowContext->GetTrueClientBounds();
 	Vec2 boundsSize = Vec2(client.x, client.y); 
 	m_menuParent->UpdateBounds(AABB2(Vec2(UI_SCREEN_HEIGHT * UI_SCREEN_ASPECT * -0.5f, UI_SCREEN_HEIGHT * -0.5f), Vec2(UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_HEIGHT * 0.5f)));
 	*/
@@ -1400,7 +1359,7 @@ void Game::Update( float deltaTime )
 
 	//Update the mouse position
 	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
-	IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+	IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
 
 	DebugRenderOptionsT options;
 	const char* text = "Current Time %f";
@@ -1649,7 +1608,7 @@ void Game::CreateEditUIWidgets()
 	m_editParent = new UIWidget(this, nullptr);
 	m_editParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
 
-	IntVec2 client = g_windowContext->GetTureClientBounds();
+	IntVec2 client = g_windowContext->GetTrueClientBounds();
 
 	Vec2 boundsSize = Vec2((float)client.x, (float)client.y); 
 	m_editParent->UpdateBounds(AABB2(Vec2::ZERO, Vec2(UI_SCREEN_HEIGHT * UI_SCREEN_ASPECT, UI_SCREEN_HEIGHT)));
@@ -1868,12 +1827,12 @@ void Game::UpdateLightPositions()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateInitialLight()
 {
-	EnableDirectionalLight(Vec3(1.f, 1.f, 1.f), Vec3(0.f, 0.f, 1.f), Rgba::DARK_GREY, 0.f);
+	g_renderContext->EnableDirectionalLight(Vec3(1.f, 1.f, 1.f), Vec3(0.f, 0.f, 1.f), Rgba::DARK_GREY, 0.f);
 
-	EnablePointLight(1U, m_dynamicLight0Pos, Vec3(1.f, 0.f, 0.5f),Rgba::GREEN, 0.f);
-	EnablePointLight(2U, m_dynamicLight1Pos, Vec3(0.f, -1.f, 0.f), Rgba::BLUE, 0.f, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.1f, 0.f));
-	EnablePointLight(3U, m_dynamicLight2Pos, Vec3(0.f, 0.f, 1.f), Rgba::YELLOW, 0.f, Vec3(0.f, 1.f, 0.1f), Vec3(0.f, 0.1f, 0.f));
-	EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 0.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
+	g_renderContext->EnablePointLight(1U, m_dynamicLight0Pos, Vec3(1.f, 0.f, 0.5f),Rgba::GREEN, 0.f);
+	g_renderContext->EnablePointLight(2U, m_dynamicLight1Pos, Vec3(0.f, -1.f, 0.f), Rgba::BLUE, 0.f, Vec3(0.f, 1.f, 0.f), Vec3(0.f, 0.1f, 0.f));
+	g_renderContext->EnablePointLight(3U, m_dynamicLight2Pos, Vec3(0.f, 0.f, 1.f), Rgba::YELLOW, 0.f, Vec3(0.f, 1.f, 0.1f), Vec3(0.f, 0.1f, 0.f));
+	g_renderContext->EnablePointLight(4U, m_dynamicLight3Pos, Vec3(-1.f, -1.f, 0.f), Rgba::MAGENTA, 0.f, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 0.f, 1.f));
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1988,7 +1947,7 @@ void Game::UpdateMouseInputs(float deltaTime)
 	Vec2 scalingFactor = Vec2( 10.f, 10.f ); 
 	Vec2 turnSpeed = mouse * scalingFactor; 
 
-	// y mouse movement would corresond to rotation around right (x for us)
+	// y mouse movement would correspond to rotation around right (x for us)
 	// and x mouse movement corresponds with movement around up (y for us)
 	Vec3 camEuler = m_mainCamera->GetEuler();
 	camEuler -= deltaTime * Vec3( turnSpeed.y, turnSpeed.x, 0.0f ); 

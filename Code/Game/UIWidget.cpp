@@ -47,7 +47,7 @@ void UIWidget::ProcessInput( InputEvent &evt )
 	ProcessChildrenInput(evt);
 
 	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
-	IntVec2 clientSize = g_windowContext->GetTureClientBounds();
+	IntVec2 clientSize = g_windowContext->GetTrueClientBounds();
 
 	Vec2 relativePosition;
 	relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
@@ -128,7 +128,7 @@ void UIWidget::RenderForWidgetType()
 
 		//Check if there is hover (Find a better place to check this! Have an update)
 		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
-		IntVec2 clientSize = g_windowContext->GetTureClientBounds();
+		IntVec2 clientSize = g_windowContext->GetTrueClientBounds();
 
 		Vec2 relativePosition;
 		relativePosition.x = RangeMapFloat((float)mousePos.x, 0.f, (float)clientSize.x, -UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT * 0.5f);
@@ -356,7 +356,7 @@ Vec2 UIWidget::GetRelativePosToScreen( const Vec2& positionOnScreen )
 {
 	Vec2 correctedPos;
 	IntVec2 CamSize = g_renderContext->GetCurrentScreenDimensions();
-	IntVec2 clientSize = g_windowContext->GetTureClientBounds();
+	IntVec2 clientSize = g_windowContext->GetTrueClientBounds();
 
 	AABB2 parentBounds;
 

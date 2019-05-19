@@ -102,18 +102,7 @@ public:
 	void								HandleKeyPressed( unsigned char keyCode );
 	void								HandleKeyReleased( unsigned char keyCode );
 	void								HandleCharacter( unsigned char charCode );
-
-	//Light functions
-	void								EnablePointLight( uint slot, const Vec3& position, const Vec3& direction,
-															const Rgba& color = Rgba::WHITE, float intensity = 1.f,
-															const Vec3& diffuseAttenuation = Vec3(1.f, 0.f, 0.f),
-															const Vec3& specularAttenuation = Vec3(1.f, 0.f, 0.f)) const;
 	
-	void								EnableDirectionalLight( const Vec3& position, const Vec3& direction,
-															const Rgba& color = Rgba::WHITE, float intensity = 1.f,
-															const Vec3& diffuseAttenuation = Vec3(1.f, 0.f, 0.f),
-															const Vec3& specularAttenuation = Vec3(1.f, 0.f, 0.f)) const;
-
 	//Game render functions
 	void								Render() const;
 	void								RenderInitState() const;

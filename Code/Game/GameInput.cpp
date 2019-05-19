@@ -70,7 +70,7 @@ void GameInput::UpdateGameControllerInput()
 	}
 
 	IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
-	IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+	IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
 	Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
 
 	float entityTime;
@@ -242,12 +242,12 @@ bool GameInput::HandleMouseLBDown()
 	case STATE_PLAY:
 	{
 		IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
 		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
 		
 		//Select the map if we hit that
 		float terrainOut[2];
-		bool hitTerrain = m_game->m_map->RaycastTerrain(terrainOut, ray);
+		m_game->m_map->RaycastTerrain(terrainOut, ray);
 
 		float out[2];
 		Entity* entity = m_game->m_map->RaycastEntity(out, ray);
@@ -287,13 +287,13 @@ bool GameInput::HandleMouseRBDown()
 	if (m_selectionHandle != GameHandle::INVALID)
 	{
 		IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
 		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
 
 		//Select the map if we hit that
 		float terrainOut[2];
-		bool hitTerrain = m_game->m_map->RaycastTerrain(terrainOut, ray);
-
+		m_game->m_map->RaycastTerrain(terrainOut, ray);
+		
 		Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
 		MoveCommand *cmd = new MoveCommand(m_selectionHandle, Vec2(dest.x, dest.y));
 		
@@ -375,7 +375,7 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 
 		//Create entity here using the command
 		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTureClientBounds();
+		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
 		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePos, clientBounds);
 		float out[2];
 		uint count = m_game->m_map->RaycastTerrain(out, ray);

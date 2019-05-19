@@ -31,7 +31,6 @@ public:
 
 	// A08
 	Vec2								GetFramePan() const; 
-	float								GetFrameZoom() const; 
 
 	float								GetFrameRotation() const;     
 	bool								IsRotating() const;            // are we in a rotation mode (Control is Held)
