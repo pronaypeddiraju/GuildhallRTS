@@ -476,7 +476,7 @@ void UIButton::SetOnClick( const std::string& onClickEvent )
 //------------------------------------------------------------------------------------------------------------------------------
 void UIButton::SetButtonTexture( const std::string& texturePath )
 {
-	m_buttonTexture = g_renderContext->GetOrCreateTextureViewFromFile(texturePath);
+	m_buttonTexture = g_renderContext->CreateOrGetTextureViewFromFile(texturePath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

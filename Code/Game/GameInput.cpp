@@ -2,6 +2,7 @@
 #include "Game/GameInput.hpp"
 //Engine Systems
 #include "Engine/Core/WindowContext.hpp"
+#include "Engine/Math/Frustum.hpp"
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Renderer/Camera.hpp"
 
@@ -241,28 +242,7 @@ bool GameInput::HandleMouseLBDown()
 	break;
 	case STATE_PLAY:
 	{
-		IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
-		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
-		
-		//Select the map if we hit that
-		float terrainOut[2];
-		m_game->m_map->RaycastTerrain(terrainOut, ray);
-
-		float out[2];
-		Entity* entity = m_game->m_map->RaycastEntity(out, ray);
-
-		if (terrainOut[0] < out[0])
-		{
-			entity = nullptr;
-			m_selectionHandle = GameHandle::INVALID;
-		}
-
-		if(entity)
-		{
-			entity->SetSelectable(true);
-			m_selectionHandle = entity->GetHandle();
-		}
+		m_mousePosLBDown = g_windowContext->GetClientMousePosition();
 	}
 	break;
 	case STATE_EDIT:
@@ -278,7 +258,64 @@ bool GameInput::HandleMouseLBDown()
 //------------------------------------------------------------------------------------------------------------------------------
 bool GameInput::HandleMouseLBUp()
 {
+	switch (m_game->m_gameState)
+	{
+	case STATE_PLAY:
+	{
+		m_mousePosLBUp = g_windowContext->GetClientMousePosition();
+
+		if (GetDistanceSquared2D(Vec2(m_mousePosLBDown), Vec2(m_mousePosLBUp)) < 0.00001f)
+		{
+			SelectEntityAtClientPosition(m_mousePosLBDown);
+		}
+		else
+		{
+			SelectEntitiesInClientBox(m_mousePosLBDown, m_mousePosLBUp);
+		}
+	}
+	break;
+	default:
+		break;
+	}
+
 	return false;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::SelectEntityAtClientPosition(const IntVec2& position)
+{
+	//Execute if the position was the same. This is a selection event
+	IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
+	Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(position, clientBounds);
+
+	//Select the map if we hit that
+	float terrainOut[2];
+	m_game->m_map->RaycastTerrain(terrainOut, ray);
+
+	float out[2];
+	Entity* entity = m_game->m_map->RaycastEntity(out, ray);
+
+	if (terrainOut[0] < out[0])
+	{
+		entity = nullptr;
+		m_selectionHandle = GameHandle::INVALID;
+	}
+
+	if (entity)
+	{
+		entity->SetSelectable(true);
+		m_selectionHandle = entity->GetHandle();
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::SelectEntitiesInClientBox(const IntVec2& boxStart, const IntVec2& boxEnd)
+{
+	//Create the box for the selection area in client space
+	Frustum selectionFrustum = m_game->m_RTSCam->GetWorldFrustumFromClientRegion(AABB2(boxStart, boxEnd));
+
+	//Get all the selected Entities
+	m_game->m_map->SelectEntitiesInFrustum(selectionFrustum);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

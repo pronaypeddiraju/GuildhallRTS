@@ -1915,10 +1915,10 @@ void Game::CreateInitialMeshes()
 void Game::LoadGameTextures()
 {
 	//Get the test texture
-	m_textureTest = g_renderContext->GetOrCreateTextureViewFromFile(m_testImagePath);
-	m_boxTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_boxTexturePath);
-	m_sphereTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_sphereTexturePath);
-	m_backgroundTexture = g_renderContext->GetOrCreateTextureViewFromFile(m_backgroundPath);
+	m_textureTest = g_renderContext->CreateOrGetTextureViewFromFile(m_testImagePath);
+	m_boxTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_boxTexturePath);
+	m_sphereTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_sphereTexturePath);
+	m_backgroundTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_backgroundPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

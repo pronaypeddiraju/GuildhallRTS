@@ -9,6 +9,7 @@ typedef unsigned int uint;
 typedef uint16_t uint16;
 
 //------------------------------------------------------------------------------------------------------------------------------
+struct Frustum;
 struct Ray3D;
 struct Vertex_Lit;
 class Entity;
@@ -54,6 +55,7 @@ public:
 	// Pick
 	Entity*				RaycastEntity(float *out, const Ray3D& ray, float maxDistance = INFINITY);
 	uint				RaycastTerrain(float* out, const Ray3D& ray);
+	void				SelectEntitiesInFrustum(const Frustum& selectionFrustum);
 
 	int					GetNumEntities();
 

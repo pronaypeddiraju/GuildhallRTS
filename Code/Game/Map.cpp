@@ -3,6 +3,7 @@
 
 // Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Math/Frustum.hpp"
 #include "Engine/Math/Plane3D.hpp"
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Math/Vertex_Lit.hpp"
@@ -236,7 +237,7 @@ void Map::RenderEntities() const
 
 		//Setup the model matrix for the entity
 		Matrix44 mat = Matrix44::MakeXRotationDegrees(90.f);
-		Matrix44 translation = Matrix44::MakeTranslation3D(capsule.m_end + Vec3::BACK * capsule.m_radius);
+		Matrix44 translation = Matrix44::MakeTranslation3D(capsule.m_end);
 		Vec3 t = translation.GetTVector();
 		mat.SetTVector(t);
 		g_renderContext->BindModelMatrix(mat);
@@ -335,6 +336,20 @@ uint Map::RaycastTerrain(float* out, const Ray3D& ray)
 {
 	Plane3D terrainPlane(Vec3(0.f, 0.f, -1.f), 0.f);
 	return Raycast(out, ray, terrainPlane);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::SelectEntitiesInFrustum(const Frustum& selectionFrustum)
+{
+	//if entity is inside the frustum, set it as selected
+	for (int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
+	{
+		if (selectionFrustum.ContainsPoint(m_entities[entityIndex]->m_position))
+		{
+			//Select this guy
+			TODO("Add multiple selection");
+		}
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

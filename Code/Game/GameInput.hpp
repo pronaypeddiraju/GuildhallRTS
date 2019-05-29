@@ -47,6 +47,10 @@ public:
 	bool								HandleMouseRBDown();
 	bool								HandleMouseRBUp();
 	bool								HandleMouseScroll(float wheelDelta);
+	
+	//Frustum Selection
+	void								SelectEntityAtClientPosition(const IntVec2& position);
+	void								SelectEntitiesInClientBox(const IntVec2& boxStart, const IntVec2& boxEnd);
 
 	//Key input handling
 	void								HandleKeyPressed( unsigned char keyCode );
@@ -86,6 +90,9 @@ public:
 	KeyButtonState m_mouseButtonRight;
 
 	AABB2 m_screenBounds;
+
+	IntVec2	m_mousePosLBDown;
+	IntVec2 m_mousePosLBUp;
 
 	GameHandle m_selectionHandle; // std::vector<GameHandle> m_selection; 
 }; 
