@@ -313,6 +313,8 @@ void GameInput::SelectEntitiesInClientBox(const IntVec2& boxStart, const IntVec2
 {
 	//Create the box for the selection area in client space
 	Frustum selectionFrustum = m_game->m_RTSCam->GetWorldFrustumFromClientRegion(AABB2(boxStart, boxEnd));
+	//Frustum ndcFrustum = m_game->m_RTSCam->GetWorldFrustum();
+
 
 	//Get all the selected Entities
 	m_game->m_map->SelectEntitiesInFrustum(selectionFrustum);

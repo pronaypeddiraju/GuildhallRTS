@@ -43,6 +43,9 @@ public:
 
 	Capsule3D				CreateEntityCapsule() const;
 
+	//To handle events
+	//void					HandleEvents(char const* eventName);
+
 	// return just one result if it hits - return the closest result
 	// depending on its physics collision
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
