@@ -40,6 +40,9 @@
     <ClCompile Include="RTSCommand.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp">
@@ -65,6 +68,9 @@
       <Filter>Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="RTSCommand.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.hpp">
       <Filter>Gameplay</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,7 @@
 
 //Game Systems
 #include "Game/GameHandle.hpp"
+#include "Game/Animator.hpp"
 
 struct Ray3D;
 
@@ -50,7 +51,12 @@ public:
 	// depending on its physics collision
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
 
-public:
+private:
+	IsoSpriteDefenition *m_animationSet[eAnimationType::ANIMATION_COUNT];
+	// AnimationDefinition *m_currentAnimation; 
+	eAnimationType m_currentState;
+	eAnimationType m_prevState;
+
 	GameHandle		m_handle;
 	eEntityFlags	m_flags;
 

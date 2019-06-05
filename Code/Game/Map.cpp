@@ -245,7 +245,7 @@ bool Map::IsEntitySelected(const Entity& entity) const
 
 	for (int i = 0; i < (int)inputClass->m_selectionHandles.size(); ++i)
 	{
-		if (entity.m_handle == inputClass->m_selectionHandles[i])
+		if (entity.GetHandle() == inputClass->m_selectionHandles[i])
 		{
 			return true;
 		}
@@ -352,7 +352,7 @@ void Map::SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const 
 	for (int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
 	{
 		Entity* entity = m_entities[entityIndex];
-		if (selectionFrustum.ContainsPoint(entity->m_position))
+		if (selectionFrustum.ContainsPoint(entity->GetPosition()))
 		{
 			if (entity->IsSelectable() && entity->GetHandle() != GameHandle::INVALID)
 			{

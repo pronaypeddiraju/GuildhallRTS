@@ -192,6 +192,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Animator.cpp" />
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="GameCommon.hpp" />
     <ClInclude Include="GameHandle.hpp" />
     <ClInclude Include="GameInput.hpp" />
+    <ClInclude Include="Animator.hpp" />
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="RTSCamera.hpp" />
     <ClInclude Include="RTSCommand.hpp" />
