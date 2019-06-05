@@ -94,5 +94,6 @@ public:
 	IntVec2	m_mousePosLBDown;
 	IntVec2 m_mousePosLBUp;
 
-	GameHandle m_selectionHandle; // std::vector<GameHandle> m_selection; 
+	//GameHandle m_selectionHandle; 
+	std::vector<GameHandle> m_selectionHandles; 
 }; 

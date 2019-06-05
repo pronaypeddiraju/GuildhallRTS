@@ -211,20 +211,10 @@ void Map::RenderEntities() const
 		Capsule3D capsule;
 		capsule = m_entities[index]->CreateEntityCapsule();
 
-		Entity* entity = FindEntity(Game::s_gameReference->m_gameInput->m_selectionHandle);
-
-		if (entity != nullptr)
+		if (IsEntitySelected(*m_entities[index]))
 		{
-			if (m_entities[index]->GetHandle() == entity->GetHandle())
-			{
-				//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::YELLOW);
-				CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::YELLOW);
-			}
-			else
-			{
-				//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::WHITE);
-				CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::WHITE);
-			}
+			//CPUMeshAddUVCapsule(&mesh, capsule.m_start, capsule.m_end, capsule.m_radius, Rgba::YELLOW);
+			CPUMeshAddUVCapsule(&mesh, Vec3(0.f, 1.f, 0.f), Vec3::ZERO, capsule.m_radius, Rgba::YELLOW);
 		}
 		else
 		{
@@ -247,6 +237,21 @@ void Map::RenderEntities() const
 		g_renderContext->DrawMesh(&drawMesh);
 		g_renderContext->CreateAndSetDefaultRasterState();
 	}
+}
+
+bool Map::IsEntitySelected(const Entity& entity) const
+{
+	GameInput* inputClass = Game::s_gameReference->m_gameInput;
+
+	for (int i = 0; i < (int)inputClass->m_selectionHandles.size(); ++i)
+	{
+		if (entity.m_handle == inputClass->m_selectionHandles[i])
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -339,15 +344,21 @@ uint Map::RaycastTerrain(float* out, const Ray3D& ray)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Map::SelectEntitiesInFrustum(const Frustum& selectionFrustum)
+void Map::SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const Frustum& selectionFrustum)
 {
+	entityHandles.clear();
+
 	//if entity is inside the frustum, set it as selected
 	for (int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
 	{
-		if (selectionFrustum.ContainsPoint(m_entities[entityIndex]->m_position))
+		Entity* entity = m_entities[entityIndex];
+		if (selectionFrustum.ContainsPoint(entity->m_position))
 		{
-			//Select this guy
-			TODO("Add multiple selection");
+			if (entity->IsSelectable() && entity->GetHandle() != GameHandle::INVALID)
+			{
+				entity->SetSelectable(true);
+				entityHandles.push_back(entity->GetHandle());
+			}
 		}
 	}
 }

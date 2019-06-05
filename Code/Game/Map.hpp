@@ -55,7 +55,8 @@ public:
 	// Pick
 	Entity*				RaycastEntity(float *out, const Ray3D& ray, float maxDistance = INFINITY);
 	uint				RaycastTerrain(float* out, const Ray3D& ray);
-	void				SelectEntitiesInFrustum(const Frustum& selectionFrustum);
+	void				SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const Frustum& selectionFrustum);
+	bool				IsEntitySelected(const Entity& entity) const;
 
 	int					GetNumEntities();
 

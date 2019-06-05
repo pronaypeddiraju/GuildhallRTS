@@ -88,10 +88,13 @@ void GameInput::UpdateGameControllerInput()
 		}
 	}
 
-	Entity *selected = map->FindEntity(m_selectionHandle);
-	if (selected == nullptr)
+	for (int selectIndex = 0; selectIndex < (int)m_selectionHandles.size(); ++selectIndex)
 	{
-		m_selectionHandle = GameHandle::INVALID;
+		Entity *selected = map->FindEntity(m_selectionHandles[selectIndex]);
+		if (selected == nullptr)
+		{
+			m_selectionHandles[selectIndex] = GameHandle::INVALID;
+		}
 	}
 }
 
@@ -298,13 +301,14 @@ void GameInput::SelectEntityAtClientPosition(const IntVec2& position)
 	if (terrainOut[0] < out[0])
 	{
 		entity = nullptr;
-		m_selectionHandle = GameHandle::INVALID;
+		m_selectionHandles.clear();
+		m_selectionHandles.push_back(GameHandle::INVALID);
 	}
 
 	if (entity)
 	{
 		entity->SetSelectable(true);
-		m_selectionHandle = entity->GetHandle();
+		m_selectionHandles.push_back(entity->GetHandle());
 	}
 }
 
@@ -317,26 +321,29 @@ void GameInput::SelectEntitiesInClientBox(const IntVec2& boxStart, const IntVec2
 
 
 	//Get all the selected Entities
-	m_game->m_map->SelectEntitiesInFrustum(selectionFrustum);
+	m_game->m_map->SelectEntitiesInFrustum(m_selectionHandles, selectionFrustum);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 bool GameInput::HandleMouseRBDown()
 {
-	if (m_selectionHandle != GameHandle::INVALID)
+	for (int selectIndex = 0; selectIndex < (int)m_selectionHandles.size(); ++selectIndex)
 	{
-		IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
-		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
+		if (m_selectionHandles[selectIndex] != GameHandle::INVALID)
+		{
+			IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
+			IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
+			Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
 
-		//Select the map if we hit that
-		float terrainOut[2];
-		m_game->m_map->RaycastTerrain(terrainOut, ray);
-		
-		Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
-		MoveCommand *cmd = new MoveCommand(m_selectionHandle, Vec2(dest.x, dest.y));
-		
-		m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+			//Select the map if we hit that
+			float terrainOut[2];
+			m_game->m_map->RaycastTerrain(terrainOut, ray);
+
+			Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
+			MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
+
+			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+		}
 	}
 
 	return false;

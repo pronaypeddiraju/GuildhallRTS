@@ -833,7 +833,7 @@ void Game::Render() const
 	}	
 
 	//Uncomment this when debugging
-	//DebugRenderToCamera();
+	DebugRenderToCamera();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
