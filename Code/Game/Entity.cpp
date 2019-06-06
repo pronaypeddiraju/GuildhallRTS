@@ -41,15 +41,23 @@ void Entity::Update(float deltaTime)
 	if (magnitude < m_speed * deltaTime)
 	{
 		m_position = m_targetPosition;
+		m_prevState = m_currentState;
+		m_currentState = ANIMATION_IDLE;
+		m_currentAnimTime = 0.f;
 	}
 	else
 	{
 		m_position += disp.GetNormalized() * m_speed * deltaTime;
+		m_prevState = m_currentState;
+		m_currentState = ANIMATION_WALK;
+		//m_currentAnimTime = 0.f;
 	}
+
+	m_currentAnimTime += deltaTime;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::MakeWalkCycle(const SpriteSheet& peonSheet, int numFrames, int spritesEachFrame, const std::string& entityName)
+void Entity::MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName)
 {
 	std::vector<IsoSpriteDefenition> isoDefs;
 	std::vector<SpriteDefenition> spriteDefs;
@@ -58,16 +66,39 @@ void Entity::MakeWalkCycle(const SpriteSheet& peonSheet, int numFrames, int spri
 	{
 		for (int i = 0; i < spritesEachFrame; i++)
 		{
-			spriteDefs.push_back(SpriteDefenition(peonSheet.GetSpriteDef(i * spritesEachFrame + j), Vec2(0.5, 0.25)));
+			spriteDefs.push_back(SpriteDefenition(spriteSheet.GetSpriteDef(i * spritesEachFrame + j), Vec2(0.5, 0.25)));
 		}
 
-		isoDefs.push_back(MakeIsoSpriteDef(&spriteDefs[0], numFrames));
+		isoDefs.push_back(MakeIsoSpriteDef(&spriteDefs[0], spritesEachFrame));
 		spriteDefs.clear();
 	}
 
 	//Make the walk animation
 	std::string animName = entityName + ".walk";
-	m_animationSet[ANIMATION_WALK] = new IsoAnimDefenition(peonSheet, 0, numFrames, m_animFrameTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_ONCE);
+	m_animationSet[ANIMATION_WALK] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), m_animSetTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_LOOP);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName)
+{
+	std::vector<IsoSpriteDefenition> isoDefs;
+	std::vector<SpriteDefenition> spriteDefs;
+
+	for (int j = 0; j < numFrames; j++)
+	{
+		for (int i = 0; i < spritesEachFrame; i++)
+		{
+			int spriteID = i * spritesEachFrame + j + idleColumn;
+			spriteDefs.push_back(SpriteDefenition(spriteSheet.GetSpriteDef(spriteID), Vec2(0.5, 0.25)));
+		}
+
+		isoDefs.push_back(MakeIsoSpriteDef(&spriteDefs[0], spritesEachFrame));
+		spriteDefs.clear();
+	}
+
+	//Make the walk animation
+	std::string animName = entityName + ".idle";
+	m_animationSet[ANIMATION_IDLE] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), m_animSetTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_ONCE);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

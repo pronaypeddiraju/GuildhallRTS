@@ -21,6 +21,7 @@ class SpriteDefenition;
 class IsoSpriteDefenition;
 class GPUMesh;
 class RTSCamera;
+class SpriteSheet;
 
 //------------------------------------------------------------------------------------------------------------------------------
 struct MapTile
@@ -55,7 +56,7 @@ public:
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
 
 	// Entity Methods
-	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName);
+	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet);
 	Entity*				FindEntity(const GameHandle& handle) const;
 	Entity*				GetEntityAtIndex(int index);
 	void				ResolveEntityCollisions();
@@ -98,8 +99,8 @@ private:
 	uint16					m_cyclicID = 0; // used for generating the GameHandle
 
 	//Entity Draw Data
-	float					m_entityWidth = 2.f;
-	float					m_entityHeight = 2.f;
+	float					m_entityWidth = 3.f;
+	float					m_entityHeight = 3.f;
 
 	GPUMesh*				m_quad = nullptr;
 	//Matrix44				m_quadTransfrom;

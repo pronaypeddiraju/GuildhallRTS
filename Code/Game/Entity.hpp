@@ -31,8 +31,8 @@ public:
 
 	void					Update(float deltaTime);
 
-	
-	void					MakeWalkCycle(const SpriteSheet& peonSheet, int numFrames, int spritesEachFrame, const std::string& entityName);
+	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName);
+	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName);
 
 	IsoSpriteDefenition		MakeIsoSpriteDef(const SpriteDefenition spriteDefenitions[], uint numDefenitions);
 
@@ -68,15 +68,17 @@ public:
 	// depending on its physics collision
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
 
+public:
+	//Animation Data
+	IsoAnimDefenition*	m_animationSet[eAnimationType::ANIMATION_COUNT];
+	// AnimationDefinition *m_currentAnimation; 
+	eAnimationType		m_currentState = ANIMATION_IDLE;
+	eAnimationType		m_prevState = ANIMATION_IDLE;
+	float				m_currentAnimTime = 0.f;
+
 private:
 
-	//Animation Data
-	IsoAnimDefenition* m_animationSet[eAnimationType::ANIMATION_COUNT];
-	// AnimationDefinition *m_currentAnimation; 
-	eAnimationType m_currentState;
-	eAnimationType m_prevState;
-
-	float			m_animFrameTime = 0.5f;
+	float			m_animSetTime = 1.f;
 
 	GameHandle		m_handle;
 	eEntityFlags	m_flags;

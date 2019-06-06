@@ -30,26 +30,24 @@ void IsoAnimDefenition::AddIsoSpriteDefenition(const IsoSpriteDefenition& isoSpr
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-const SpriteDefenition& IsoAnimDefenition::GetIsoSpriteAtTime(float seconds, const Vec3& direction) 
+IsoSpriteDefenition& IsoAnimDefenition::GetIsoSpriteAtTime(float seconds) 
 {
 	switch (m_playbackType)
 	{
 	case SPRITE_ANIM_PLAYBACK_ONCE:
-		return GetSpriteDefAtTime_Once(seconds, direction);
+		return GetSpriteDefAtTime_Once(seconds);
 		break;
 	case SPRITE_ANIM_PLAYBACK_LOOP:
-		return GetSpriteDefAtTime_Loop(seconds, direction);
+		return GetSpriteDefAtTime_Loop(seconds);
 		break;
 	case SPRITE_ANIM_PLAYBACK_PINGPONG:
-		return GetSpriteDefAtTime_PingPong(seconds, direction);
+		return GetSpriteDefAtTime_PingPong(seconds);
 		break;
 	}
-
-	return m_isoSpriteDefs[0].GetSpriteForLocalDirection(Vec3::BACK);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-const SpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Once(float seconds, const Vec3& direction)
+IsoSpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Once(float seconds)
 {
 	//Get total number of defs
 	int numFrames = (m_endDefIndex - m_startDefIndex) + 1;
@@ -67,11 +65,11 @@ const SpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Once(float seconds
 	}
 
 	//We now have the Def number (Which IsoSpriteDef corresponds to this frame)
-	return m_isoSpriteDefs[animFrameNum].GetSpriteForLocalDirection(direction);
+	return m_isoSpriteDefs[animFrameNum];
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-const SpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Loop(float seconds, const Vec3& direction)
+IsoSpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Loop(float seconds)
 {
 	//Get total number of frames
 	int numFrames = (m_endDefIndex - m_startDefIndex) + 1;
@@ -82,11 +80,11 @@ const SpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Loop(float seconds
 	int animFrameNum = (int)floorf(timeInCycle / frameDuration);
 
 	//We now have the Def number (Which IsoSpriteDef corresponds to this frame)
-	return m_isoSpriteDefs[animFrameNum].GetSpriteForLocalDirection(direction);
+	return m_isoSpriteDefs[animFrameNum];
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-const SpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_PingPong(float seconds, const Vec3& direction)
+IsoSpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_PingPong(float seconds)
 {
 	//Get number of frames and each frame duration
 	int numFrames = (m_endDefIndex - m_startDefIndex) * 2;
@@ -99,12 +97,12 @@ const SpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_PingPong(float sec
 
 	if (animFrameNum < numBaseFrames)
 	{
-		return m_isoSpriteDefs[animFrameNum + m_startDefIndex].GetSpriteForLocalDirection(direction);
+		return m_isoSpriteDefs[animFrameNum + m_startDefIndex];
 	}
 	else
 	{
 		int reverseIndexFromEnd = numBaseFrames - animFrameNum;		
-		return m_isoSpriteDefs[reverseIndexFromEnd + m_endDefIndex].GetSpriteForLocalDirection(direction);
+		return m_isoSpriteDefs[reverseIndexFromEnd + m_endDefIndex];
 	}
 }
 

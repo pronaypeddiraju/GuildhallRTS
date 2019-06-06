@@ -1,5 +1,6 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/RTSCommand.hpp"
+#include "Engine/Renderer/SpriteSheet.hpp"
 #include "Game/Map.hpp"
 #include "Game/Game.hpp"
 #include "Game/Entity.hpp"
@@ -26,7 +27,7 @@ CreateEntityCommand::~CreateEntityCommand()
 VIRTUAL void CreateEntityCommand::Execute()
 {
 	Map* map = Game::s_gameReference->m_map;
-	map->CreateEntity(m_createPosition, "peon");
+	map->CreateEntity(m_createPosition, "peon", *Game::s_gameReference->m_peonSheet);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

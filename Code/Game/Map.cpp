@@ -22,6 +22,7 @@
 #include "Game/Game.hpp"
 #include "Game/GameInput.hpp"
 #include "Game/RTSCamera.hpp"
+#include "Game/IsoAnimDefenition.hpp"
 
 extern RenderContext* g_renderContext;
 
@@ -177,7 +178,7 @@ void Map::UpdateEntities(float deltaTime)
 void Map::Render() const
 {
 	RenderTerrain(m_terrainMaterial);
-	RenderEntities();
+	//RenderEntities();
 	RenderEntitySprites();
 }
 
@@ -256,7 +257,8 @@ void Map::RenderEntitySprites() const
 	int numEntities = (int)m_entities.size();
 	for (int index = 0; index < numEntities; index++)
 	{
-		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *Game::s_gameReference->m_isoSprite, *Game::s_gameReference->m_RTSCam);
+		IsoSpriteDefenition* isoSprite = &m_entities[index]->m_animationSet[m_entities[index]->m_currentState]->GetIsoSpriteAtTime(m_entities[index]->m_currentAnimTime);
+		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam);
 	}
 }
 
@@ -349,7 +351,7 @@ AABB2 Map::GetXYBounds() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName )
+Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet )
 {
 	uint slot = GetFreeEntityIndex();
 	uint cyclicID = GetNextCyclicID();
@@ -357,7 +359,8 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName )
 	GameHandle handle = GameHandle(cyclicID, slot);
 	Entity *entity = new Entity(handle, pos);
 
-	entity->MakeWalkCycle(*Game::s_gameReference->m_peonSheet, 5, 8, entityName);
+	entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
+	entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
 
 	// you may have to grow this vector...
 	m_entities[slot] = entity;

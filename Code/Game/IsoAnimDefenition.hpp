@@ -19,12 +19,12 @@ public:
 	void						SetIsoSpriteDefenitions(const std::vector<IsoSpriteDefenition>& isoSpriteDefs);
 	void						AddIsoSpriteDefenition(const IsoSpriteDefenition& isoSpriteDef);
 
-	const SpriteDefenition&		GetIsoSpriteAtTime(float seconds, const Vec3& direction);
+	IsoSpriteDefenition&		GetIsoSpriteAtTime(float seconds);
 
 private:
-	const SpriteDefenition&		GetSpriteDefAtTime_Once(float seconds, const Vec3& direction);
-	const SpriteDefenition&		GetSpriteDefAtTime_Loop(float seconds, const Vec3& direction);
-	const SpriteDefenition&		GetSpriteDefAtTime_PingPong(float seconds, const Vec3& direction);
+	IsoSpriteDefenition&		GetSpriteDefAtTime_Once(float seconds);
+	IsoSpriteDefenition&		GetSpriteDefAtTime_Loop(float seconds);
+	IsoSpriteDefenition&		GetSpriteDefAtTime_PingPong(float seconds);
 
 private:
 	const SpriteSheet&					m_spriteSheet;
