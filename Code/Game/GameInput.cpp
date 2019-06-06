@@ -23,9 +23,6 @@ GameInput::GameInput(Game* game)
 	m_framePan = Vec2::ZERO;
 
 	m_screenBounds = AABB2(Vec2(0.f, 0.f), Vec2(1280.f, 720.f));
-
-	m_mouseButtonLeft.ResetButton();
-	m_mouseButtonRight.ResetButton();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -247,6 +244,7 @@ bool GameInput::HandleMouseLBDown()
 	case STATE_PLAY:
 	{
 		m_mousePosLBDown = g_windowContext->GetClientMousePosition();
+		m_LMousePressed = true;
 		m_selectionHandles.clear();
 	}
 	break;
@@ -267,6 +265,7 @@ bool GameInput::HandleMouseLBUp()
 	{
 	case STATE_PLAY:
 	{
+		m_LMousePressed = false;
 		m_mousePosLBUp = g_windowContext->GetClientMousePosition();
 
 		if (GetDistanceSquared2D(Vec2(m_mousePosLBDown), Vec2(m_mousePosLBUp)) < 0.00001f)

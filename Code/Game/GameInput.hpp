@@ -86,8 +86,7 @@ public:
 	bool m_SPressed					 = false;
 	bool m_DPressed					 = false;
 
-	KeyButtonState m_mouseButtonLeft;
-	KeyButtonState m_mouseButtonRight;
+	bool m_LMousePressed			 = true;
 
 	bool m_shiftPressed = true;
 

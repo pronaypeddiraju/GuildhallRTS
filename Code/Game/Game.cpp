@@ -806,6 +806,22 @@ void Game::Render() const
 	case STATE_PLAY:
 	{
 		RenderGameState();
+
+		if (m_gameInput->m_LMousePressed)
+		{
+			IntVec2 currentMousePos = g_windowContext->GetClientMousePosition();
+			AABB2 selectionBox = AABB2(Vec2(m_gameInput->m_mousePosLBDown), Vec2(currentMousePos));
+
+			std::vector<Vertex_PCU> verts;
+			AddVertsForAABB2D(verts, selectionBox, Rgba(0.f, 1.f, 0.f, 0.3f));
+
+			g_renderContext->BeginCamera(*m_UICamera);
+			g_renderContext->BindModelMatrix(Matrix44::IDENTITY);
+			g_renderContext->BindShader(m_shader);
+			g_renderContext->BindTextureView(0U, nullptr);
+			g_renderContext->DrawVertexArray(verts);
+			g_renderContext->EndCamera();
+		}
 	}
 	break;
 	case STATE_EDIT:
