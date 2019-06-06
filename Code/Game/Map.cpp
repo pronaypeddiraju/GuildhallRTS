@@ -258,21 +258,21 @@ void Map::RenderEntitySprites() const
 	for (int index = 0; index < numEntities; index++)
 	{
 		IsoSpriteDefenition* isoSprite = &m_entities[index]->m_animationSet[m_entities[index]->m_currentState]->GetIsoSpriteAtTime(m_entities[index]->m_currentAnimTime);
-		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam);
+		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType());
 	}
 }
 
-void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera) const
+void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type) const
 {
 	Matrix44 viewMat = camera.GetViewMatrix();
 	Vec3 entityForwardRelativeToCamera = viewMat.TransformVector3D(orientation);
 	//Get the correct sprite for the direction
 	SpriteDefenition *sprite = &isoDef.GetSpriteForLocalDirection(entityForwardRelativeToCamera);
 	//Now draw the sprite
-	DrawBillBoardedSprite(position, *sprite, camera);
+	DrawBillBoardedSprite(position, *sprite, camera, type);
 }
 
-void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera) const
+void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type) const
 {
 	// tl - tr
 	// |     | 
@@ -322,7 +322,19 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 	
 
 	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
-	g_renderContext->BindTextureView(0U, Game::s_gameReference->m_peonTexture);
+
+	switch (type)
+	{
+	case PEON:
+		g_renderContext->BindTextureView(0U, Game::s_gameReference->m_peonTexture);
+		break;
+	case WARRIOR:
+		g_renderContext->BindTextureView(0U, Game::s_gameReference->m_warriorTexture);
+		break;
+	default:
+		break;
+	}
+
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(m_quad);
 	g_renderContext->BindTextureView(0U, nullptr);
@@ -351,7 +363,7 @@ AABB2 Map::GetXYBounds() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet )
+Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType )
 {
 	uint slot = GetFreeEntityIndex();
 	uint cyclicID = GetNextCyclicID();
@@ -359,9 +371,26 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 	GameHandle handle = GameHandle(cyclicID, slot);
 	Entity *entity = new Entity(handle, pos);
 
-	entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
-	entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
-
+	switch (entityType)
+	{
+	case PEON:
+	{
+		entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
+		entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
+		entity->SetType(PEON);
+	}
+	break;
+	case WARRIOR:
+	{
+		entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
+		entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
+		entity->SetType(WARRIOR);
+	}
+	break;
+	default:
+		break;
+	}
+	
 	// you may have to grow this vector...
 	m_entities[slot] = entity;
 	return entity;

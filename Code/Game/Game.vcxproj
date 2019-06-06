@@ -208,9 +208,11 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="RTSCamera.cpp" />
     <ClCompile Include="RTSCommand.cpp" />
+    <ClCompile Include="RTSTask.cpp" />
     <ClCompile Include="UIWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameTypes.hpp" />
     <ClInclude Include="IsoAnimDefenition.hpp" />
     <ClInclude Include="App.hpp" />
     <ClInclude Include="EngineBuildPreferences.hpp" />
@@ -223,6 +225,7 @@
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="RTSCamera.hpp" />
     <ClInclude Include="RTSCommand.hpp" />
+    <ClInclude Include="RTSTask.hpp" />
     <ClInclude Include="UIWidget.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -219,6 +219,8 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case NUM_9:
 		case NUM_0:
 		case LCTRL_KEY:
+		case LSHIFT_KEY:
+		case M_KEY:
 		{
 			m_game->HandleKeyPressed(keyCode);
 			return true;

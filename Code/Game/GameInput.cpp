@@ -12,8 +12,9 @@
 #include "Game/RTSCamera.hpp"
 #include "Game/UIWidget.hpp"
 #include "Game/GameHandle.hpp"
-#include "RTSCommand.hpp"
-#include "Entity.hpp"
+#include "Game/RTSCommand.hpp"
+#include "Game/Entity.hpp"
+#include "Game/RTSTask.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 GameInput::GameInput(Game* game)
@@ -246,6 +247,7 @@ bool GameInput::HandleMouseLBDown()
 	case STATE_PLAY:
 	{
 		m_mousePosLBDown = g_windowContext->GetClientMousePosition();
+		m_selectionHandles.clear();
 	}
 	break;
 	case STATE_EDIT:
@@ -339,10 +341,40 @@ bool GameInput::HandleMouseRBDown()
 			float terrainOut[2];
 			m_game->m_map->RaycastTerrain(terrainOut, ray);
 
-			Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
-			MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
+			float out[2];
+			Entity* entity = m_game->m_map->RaycastEntity(out, ray);
 
-			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+			if (!m_shiftPressed)
+			{
+				if (entity)
+				{
+					//Follow entity
+					Vec3 dest = ray.GetPointAtTime(out[0]);
+					FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
+					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
+					thisEntity->ClearTasks();
+					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+				}
+				else
+				{
+					Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
+					MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
+					m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
+					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+				}
+			}
+			else
+			{
+				//Shift was pressed so queue a Task
+				if (entity)
+				{
+					//Follow entity
+					Vec3 dest = ray.GetPointAtTime(out[0]);
+					FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
+					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
+					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+				}
+			}
 		}
 	}
 
@@ -435,9 +467,42 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 			Vec3 point = camPosition + ray.m_direction * out[0];
 
 			//Use the command on game here
-			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y));
+			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), PEON);
 			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
 		}
+	}
+	break;
+	case M_KEY:
+	{
+		if (Game::s_gameReference->m_gameState != STATE_EDIT && Game::s_gameReference->m_gameState != STATE_PLAY)
+		{
+			return;
+		}
+
+		//Create entity here using the command
+		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
+		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
+		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePos, clientBounds);
+		float out[2];
+		uint count = m_game->m_map->RaycastTerrain(out, ray);
+		if (count == 0)
+		{
+			return;
+		}
+		else
+		{
+			Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
+			Vec3 point = camPosition + ray.m_direction * out[0];
+
+			//Use the command on game here
+			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), WARRIOR);
+			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+		}
+	}
+	break;
+	case LSHIFT_KEY:
+	{
+		m_shiftPressed = true;
 	}
 	break;
 	}
@@ -471,6 +536,11 @@ void GameInput::HandleKeyReleased( unsigned char keyCode )
 		case D_KEY:
 		{
 			m_DPressed = false;
+		}
+		break;
+		case LSHIFT_KEY:
+		{
+			m_shiftPressed = false;
 		}
 		break;
 		default:

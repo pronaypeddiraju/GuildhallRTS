@@ -263,10 +263,13 @@ public:
 
 	//Sprite Sheets and IsoSprites
 	std::string							m_peonSheetPath = "peon.walkdeath.png";
+	std::string							m_warriorSheetPath = "warrior.walkdeath.png";
 	TextureView*						m_peonTexture = nullptr;
+	TextureView*						m_warriorTexture = nullptr;
 	IntVec2								m_peonSheetDim = IntVec2(8, 8);
+	IntVec2								m_warriorSheetDim = IntVec2(8, 8);
 	SpriteSheet* 						m_peonSheet = nullptr;
-	IsoSpriteDefenition*				m_isoSprite = nullptr;
+	SpriteSheet* 						m_warriorSheet = nullptr;
 
 	float								m_quadSize = 1.f;
 

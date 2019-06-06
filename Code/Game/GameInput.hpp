@@ -89,6 +89,8 @@ public:
 	KeyButtonState m_mouseButtonLeft;
 	KeyButtonState m_mouseButtonRight;
 
+	bool m_shiftPressed = true;
+
 	AABB2 m_screenBounds;
 
 	IntVec2	m_mousePosLBDown;

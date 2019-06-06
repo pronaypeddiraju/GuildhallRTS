@@ -7,8 +7,9 @@
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Renderer/SpriteDefenition.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
-
+//Game Systems
 #include "Game/IsoAnimDefenition.hpp"
+#include "Game/RTSTask.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 Entity::Entity()
@@ -34,6 +35,8 @@ Entity::~Entity()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Update(float deltaTime)
 {
+	CheckTasks();
+
 	//Lerp to the destination
 	Vec2 disp = m_targetPosition - m_position;
 	float magnitude = disp.GetLength();
@@ -54,6 +57,17 @@ void Entity::Update(float deltaTime)
 	}
 
 	m_currentAnimTime += deltaTime;
+
+	//Process any tasks in the queue
+	ProcessTasks();
+}
+
+void Entity::CheckTasks()
+{
+	if (m_unitToFollow != nullptr)
+	{
+		MoveTo(m_unitToFollow->GetPosition());
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -198,6 +212,18 @@ Capsule3D Entity::CreateEntityCapsule() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Entity::Follow(Entity* unitToFollow)
+{
+	m_unitToFollow = unitToFollow;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::StopFollow()
+{
+	m_unitToFollow = nullptr;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 bool Entity::RaycastHit(float *out, const Ray3D& ray) const
 {
 	Capsule3D capsule = Capsule3D((Vec3(m_position) + Vec3(0.f, 0.f, -1.f) * m_height), m_position, m_radius);
@@ -221,4 +247,45 @@ bool Entity::RaycastHit(float *out, const Ray3D& ray) const
 		return true;
 	}
 
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::EnqueueTask(RTSTask* task)
+{
+	for (int index = 0; index < m_taskQueue.size(); index++)
+	{
+		if (m_taskQueue[index] == nullptr)
+		{
+			m_taskQueue[index] = task;
+			return;
+		}
+	}
+
+	m_taskQueue.push_back(task);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::ProcessTasks()
+{
+	std::vector<RTSTask*>::iterator itr;
+	itr = m_taskQueue.begin();
+
+	int numTasks = (int)m_taskQueue.size();
+
+	for (int index = 0; index < numTasks; index++)
+	{
+		if (m_taskQueue[index] != nullptr)
+		{
+			m_taskQueue[index]->Execute();
+			delete m_taskQueue[index];
+			m_taskQueue[index] = nullptr;
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::ClearTasks()
+{
+	m_unitToFollow = nullptr;
+	m_taskQueue.clear();
 }

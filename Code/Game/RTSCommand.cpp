@@ -12,10 +12,11 @@ RTSCommand::RTSCommand(CommandTypeT commandType)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-CreateEntityCommand::CreateEntityCommand(Vec2 createPosition)
+CreateEntityCommand::CreateEntityCommand(Vec2 createPosition, EntityTypeT entityType)
 	:	RTSCommand(CREATE_ENTITY)
 {
 	m_createPosition = createPosition;
+	m_entityType = entityType;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -26,8 +27,23 @@ CreateEntityCommand::~CreateEntityCommand()
 
 VIRTUAL void CreateEntityCommand::Execute()
 {
-	Map* map = Game::s_gameReference->m_map;
-	map->CreateEntity(m_createPosition, "peon", *Game::s_gameReference->m_peonSheet);
+	switch (m_entityType)
+	{
+	case PEON:
+	{
+		Map* map = Game::s_gameReference->m_map;
+		map->CreateEntity(m_createPosition, "peon", *Game::s_gameReference->m_peonSheet, m_entityType);
+	}
+	break;
+	case WARRIOR:
+	{
+		Map* map = Game::s_gameReference->m_map;
+		map->CreateEntity(m_createPosition, "warrior", *Game::s_gameReference->m_warriorSheet, m_entityType);
+	}
+	break;
+	default:
+		break;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

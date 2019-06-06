@@ -8,6 +8,8 @@
 //Game Systems
 #include "Game/GameHandle.hpp"
 #include "Game/Animator.hpp"
+#include "Game/RTSTask.hpp"
+#include "Game/GameTypes.hpp"
 
 struct Ray3D;
 
@@ -30,6 +32,7 @@ public:
 	~Entity();
 
 	void					Update(float deltaTime);
+	void					CheckTasks();
 
 	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName);
 	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName);
@@ -61,12 +64,22 @@ public:
 
 	Capsule3D				CreateEntityCapsule() const;
 
+	void					Follow(Entity* unitToFollow);
+	void					StopFollow();
+
+	inline EntityTypeT		GetType() { return m_type; }
+	inline void				SetType(EntityTypeT type) { m_type = type; }
 	//To handle events
 	//void					HandleEvents(char const* eventName);
 
 	// return just one result if it hits - return the closest result
 	// depending on its physics collision
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
+
+	//Task Handling
+	void					EnqueueTask(RTSTask* task);
+	void					ProcessTasks(); // process and free up memory 
+	void					ClearTasks();   // just free up memory 
 
 public:
 	//Animation Data
@@ -77,6 +90,8 @@ public:
 	float				m_currentAnimTime = 0.f;
 
 private:
+
+	EntityTypeT		m_type = PEON;
 
 	float			m_animSetTime = 1.f;
 
@@ -97,5 +112,11 @@ private:
 	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
 
 	Vec3			m_directionFacing = Vec3::UP;
+
+	std::vector<RTSTask*>			m_taskQueue;
+
+	Entity*			m_unitToFollow = nullptr;
+
+	float			m_health = 40.f;
 };
 

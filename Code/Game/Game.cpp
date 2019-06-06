@@ -1922,7 +1922,10 @@ void Game::LoadGameTextures()
 	m_backgroundTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_backgroundPath);
 
 	m_peonTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonSheetPath);
+	m_warriorTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorSheetPath);
+
 	m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
+	m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
 
 	CreateIsoSpriteDefenitions();
 }
@@ -1941,7 +1944,7 @@ void Game::CreateIsoSpriteDefenitions()
 	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(48), Vec2(0.5, 0.25)));
 	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(56), Vec2(0.5, 0.25)));
 
-	m_isoSprite = new IsoSpriteDefenition(&spriteDefs[0], 8);
+	//m_isoSprite = new IsoSpriteDefenition(&spriteDefs[0], 8);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

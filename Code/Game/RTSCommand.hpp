@@ -4,6 +4,7 @@
 #include "Engine/Commons/EngineCommon.hpp"
 //Game Systems
 #include "Game/GameHandle.hpp"
+#include "Game/Map.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 enum CommandTypeT
@@ -28,13 +29,14 @@ public:
 class CreateEntityCommand : RTSCommand
 {
 public:
-	CreateEntityCommand(Vec2 createPosition);
+	CreateEntityCommand(Vec2 createPosition, EntityTypeT entityType);
 	~CreateEntityCommand();
 
 	virtual void Execute();
 
 public:
 	Vec2 m_createPosition;
+	EntityTypeT m_entityType;
 };
 
 //------------------------------------------------------------------------------------------------------------------------------

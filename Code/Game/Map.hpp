@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstdint>
 
+#include "Game/GameTypes.hpp"
+
 typedef unsigned int uint;
 typedef uint16_t uint16;
 
@@ -49,14 +51,14 @@ public:
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
 	void				RenderEntities() const;
 	void				RenderEntitySprites() const;
-	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera) const;
-	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera) const;
+	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type) const;
+	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type) const;
 
 	// Accessors
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
 
 	// Entity Methods
-	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet);
+	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType);
 	Entity*				FindEntity(const GameHandle& handle) const;
 	Entity*				GetEntityAtIndex(int index);
 	void				ResolveEntityCollisions();

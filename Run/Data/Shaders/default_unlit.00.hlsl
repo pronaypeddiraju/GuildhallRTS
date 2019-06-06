@@ -117,6 +117,8 @@ float4 FragmentFunction( v2f_t input ) : SV_Target0
    // component wise multiply to "tint" the output
    float4 finalColor = texColor * input.color; 
 
+   clip( finalColor.w < 0.1f ? -1 : 1);
+
    // output it; 
    return finalColor; 
 }
