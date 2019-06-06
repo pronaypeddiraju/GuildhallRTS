@@ -4,7 +4,7 @@
 #include "Engine/Renderer/IsoSpriteDefenition.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
-IsoAnimDefenition::IsoAnimDefenition(const SpriteSheet& sheet, int startDefIndex, int endDefIndex, float durationSeconds, const std::string& animName , SpriteAnimPlaybackType playbackType /*= SPRITE_ANIM_PLAYBACK_LOOP*/)
+IsoAnimDefenition::IsoAnimDefenition(const SpriteSheet& sheet, int startDefIndex, int endDefIndex, float durationSeconds, const std::string& animName, const std::vector<IsoSpriteDefenition>& isoSpriteDefs, SpriteAnimPlaybackType playbackType /*= SPRITE_ANIM_PLAYBACK_LOOP*/)
 	: m_spriteSheet(sheet)
 {
 	m_startDefIndex = startDefIndex;
@@ -12,6 +12,8 @@ IsoAnimDefenition::IsoAnimDefenition(const SpriteSheet& sheet, int startDefIndex
 	m_durationSeconds = durationSeconds;
 	m_playbackType = playbackType;
 	m_animName = animName;
+
+	SetIsoSpriteDefenitions(isoSpriteDefs);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

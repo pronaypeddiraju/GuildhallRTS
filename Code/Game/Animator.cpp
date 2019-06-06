@@ -6,6 +6,4 @@
 void Animator::Update(float deltaTime)
 {
 	m_totalElapsedTime += deltaTime;
-
-	TODO("Add Code to update animation here");
 }

@@ -262,10 +262,10 @@ public:
 	GameInput*							m_gameInput = nullptr;
 
 	//Sprite Sheets and IsoSprites
-	std::string							m_laborerSheetPath = "peon.walkdeath.png";
-	TextureView*						m_laborerSheet = nullptr;
-	IntVec2								m_laborerSheetDim = IntVec2(8, 8);
-	SpriteSheet* 						m_testSheet = nullptr;
+	std::string							m_peonSheetPath = "peon.walkdeath.png";
+	TextureView*						m_peonTexture = nullptr;
+	IntVec2								m_peonSheetDim = IntVec2(8, 8);
+	SpriteSheet* 						m_peonSheet = nullptr;
 	IsoSpriteDefenition*				m_isoSprite = nullptr;
 
 	float								m_quadSize = 1.f;

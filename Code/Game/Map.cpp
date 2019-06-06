@@ -256,7 +256,7 @@ void Map::RenderEntitySprites() const
 	int numEntities = (int)m_entities.size();
 	for (int index = 0; index < numEntities; index++)
 	{
-		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetOrientation(), *Game::s_gameReference->m_isoSprite, *Game::s_gameReference->m_RTSCam);
+		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *Game::s_gameReference->m_isoSprite, *Game::s_gameReference->m_RTSCam);
 	}
 }
 
@@ -302,15 +302,12 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 
 	sprite.GetUVs(uvs[0], uvs[3]);
 
-	g_renderContext->BindTextureView(0U, Game::s_gameReference->m_laborerSheet);
 
 	CPUMesh mesh;
 
 	AABB2 box = AABB2(corners[2], corners[1]);
 
-	TODO("Offset the box now based on the pivot");
-
-	CPUMeshAddQuad(&mesh, box, Rgba::WHITE, uvs[0], uvs[3]);
+	CPUMeshAddQuad(&mesh, box, Rgba::WHITE, uvs[3], uvs[0]);
 	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
 
 	//Billboard here
@@ -323,9 +320,10 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 	
 
 	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
+	g_renderContext->BindTextureView(0U, Game::s_gameReference->m_peonTexture);
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(m_quad);
-	//g_renderContext->DrawVertexArray(corners, uvs);
+	g_renderContext->BindTextureView(0U, nullptr);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -351,14 +349,15 @@ AABB2 Map::GetXYBounds() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Entity* Map::CreateEntity(const Vec2& pos)
+Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName )
 {
 	uint slot = GetFreeEntityIndex();
 	uint cyclicID = GetNextCyclicID();
 
 	GameHandle handle = GameHandle(cyclicID, slot);
 	Entity *entity = new Entity(handle, pos);
-	//entity->m_handle = handle;
+
+	entity->MakeWalkCycle(*Game::s_gameReference->m_peonSheet, 5, 8, entityName);
 
 	// you may have to grow this vector...
 	m_entities[slot] = entity;

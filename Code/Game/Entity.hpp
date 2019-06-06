@@ -31,6 +31,18 @@ public:
 
 	void					Update(float deltaTime);
 
+	
+	void					MakeWalkCycle(const SpriteSheet& peonSheet, int numFrames, int spritesEachFrame, const std::string& entityName);
+
+	IsoSpriteDefenition		MakeIsoSpriteDef(const SpriteDefenition spriteDefenitions[], uint numDefenitions);
+
+	IsoAnimDefenition		MakeIsoAnimDef(const SpriteSheet& spriteSheet, int startDefIndex, int endDefIndex, 
+											float durationSeconds, const std::string& animName,
+											const std::vector<IsoSpriteDefenition>& isoSpriteDefs,
+											SpriteAnimPlaybackType playbackType = SPRITE_ANIM_PLAYBACK_ONCE);
+
+	void					SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType);
+
 	void					Destroy();
 	void					SetSelectable(bool isSelectable);
 
@@ -44,6 +56,7 @@ public:
 	float					GetCollisionRadius() const;
 	Vec2&					GetEditablePosition();
 	inline const Vec3&		GetOrientation() const { return m_orientation; }
+	inline const Vec3&		GetDirectionFacing() const { return m_directionFacing; }
 	GameHandle				GetHandle() const;
 
 	Capsule3D				CreateEntityCapsule() const;
@@ -58,10 +71,12 @@ public:
 private:
 
 	//Animation Data
-	IsoAnimDefenition *m_animationSet[eAnimationType::ANIMATION_COUNT];
+	IsoAnimDefenition* m_animationSet[eAnimationType::ANIMATION_COUNT];
 	// AnimationDefinition *m_currentAnimation; 
 	eAnimationType m_currentState;
 	eAnimationType m_prevState;
+
+	float			m_animFrameTime = 0.5f;
 
 	GameHandle		m_handle;
 	eEntityFlags	m_flags;
@@ -79,7 +94,6 @@ private:
 	float			m_radius = 0.5f;
 	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
 
-	//SpriteData
-	IsoSpriteDefenition* m_isoSpriteDef = nullptr;
+	Vec3			m_directionFacing = Vec3::UP;
 };
 

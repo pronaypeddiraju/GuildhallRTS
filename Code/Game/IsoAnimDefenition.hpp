@@ -13,7 +13,7 @@ class IsoAnimDefenition
 {
 public:
 	IsoAnimDefenition(const SpriteSheet& sheet, int startDefIndex, int endDefIndex,
-		float durationSeconds, const std::string& animName, SpriteAnimPlaybackType playbackType = SPRITE_ANIM_PLAYBACK_LOOP);
+		float durationSeconds, const std::string& animName, const std::vector<IsoSpriteDefenition>& isoSpriteDefs, SpriteAnimPlaybackType playbackType = SPRITE_ANIM_PLAYBACK_LOOP);
 
 	inline float				GetAnimDuration() { return m_durationSeconds; }
 	void						SetIsoSpriteDefenitions(const std::vector<IsoSpriteDefenition>& isoSpriteDefs);

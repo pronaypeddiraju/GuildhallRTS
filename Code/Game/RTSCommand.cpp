@@ -26,7 +26,7 @@ CreateEntityCommand::~CreateEntityCommand()
 VIRTUAL void CreateEntityCommand::Execute()
 {
 	Map* map = Game::s_gameReference->m_map;
-	map->CreateEntity(m_createPosition);
+	map->CreateEntity(m_createPosition, "peon");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
