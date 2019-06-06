@@ -29,7 +29,10 @@ class Entity
 public:
 	Entity();
 	explicit Entity(GameHandle handle, Vec2 position);
+	explicit Entity(GameHandle handle, Vec2 position, const std::string& xmlName);
 	~Entity();
+
+	void					MakeFromXML(const std::string& fileName);
 
 	void					Update(float deltaTime);
 	void					CheckTasks();
@@ -92,6 +95,7 @@ public:
 private:
 
 	EntityTypeT		m_type = PEON;
+	TextureView*	m_animTexture = nullptr;
 
 	float			m_animSetTime = 1.f;
 

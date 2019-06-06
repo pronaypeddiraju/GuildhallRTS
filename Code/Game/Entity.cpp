@@ -3,10 +3,12 @@
 //Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
 #include "Engine/Core/DevConsole.hpp"
+#include "Engine/Core/XMLUtils/XMLUtils.hpp"
 #include "Engine/Math/Capsule3D.hpp"
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Renderer/SpriteDefenition.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
+#include "Engine/Renderer/RenderContext.hpp"
 //Game Systems
 #include "Game/IsoAnimDefenition.hpp"
 #include "Game/RTSTask.hpp"
@@ -28,8 +30,91 @@ Entity::Entity(GameHandle handle, Vec2 position)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+Entity::Entity(GameHandle handle, Vec2 position, const std::string& xmlName)
+{
+	m_handle = handle;
+	m_position = position;
+	m_targetPosition = m_position;
+
+	m_flags = SetBit(m_flags, ENTITY_SELECTABLE_BIT);
+
+	MakeFromXML(xmlName);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 Entity::~Entity()
 {
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::MakeFromXML(const std::string& fileName)
+{
+	//Open the xml file and parse it
+	tinyxml2::XMLDocument entityDoc;
+	entityDoc.LoadFile(fileName.c_str());
+
+	if (entityDoc.ErrorID() != tinyxml2::XML_SUCCESS)
+	{
+		/*
+		printf("\n >> Error loading XML file from %s ", fileName);
+		printf("\n >> Error ID : %i ", shaderDoc.ErrorID());
+		printf("\n >> Error line number is : %i", shaderDoc.ErrorLineNum());
+		printf("\n >> Error name : %s", shaderDoc.ErrorName());
+		*/
+		ERROR_AND_DIE(">> Error loading Entity XML file ");
+		return;
+	}
+	else
+	{
+		//We read everything fine. Now just shove all that data into the required place
+		XMLElement* rootElement = entityDoc.RootElement();
+
+		std::string id = ParseXmlAttribute(*rootElement, "id", "peon");
+		m_health = ParseXmlAttribute(*rootElement, "health", m_health);
+		m_speed = ParseXmlAttribute(*rootElement, "speed", m_speed);
+		bool selectable = ParseXmlAttribute(*rootElement, "selectable", true);
+		SetSelectable(selectable);
+
+		//Read animation texture data
+		rootElement = rootElement->FirstChildElement();
+
+		std::string textureName = ParseXmlAttribute(*rootElement, "texture", "");
+		Vec2 pivot = ParseXmlAttribute(*rootElement, "pivot", Vec2::ZERO);
+		IntVec2 dimensions = ParseXmlAttribute(*rootElement, "sheetDimensions", IntVec2::ZERO);
+
+		m_animTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
+
+		//Load the specific animations
+		XMLElement* childElement = rootElement->FirstChildElement();
+
+		while (childElement != nullptr)
+		{
+			std::string animID = ParseXmlAttribute(*childElement , "id", "idle");
+			int numFrames = ParseXmlAttribute(*childElement, "numFrames", 1);
+			int spritesEachFrame = ParseXmlAttribute(*childElement, "spritesEachFrame", 8);
+			float animTime = ParseXmlAttribute(*childElement, "animTime", 1.f);
+
+			SpriteSheet sheet = SpriteSheet(m_animTexture, dimensions);
+
+			if (animID == "idle")
+			{
+				int idleColumn = ParseXmlAttribute(*childElement, "idleColumn", 5);
+				MakeIdleCycle(sheet, numFrames, spritesEachFrame, idleColumn, id);
+			}
+			else if(animID == "walk")
+			{
+				MakeWalkCycle(sheet, numFrames, spritesEachFrame, id);
+			}
+			else
+			{
+				ASSERT_RECOVERABLE(true, "Animation type not defined in project");
+			}
+
+			childElement = childElement->NextSiblingElement();
+		}
+
+	}
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

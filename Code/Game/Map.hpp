@@ -107,4 +107,7 @@ private:
 	GPUMesh*				m_quad = nullptr;
 	//Matrix44				m_quadTransfrom;
 
+	//Data driving 
+	std::string				m_peonXMLFile = "Data/Gameplay/peon.xml";
+	std::string				m_warriorXMLFile = "Data/Gameplay/warrior.xml";
 };

@@ -1,0 +1,23 @@
+<unit id = "peon"
+      health = "40"
+      speed = "1"
+      selectable = "true">
+
+   <!-- what animations to play when doing a certain action -->
+   <animset texture = "peon.walkdeath.png"
+            sheetDimensions = "8, 8"
+            pivot = ".5, .25" >
+
+      <anim id = "idle"
+         numFrames = "1"
+         spritesEachFrame = "8"
+         animTime = "1" />
+
+      <anim id = "walk" 
+         numFrames = "5"
+         spritesEachFrame = "8"
+         animTime = "1" />
+
+   </animset>
+   
+</unit>

@@ -365,6 +365,9 @@ AABB2 Map::GetXYBounds() const
 //------------------------------------------------------------------------------------------------------------------------------
 Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType )
 {
+	UNUSED(spriteSheet);
+	UNUSED(entityName);
+
 	uint slot = GetFreeEntityIndex();
 	uint cyclicID = GetNextCyclicID();
 
@@ -375,15 +378,16 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 	{
 	case PEON:
 	{
-		entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
-		entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
+		entity->MakeFromXML(m_peonXMLFile);
 		entity->SetType(PEON);
 	}
 	break;
 	case WARRIOR:
 	{
-		entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
-		entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
+		//entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
+		//entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
+
+		entity->MakeFromXML(m_warriorXMLFile);
 		entity->SetType(WARRIOR);
 	}
 	break;
