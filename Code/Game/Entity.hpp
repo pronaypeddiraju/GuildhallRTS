@@ -38,8 +38,12 @@ public:
 	bool					IsSelectable() const;
 
 	void					SetPosition(Vec2 pos);
+	void					ResetTargetPosition();
 	void					MoveTo(Vec2 target);
 	Vec2					GetPosition() const;
+	float					GetCollisionRadius() const;
+	Vec2&					GetEditablePosition();
+	inline const Vec3&		GetOrientation() const { return m_orientation; }
 	GameHandle				GetHandle() const;
 
 	Capsule3D				CreateEntityCapsule() const;
@@ -52,7 +56,9 @@ public:
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
 
 private:
-	IsoSpriteDefenition *m_animationSet[eAnimationType::ANIMATION_COUNT];
+
+	//Animation Data
+	IsoAnimDefenition *m_animationSet[eAnimationType::ANIMATION_COUNT];
 	// AnimationDefinition *m_currentAnimation; 
 	eAnimationType m_currentState;
 	eAnimationType m_prevState;
@@ -63,6 +69,7 @@ private:
 	// info
 	Vec2			m_position = Vec2::ZERO;
 	Vec2			m_targetPosition = Vec2::ZERO;
+	float			m_collisionRadius = 0.75f;
 
 	// stats
 	float			m_speed = 2.f;
@@ -71,5 +78,8 @@ private:
 	float			m_height = 1.f;
 	float			m_radius = 0.5f;
 	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
+
+	//SpriteData
+	IsoSpriteDefenition* m_isoSpriteDef = nullptr;
 };
 

@@ -22,6 +22,7 @@
 #include "Engine/Renderer/CPUMesh.hpp"
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
+#include "Engine/Renderer/IsoSpriteDefenition.hpp"
 #include "Engine/Renderer/Model.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
@@ -1919,6 +1920,42 @@ void Game::LoadGameTextures()
 	m_boxTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_boxTexturePath);
 	m_sphereTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_sphereTexturePath);
 	m_backgroundTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_backgroundPath);
+
+	m_laborerSheet = g_renderContext->CreateOrGetTextureViewFromFile(m_laborerSheetPath);
+	m_testSheet = new SpriteSheet(m_laborerSheet, m_laborerSheetDim);
+
+	CreateIsoSpriteDefenitions();
+}
+
+void Game::CreateIsoSpriteDefenitions()
+{
+	//use this spot to create an isoSpriteDefenition
+
+	std::vector<SpriteDefenition> spriteDefs;
+	std::vector<Vec3> directions;
+
+	Vec3 dir;
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(0), Vec2(0.5, 0.25)));
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(8), Vec2(0.5, 0.25)));
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(16), Vec2(0.5, 0.25)));
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(24), Vec2(0.5, 0.25)));
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(32), Vec2(0.5, 0.25)));
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(40), Vec2(0.5, 0.25)));
+	spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(48), Vec2(0.5, 0.25)));
+	//spriteDefs.push_back(SpriteDefenition(m_testSheet->GetSpriteDef(56), Vec2(0.5, 0.25)));
+
+	directions.push_back(Vec3(0.f, 0.f, 1.f));
+	dir = Vec3(-1.f, 0.f, 1.f).GetNormalized();
+	directions.push_back(dir);
+	directions.push_back(Vec3(-1.f, 0.f, 0.f));
+	dir = Vec3(-1.f, 0.f, -1.f).GetNormalized();
+	directions.push_back(dir);
+	directions.push_back(Vec3(0.f, 0.f, -1.f));
+	dir = Vec3(1.f, 0.f, -1.f).GetNormalized();
+	directions.push_back(dir);
+	directions.push_back(Vec3(1.f, 0.f, 0.f));
+
+	m_isoSprite = new IsoSpriteDefenition(&spriteDefs[0], &directions[0], 7);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

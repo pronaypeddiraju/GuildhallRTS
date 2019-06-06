@@ -1,24 +1,26 @@
 #pragma once
 #include <map>
 #include "Engine/Renderer/IsoSpriteDefenition.hpp"
+#include "Engine/Renderer/AnimTypes.hpp"
 
-enum eAnimationType
-{
-	ANIMATION_IDLE,
-	ANIMATION_WALK,
-	ANIMATION_ATTACK,
-	ANIMATION_DIE,
-
-	ANIMATION_COUNT,
-};
+class IsoAnimDefenition;
 
 class Animator
 {
 public:
 	void Update(float deltaTime);
+	IsoAnimDefenition* GetCurrentFrame() const;
+
+	void Play(IsoAnimDefenition *defenition, SpriteAnimPlaybackType mode);
+	void Play(std::string const &name, SpriteAnimPlaybackType mode);
 
 private:
-	std::map<std::string, IsoSpriteDefenition*> m_animSet;
-	IsoSpriteDefenition *m_currentAnimation;
-	float m_totalElapsedTime;
+	float ApplyLoop3Mode(float elapsedTime, float animationTime, SpriteAnimPlaybackType mode);
+
+private:
+
+	std::map<std::string, IsoAnimDefenition*>	m_animSet;
+	IsoAnimDefenition*							m_currentAnimation = nullptr;
+	float									m_totalElapsedTime = 0.f;
+	SpriteAnimPlaybackType					m_loopMode = SPRITE_ANIM_PLAYBACK_ONCE;
 };

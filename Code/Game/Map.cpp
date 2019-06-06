@@ -12,18 +12,23 @@
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
+#include "Engine/Renderer/SpriteDefenition.hpp"
+#include "Engine/Renderer/Camera.hpp"
+#include "Engine/Renderer/SpriteSheet.hpp"
+
 //Game Systems
 #include "Game/GameHandle.hpp"
 #include "Game/Entity.hpp"
 #include "Game/Game.hpp"
 #include "Game/GameInput.hpp"
+#include "Game/RTSCamera.hpp"
 
 extern RenderContext* g_renderContext;
 
 //------------------------------------------------------------------------------------------------------------------------------
 Map::Map()
 {
-	//for tier 1 we will be doing absolutely fuck all here :)
+	m_quad = new GPUMesh(g_renderContext);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -155,6 +160,8 @@ bool Map::Create( int mapWidth, int mapHeight )
 void Map::Update(float deltaTime)
 {
 	UpdateEntities(deltaTime);
+
+	ResolveEntityCollisions();
 }
 
 void Map::UpdateEntities(float deltaTime)
@@ -171,6 +178,7 @@ void Map::Render() const
 {
 	RenderTerrain(m_terrainMaterial);
 	RenderEntities();
+	RenderEntitySprites();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -178,6 +186,9 @@ void Map::Shutdown()
 {
 	delete m_terrainMesh;
 	m_terrainMesh = nullptr;
+
+	delete m_quad;
+	m_quad = nullptr;
 
 	//Empty both the vectors we have of verts and of MapTiles
 	m_mapTiles.clear();
@@ -239,6 +250,85 @@ void Map::RenderEntities() const
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::RenderEntitySprites() const
+{
+	int numEntities = (int)m_entities.size();
+	for (int index = 0; index < numEntities; index++)
+	{
+		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetOrientation(), *Game::s_gameReference->m_isoSprite, *Game::s_gameReference->m_RTSCam);
+	}
+}
+
+void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera) const
+{
+	Matrix44 viewMat = camera.GetViewMatrix();
+	Vec3 entityForwardRelativeToCamera = viewMat.TransformVector3D(orientation);
+	//Get the correct sprite for the direction
+	SpriteDefenition *sprite = &isoDef.GetSpriteForLocalDirection(entityForwardRelativeToCamera);
+	//Now draw the sprite
+	DrawBillBoardedSprite(position, *sprite, camera);
+}
+
+void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera) const
+{
+	// tl - tr
+	// |     | 
+	// bl - br
+	Vec3 corners[4];
+	Vec2 uvs[4];
+	
+	float width = m_entityWidth;
+	float height = m_entityHeight;
+	Vec2 pivot = sprite.GetPivot();
+
+	// technically right
+	//Vec3 right = camera.GetCameraRight();
+	//Vec3 up = camera.GetCameraUp();
+
+	corners[0] = Vec3::ZERO + height * Vec3::UP;
+	corners[1] = Vec3::ZERO + height * Vec3::UP + width * Vec3::RIGHT;
+	corners[2] = Vec3::ZERO;
+	corners[3] = Vec3::ZERO + width * Vec3::RIGHT;
+
+	Vec2 localOffset = -1.f * (pivot * Vec2(width, height));
+	Vec3 worldOffset = localOffset.x * Vec3::RIGHT + localOffset.y * Vec3::UP;
+	// vec3 worldOffset = (vec4( localOffset, 0, 0 ) * camera->GetCameraMatrix()).xyz();
+
+	// offset so pivot point is at position
+	for (uint i = 0; i < 4; ++i) {
+		corners[i] += worldOffset;
+	}
+
+	sprite.GetUVs(uvs[0], uvs[3]);
+
+	g_renderContext->BindTextureView(0U, Game::s_gameReference->m_laborerSheet);
+
+	CPUMesh mesh;
+
+	AABB2 box = AABB2(corners[2], corners[1]);
+
+	TODO("Offset the box now based on the pivot");
+
+	CPUMeshAddQuad(&mesh, box, Rgba::WHITE, uvs[0], uvs[3]);
+	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
+
+	//Billboard here
+	
+	Matrix44 mat = camera.GetModelMatrix();
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	objectModel.SetRotationFromMatrix(objectModel, mat);
+
+	objectModel = Matrix44::SetTranslation3D(position, objectModel);
+	
+
+	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->DrawMesh(m_quad);
+	//g_renderContext->DrawVertexArray(corners, uvs);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 bool Map::IsEntitySelected(const Entity& entity) const
 {
 	GameInput* inputClass = Game::s_gameReference->m_gameInput;
@@ -302,6 +392,23 @@ Entity* Map::GetEntityAtIndex(int index)
 	else
 	{
 		return m_entities[index];
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::ResolveEntityCollisions()
+{
+	for (int entityIndex = 0; entityIndex < (int)m_entities.size(); ++entityIndex)
+	{
+		for (int otherEntityIndex = entityIndex; otherEntityIndex < (int)m_entities.size(); ++otherEntityIndex)
+		{
+			//Push them out of each other
+			if (DoDiscsOverlap(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(), m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius()))
+			{
+				PushDiscsApart(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(),
+					m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius());
+			}
+		}
 	}
 }
 

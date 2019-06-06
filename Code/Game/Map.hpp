@@ -17,6 +17,10 @@ class GameHandle;
 class GPUMesh;
 class CPUMesh;
 class Material;
+class SpriteDefenition;
+class IsoSpriteDefenition;
+class GPUMesh;
+class RTSCamera;
 
 //------------------------------------------------------------------------------------------------------------------------------
 struct MapTile
@@ -43,6 +47,9 @@ public:
 
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
 	void				RenderEntities() const;
+	void				RenderEntitySprites() const;
+	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera) const;
+	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera) const;
 
 	// Accessors
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
@@ -51,6 +58,7 @@ public:
 	Entity*				CreateEntity(const Vec2& pos);
 	Entity*				FindEntity(const GameHandle& handle) const;
 	Entity*				GetEntityAtIndex(int index);
+	void				ResolveEntityCollisions();
 
 	// Pick
 	Entity*				RaycastEntity(float *out, const Ray3D& ray, float maxDistance = INFINITY);
@@ -88,4 +96,12 @@ private:
 	// map entity data
 	std::vector<Entity*>	m_entities;
 	uint16					m_cyclicID = 0; // used for generating the GameHandle
+
+	//Entity Draw Data
+	float					m_entityWidth = 1.f;
+	float					m_entityHeight = 1.f;
+
+	GPUMesh*				m_quad = nullptr;
+	//Matrix44				m_quadTransfrom;
+
 };

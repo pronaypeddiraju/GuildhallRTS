@@ -7,6 +7,7 @@
 #include "Engine/Math/Sphere.hpp"
 #include "Engine/Math/Vertex_PCU.hpp"
 #include "Engine/Renderer/Material.hpp"
+#include "Engine/Math/IntVec2.hpp"
 //Game Systems
 #include "Game/GameCommon.hpp"
 //Others
@@ -31,6 +32,8 @@ class TextureView;
 class UIButton;
 class UIWidget;
 class UIRadioGroup;
+class IsoSpriteDefenition;
+class SpriteSheet;
 
 struct Camera;
 
@@ -86,6 +89,7 @@ public:
 
 	void								GetandSetShaders();
 	void								LoadGameTextures();
+	void								CreateIsoSpriteDefenitions();
 	void								LoadGameMaterials();
 	void								CreateInitialMeshes();
 	void								CreateInitialLight();
@@ -256,6 +260,15 @@ public:
 	//Map (For now will be 1 single map)
 	Map*								m_map = nullptr;
 	GameInput*							m_gameInput = nullptr;
+
+	//Sprite Sheets and IsoSprites
+	std::string							m_laborerSheetPath = "peon.walkdeath.png";
+	TextureView*						m_laborerSheet = nullptr;
+	IntVec2								m_laborerSheetDim = IntVec2(8, 8);
+	SpriteSheet* 						m_testSheet = nullptr;
+	IsoSpriteDefenition*				m_isoSprite = nullptr;
+
+	float								m_quadSize = 1.f;
 
 	//UI References
 	UIWidget*							m_menuParent = nullptr;
