@@ -330,6 +330,10 @@ void Game::SetupCameras()
 	m_devConsoleCamera = new Camera();
 	m_devConsoleCamera->SetColorTarget(nullptr);
 
+	//Create a proper screen camera
+	m_properScreenCamera = new Camera();
+	m_properScreenCamera->SetColorTarget(nullptr);
+
 	//Create a RTSCamera
 	m_RTSCam = new RTSCamera();
 	m_RTSCam->SetColorTarget(nullptr);
@@ -344,6 +348,8 @@ void Game::SetupCameras()
 	//Set the ortho perspective for the UI camera
 	m_UICamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * aspect, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * aspect, CANVAS_HEIGHT * 0.5f));
 	m_pauseCamera->SetOrthoView(Vec2(-CANVAS_HEIGHT * 0.5f * aspect, -CANVAS_HEIGHT * 0.5f), Vec2(CANVAS_HEIGHT * 0.5f * aspect, CANVAS_HEIGHT * 0.5f));
+
+	m_properScreenCamera->SetOrthoView(Vec2::ZERO, Vec2(client));
 
 	m_clearScreenColor = new Rgba(0.f, 0.f, 0.5f, 1.f);
 }
@@ -713,6 +719,9 @@ void Game::Shutdown()
 	delete m_RTSCam;
 	m_RTSCam = nullptr;
 
+	delete m_properScreenCamera;
+	m_properScreenCamera = nullptr;
+
 	delete m_cube;
 	m_cube = nullptr;
 
@@ -785,6 +794,7 @@ void Game::Render() const
 	m_devConsoleCamera->SetColorTarget(colorTargetView);
 	m_RTSCam->SetColorTarget(colorTargetView);
 	m_pauseCamera->SetColorTarget(colorTargetView);
+	m_properScreenCamera->SetColorTarget(colorTargetView);
 
 	switch( m_gameState )
 	{
@@ -815,11 +825,11 @@ void Game::Render() const
 			std::vector<Vertex_PCU> verts;
 			AddVertsForAABB2D(verts, selectionBox, Rgba(0.f, 1.f, 0.f, 0.3f));
 
-			g_renderContext->BeginCamera(*m_UICamera);
+			g_renderContext->BeginCamera(*m_properScreenCamera);
 			g_renderContext->BindModelMatrix(Matrix44::IDENTITY);
 			g_renderContext->BindShader(m_shader);
 			g_renderContext->BindTextureView(0U, nullptr);
-			g_renderContext->DrawVertexArray(verts);
+			//g_renderContext->DrawVertexArray(verts);
 			g_renderContext->EndCamera();
 		}
 	}

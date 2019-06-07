@@ -37,8 +37,8 @@ public:
 	void					Update(float deltaTime);
 	void					CheckTasks();
 
-	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName);
-	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName);
+	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
+	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName, float animTime);
 
 	IsoSpriteDefenition		MakeIsoSpriteDef(const SpriteDefenition spriteDefenitions[], uint numDefenitions);
 

@@ -198,6 +198,7 @@ public:
 	Camera*								m_UICamera = nullptr;
 	Camera*								m_pauseCamera = nullptr;
 	RTSCamera*							m_RTSCam = nullptr;
+	Camera*								m_properScreenCamera = nullptr;
 	Rgba*								m_clearScreenColor = nullptr;
 	
 	float								m_camFOVDegrees = 60.f; //Desired Camera Field of View

@@ -44,6 +44,8 @@ IsoSpriteDefenition& IsoAnimDefenition::GetIsoSpriteAtTime(float seconds)
 		return GetSpriteDefAtTime_PingPong(seconds);
 		break;
 	}
+
+	return m_isoSpriteDefs[0];
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

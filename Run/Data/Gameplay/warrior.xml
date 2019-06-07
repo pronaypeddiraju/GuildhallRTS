@@ -1,6 +1,6 @@
 <unit id = "warrior"
       health = "80"
-      speed = "2"
+      speed = "20"
       selectable = "true">
 
    <!-- what animations to play when doing a certain action -->

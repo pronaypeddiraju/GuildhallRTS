@@ -303,13 +303,13 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 	}
 
 	sprite.GetUVs(uvs[0], uvs[3]);
-
+	std::swap(uvs[0].y, uvs[3].y);
 
 	CPUMesh mesh;
 
 	AABB2 box = AABB2(corners[2], corners[1]);
 
-	CPUMeshAddQuad(&mesh, box, Rgba::WHITE, uvs[3], uvs[0]);
+	CPUMeshAddQuad(&mesh, box, Rgba::WHITE, uvs[0], uvs[3]);
 	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
 
 	//Billboard here

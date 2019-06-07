@@ -99,11 +99,11 @@ void Entity::MakeFromXML(const std::string& fileName)
 			if (animID == "idle")
 			{
 				int idleColumn = ParseXmlAttribute(*childElement, "idleColumn", 5);
-				MakeIdleCycle(sheet, numFrames, spritesEachFrame, idleColumn, id);
+				MakeIdleCycle(sheet, numFrames, spritesEachFrame, idleColumn, id, animTime);
 			}
 			else if(animID == "walk")
 			{
-				MakeWalkCycle(sheet, numFrames, spritesEachFrame, id);
+				MakeWalkCycle(sheet, numFrames, spritesEachFrame, id, animTime);
 			}
 			else
 			{
@@ -156,7 +156,7 @@ void Entity::CheckTasks()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName)
+void Entity::MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime)
 {
 	std::vector<IsoSpriteDefenition> isoDefs;
 	std::vector<SpriteDefenition> spriteDefs;
@@ -174,11 +174,11 @@ void Entity::MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int sp
 
 	//Make the walk animation
 	std::string animName = entityName + ".walk";
-	m_animationSet[ANIMATION_WALK] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), m_animSetTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_LOOP);
+	m_animationSet[ANIMATION_WALK] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), animTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_LOOP);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName)
+void Entity::MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName, float animTime)
 {
 	std::vector<IsoSpriteDefenition> isoDefs;
 	std::vector<SpriteDefenition> spriteDefs;
@@ -197,7 +197,7 @@ void Entity::MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int sp
 
 	//Make the walk animation
 	std::string animName = entityName + ".idle";
-	m_animationSet[ANIMATION_IDLE] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), m_animSetTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_ONCE);
+	m_animationSet[ANIMATION_IDLE] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), animTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_ONCE);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -259,7 +259,7 @@ void Entity::ResetTargetPosition()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::MoveTo(Vec2 target)
 {
-	m_directionFacing = Vec3(target) - m_directionFacing;
+	m_directionFacing = Vec3(target) - m_position;
 	m_directionFacing.Normalize();
 	m_targetPosition = target;
 }
