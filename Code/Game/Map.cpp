@@ -3,6 +3,7 @@
 
 // Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
+#include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Math/Frustum.hpp"
 #include "Engine/Math/Plane3D.hpp"
 #include "Engine/Math/Ray3D.hpp"
@@ -254,25 +255,53 @@ void Map::RenderEntities() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Map::RenderEntitySprites() const
 {
+	//First draw a ring under any selected entity
+	g_renderContext->BindShader(Game::s_gameReference->m_shader);
+	g_renderContext->BindTextureView(0U, nullptr);
+
+	GameInput* inputClass = Game::s_gameReference->m_gameInput;
+	for (int index = 0; index < (int)inputClass->m_selectionHandles.size(); index++)
+	{
+		Entity *selected = FindEntity(inputClass->m_selectionHandles[index]);
+		if (selected != nullptr)
+		{
+			std::vector<Vertex_PCU> ringVerts;
+			Vec2 position = selected->GetPosition();
+			AddVertsForRing2D(ringVerts, position, m_entitySelectRadius, m_entitySelectWidth, Rgba::GREEN);
+
+			for (int i = 0; i < (int)ringVerts.size(); i++)
+			{
+				ringVerts[i].m_position.z = -0.01f;
+			}
+
+			g_renderContext->BindModelMatrix(Matrix44::IDENTITY);
+			g_renderContext->DrawVertexArray(ringVerts);
+		}
+	}
+
+	//Draw the entity sprite
+	g_renderContext->BindShader(Game::s_gameReference->m_defaultLit);
+	g_renderContext->BindTextureView(0U, nullptr);
+
 	int numEntities = (int)m_entities.size();
 	for (int index = 0; index < numEntities; index++)
 	{
 		IsoSpriteDefenition* isoSprite = &m_entities[index]->m_animationSet[m_entities[index]->m_currentState]->GetIsoSpriteAtTime(m_entities[index]->m_currentAnimTime);
-		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType());
+		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType(), Rgba::WHITE);
 	}
 }
 
-void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type) const
+void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const
 {
 	Matrix44 viewMat = camera.GetViewMatrix();
 	Vec3 entityForwardRelativeToCamera = viewMat.TransformVector3D(orientation);
 	//Get the correct sprite for the direction
 	SpriteDefenition *sprite = &isoDef.GetSpriteForLocalDirection(entityForwardRelativeToCamera);
 	//Now draw the sprite
-	DrawBillBoardedSprite(position, *sprite, camera, type);
+	DrawBillBoardedSprite(position, *sprite, camera, type, drawColor);
 }
 
-void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type) const
+void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const
 {
 	// tl - tr
 	// |     | 
@@ -309,7 +338,7 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 
 	AABB2 box = AABB2(corners[2], corners[1]);
 
-	CPUMeshAddQuad(&mesh, box, Rgba::WHITE, uvs[0], uvs[3]);
+	CPUMeshAddQuad(&mesh, box, drawColor, uvs[0], uvs[3]);
 	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
 
 	//Billboard here
@@ -363,7 +392,7 @@ AABB2 Map::GetXYBounds() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType )
+Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType, int team )
 {
 	UNUSED(spriteSheet);
 	UNUSED(entityName);
@@ -373,6 +402,7 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 
 	GameHandle handle = GameHandle(cyclicID, slot);
 	Entity *entity = new Entity(handle, pos);
+	entity->SetTeam(team);
 
 	switch (entityType)
 	{

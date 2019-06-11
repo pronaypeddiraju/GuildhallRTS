@@ -189,42 +189,6 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 
 	switch(keyCode)
 	{
-		case UP_ARROW:
-		case RIGHT_ARROW:
-		case LEFT_ARROW:	
-		case DOWN_ARROW:
-		case DEL_KEY:
-		case BACK_SPACE:
-		case ENTER_KEY:
-		case F1_KEY:
-		case F2_KEY:
-		case F3_KEY:
-		case F4_KEY:
-		case F5_KEY:
-		case F6_KEY:
-		case F7_KEY:
-		case SPACE_KEY:
-		case A_KEY:
-		case W_KEY:
-		case S_KEY:
-		case D_KEY:
-		case NUM_1:
-		case NUM_2:
-		case NUM_3:
-		case NUM_4:
-		case NUM_5:
-		case NUM_6:
-		case NUM_7:
-		case NUM_8:
-		case NUM_9:
-		case NUM_0:
-		case LCTRL_KEY:
-		case LSHIFT_KEY:
-		case M_KEY:
-		{
-			m_game->HandleKeyPressed(keyCode);
-			return true;
-		}
 		case F8_KEY:
 		{
 			//Kill and restart the app
@@ -249,8 +213,10 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 			}
 		}
 		default:
-			//Nothing to worry about
-			return false;
+		{
+			m_game->HandleKeyPressed(keyCode);
+			return true;
+		}
 		break;
 	}
 }

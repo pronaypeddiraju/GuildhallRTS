@@ -9,6 +9,7 @@
 //Game Systems
 #include "Game/Game.hpp"
 #include "Game/GameHandle.hpp"
+#include "Game/GameTypes.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 class GameInput
@@ -18,7 +19,6 @@ public:
 	~GameInput();
 	// Called each frame - translates raw input (keyboard/mouse/etc) to 
 	// input used for the game.
-	// 
 	// Hotkey bindings will also live here; 
 	void								BeginFrame();
 	
@@ -29,7 +29,6 @@ public:
 
 	void								EndFrame();
 
-	// A08
 	Vec2								GetFramePan() const; 
 
 	float								GetFrameRotation() const;     
@@ -56,8 +55,8 @@ public:
 	void								HandleKeyPressed( unsigned char keyCode );
 	void								HandleKeyReleased( unsigned char keyCode );
 
-	// A09
-	// eGameAction DequeueNextAction(); 
+	//Actions
+	void								SpawnUnit(EntityTypeT type);
 
 public:
 	// Configuration - Keyboard Input

@@ -27,18 +27,19 @@ CreateEntityCommand::~CreateEntityCommand()
 
 VIRTUAL void CreateEntityCommand::Execute()
 {
+	Map* map = Game::s_gameReference->m_map;
+	int team = Game::s_gameReference->GetCurrentTeam();
+
 	switch (m_entityType)
 	{
 	case PEON:
 	{
-		Map* map = Game::s_gameReference->m_map;
-		map->CreateEntity(m_createPosition, "peon", *Game::s_gameReference->m_peonSheet, m_entityType);
+		map->CreateEntity(m_createPosition, "peon", *Game::s_gameReference->m_peonSheet, m_entityType, team);
 	}
 	break;
 	case WARRIOR:
 	{
-		Map* map = Game::s_gameReference->m_map;
-		map->CreateEntity(m_createPosition, "warrior", *Game::s_gameReference->m_warriorSheet, m_entityType);
+		map->CreateEntity(m_createPosition, "warrior", *Game::s_gameReference->m_warriorSheet, m_entityType, team);
 	}
 	break;
 	default:

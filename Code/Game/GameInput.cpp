@@ -450,25 +450,8 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
  			return;
 		}
 
-		//Create entity here using the command
-		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
-		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePos, clientBounds);
-		float out[2];
-		uint count = m_game->m_map->RaycastTerrain(out, ray);
-		if (count == 0)
-		{
-			return;
-		}
-		else
-		{
-			Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
-			Vec3 point = camPosition + ray.m_direction * out[0];
+		SpawnUnit(PEON);
 
-			//Use the command on game here
-			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), PEON);
-			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-		}
 	}
 	break;
 	case M_KEY:
@@ -478,30 +461,34 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 			return;
 		}
 
-		//Create entity here using the command
-		IntVec2 mousePos = g_windowContext->GetClientMousePosition();
-		IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
-		Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePos, clientBounds);
-		float out[2];
-		uint count = m_game->m_map->RaycastTerrain(out, ray);
-		if (count == 0)
-		{
-			return;
-		}
-		else
-		{
-			Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
-			Vec3 point = camPosition + ray.m_direction * out[0];
-
-			//Use the command on game here
-			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), WARRIOR);
-			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-		}
+		SpawnUnit(WARRIOR);
 	}
 	break;
 	case LSHIFT_KEY:
 	{
 		m_shiftPressed = true;
+	}
+	break;
+	case T_KEY:
+	{
+		int currentTeam = m_game->GetCurrentTeam();
+
+		switch (currentTeam)
+		{
+		case 1:
+		{
+			m_game->SetCurrentTeam(2);
+		}
+		break;
+		case 2:
+		{
+			m_game->SetCurrentTeam(1);
+		}
+		break;
+		default:
+			break;
+		}
+		
 	}
 	break;
 	}
@@ -544,6 +531,46 @@ void GameInput::HandleKeyReleased( unsigned char keyCode )
 		break;
 		default:
 		break;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::SpawnUnit(EntityTypeT type)
+{
+	//Create entity here using the command
+	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
+	IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
+	Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePos, clientBounds);
+	float out[2];
+	uint count = m_game->m_map->RaycastTerrain(out, ray);
+	if (count == 0)
+	{
+		return;
+	}
+	else
+	{
+		Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
+		Vec3 point = camPosition + ray.m_direction * out[0];
+
+		switch (type)
+		{
+		case PEON:
+		{
+			//Use the command on game here
+			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), PEON);
+			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+		}
+		break;
+		case WARRIOR:
+		{
+			//Use the command on game here
+			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), WARRIOR);
+			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+		}
+		break;
+		default:
+			break;
+		}
 	}
 }
 

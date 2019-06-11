@@ -72,6 +72,10 @@ public:
 
 	inline EntityTypeT		GetType() { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
+
+	inline int				GetTeam() { return m_team; }
+	inline void				SetTeam(int team) { m_team = team; }
+
 	//To handle events
 	//void					HandleEvents(char const* eventName);
 
@@ -109,6 +113,7 @@ private:
 
 	// stats
 	float			m_speed = 2.f;
+	int				m_team = 0;
 
 	// UI collision
 	float			m_height = 1.f;

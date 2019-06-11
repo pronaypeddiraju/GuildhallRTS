@@ -148,6 +148,10 @@ public:
 	void								ProcessCommands(); // process and free up memory 
 	void								ClearCommands();   // just free up memory 
 
+	//Entity Data
+	int									GetCurrentTeam() const;
+	void								SetCurrentTeam(int teamNumber);
+
 	//Shut down
 	void								Shutdown();
 	bool								IsAlive();
@@ -162,6 +166,7 @@ private:
 	float								m_cameraSpeed = 0.3f; 
 
 	std::vector<RTSCommand*>			m_commandQueue;
+	int									m_currentTeam = 1;
 
 public:
 	SoundID								m_testAudioID = NULL;
@@ -193,6 +198,7 @@ public:
 	std::string							m_objectPath = "building/towncenter.mesh";
 	std::string							m_objectMatPath = "building/towncenter.mat";
 
+	//Cameras
 	Camera*								m_mainCamera = nullptr;
 	Camera*								m_devConsoleCamera = nullptr;
 	Camera*								m_UICamera = nullptr;
@@ -208,7 +214,6 @@ public:
 	float								m_devConsoleScreenWidth = 0.f;
 	float								m_devConsoleScreenHeight = 0.f;
 
-	//FOR ASSIGNMENT 4:
 	// Define the shapes, and how are they positionedin the world; 
 	GPUMesh*							m_cube = nullptr; 
 	Matrix44							m_cubeTransform; // cube's model matrix

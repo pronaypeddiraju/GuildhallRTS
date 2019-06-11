@@ -13,6 +13,7 @@ typedef uint16_t uint16;
 //------------------------------------------------------------------------------------------------------------------------------
 struct Frustum;
 struct Ray3D;
+struct Rgba;
 struct Vertex_Lit;
 class Entity;
 class GameHandle;
@@ -51,14 +52,14 @@ public:
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
 	void				RenderEntities() const;
 	void				RenderEntitySprites() const;
-	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type) const;
-	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type) const;
+	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const;
+	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const;
 
 	// Accessors
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
 
 	// Entity Methods
-	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType);
+	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType, int team = 1);
 	Entity*				FindEntity(const GameHandle& handle) const;
 	Entity*				GetEntityAtIndex(int index);
 	void				ResolveEntityCollisions();
@@ -103,6 +104,8 @@ private:
 	//Entity Draw Data
 	float					m_entityWidth = 3.f;
 	float					m_entityHeight = 3.f;
+	float					m_entitySelectRadius = 1.f;
+	float					m_entitySelectWidth = 0.1f;
 
 	GPUMesh*				m_quad = nullptr;
 	//Matrix44				m_quadTransfrom;
