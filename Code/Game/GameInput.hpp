@@ -56,6 +56,7 @@ public:
 	void								HandleKeyReleased( unsigned char keyCode );
 
 	//Actions
+	void								SetTeamForSelectedEntities(int teamNum);
 	void								SpawnUnit(EntityTypeT type);
 
 public:

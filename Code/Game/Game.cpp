@@ -36,6 +36,7 @@
 #include "Game/RTSCamera.hpp"
 #include "Game/RTSCommand.hpp"
 #include "Game/UIWidget.hpp"
+#include "Entity.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 float g_shakeAmount = 0.0f;
@@ -894,12 +895,6 @@ void Game::RenderGameState() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 	m_map->Render();
 
-	//Render the cube
-	//g_renderContext->BindTextureViewWithSampler(0U, m_boxTexturePath);  
-	//g_renderContext->BindTextureView(0U, nullptr);
-	//g_renderContext->SetModelMatrix(m_capsuleModel);
-	//g_renderContext->DrawMesh(m_capsule);
-
 	g_renderContext->EndCamera();
 
 	g_renderContext->BeginCamera(*m_UICamera); 
@@ -907,22 +902,9 @@ void Game::RenderGameState() const
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	m_UICamera->SetModelMatrix(Matrix44::IDENTITY);
 
-	std::vector<Vertex_PCU> textVerts;
-	AABB2 infoBox = AABB2(Vec2(-640.0f, 340.f), Vec2(640.f, 360.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, infoBox, 20.f, "PLAY MODE", Rgba::YELLOW, 1.f, Vec2::ALIGN_CENTERED);
-	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
-	
-	AABB2 titleBox = AABB2(Vec2(-600.0f, 260.f), Vec2(100.f, 280.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "NUM_6 : Toggle Controls", Rgba::YELLOW, 1.f, Vec2::ALIGN_LEFT_CENTERED);
-
-	g_renderContext->DrawVertexArray(textVerts);
-
 	g_renderContext->BindMaterial(m_testMaterial);
 
-	if(m_showGameControls)
-	{
-		RenderGameUI();
-	}
+	RenderGameUI();
 
 	g_renderContext->EndCamera();
 
@@ -931,26 +913,63 @@ void Game::RenderGameState() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderGameUI() const
 {
+	g_renderContext->BindShader(m_shader);
 	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
 	std::vector<Vertex_PCU> textVerts;
 	
-	AABB2 titleBox = AABB2(Vec2(-600.0f, 240.f), Vec2(100.f, 260.f));
-	//m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "NUM_1 to NUM_5 : State Switching", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	Vec2 textPos = Vec2(-640.0f, 340.f);
+	int numSelected = (int)m_gameInput->m_selectionHandles.size();
 	
-	titleBox = AABB2(Vec2(-600.0f, 220.f), Vec2(100.f, 240.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "W,A,S,D : Move", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+	for (int i = 0; i < numSelected; i++)
+	{
+		Entity* entity = m_map->FindEntity(m_gameInput->m_selectionHandles[i]);
+		if (entity != nullptr)
+		{
+			EntityTypeT type = entity->GetType();
+			int team = entity->GetTeam();
 
-	titleBox = AABB2(Vec2(-600.0f, 200.f), Vec2(100.f, 220.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "MOUSE : Panning", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+			std::string text = "Entity Type: ";
+			Rgba textColor;
 
-	titleBox = AABB2(Vec2(-600.0f, 180.f), Vec2(100.f, 200.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "SCROLL WHEEL: Zoom into map", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+			float currentHealth = entity->GetHealth();
+			float maxHealth = entity->GetMaxHealth();
 
-	titleBox = AABB2(Vec2(-600.0f, 160.f), Vec2(100.f, 180.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, "LCTRL: Rotate Camera", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
-	
-	titleBox = AABB2(Vec2(-600.0f, 140.f), Vec2(100.f, 160.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 15.f, " ` KEY: Developer Console", Rgba::WHITE, 1.f, Vec2::ALIGN_LEFT_CENTERED);
+			float healthRatio = currentHealth / maxHealth;
+
+			switch (type)
+			{
+			case PEON:
+			{
+				text += " PEON ";
+			}
+			break;
+			case WARRIOR:
+			{
+				text += " WARRIOR ";
+			}
+			break;
+			default:
+				break;
+			}
+			text += " Team: ";
+			text += std::to_string(team);
+
+			if (healthRatio > 0.8f)
+			{
+				textColor = Rgba::GREEN;
+			}
+			else if (healthRatio > 0.3f)
+			{
+				textColor = Rgba::YELLOW;
+			}
+			else
+			{
+				textColor = Rgba::RED;
+			}
+
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 10.f * i), 10.f, text, textColor);
+		}
+	}
 
 	g_renderContext->DrawVertexArray(textVerts);
 

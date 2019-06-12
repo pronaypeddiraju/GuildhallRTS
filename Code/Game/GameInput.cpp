@@ -487,11 +487,13 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		case 1:
 		{
 			m_game->SetCurrentTeam(2);
+			SetTeamForSelectedEntities(2);
 		}
 		break;
 		case 2:
 		{
 			m_game->SetCurrentTeam(1);
+			SetTeamForSelectedEntities(1);
 		}
 		break;
 		default:
@@ -540,6 +542,19 @@ void GameInput::HandleKeyReleased( unsigned char keyCode )
 		break;
 		default:
 		break;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::SetTeamForSelectedEntities(int teamNum)
+{
+	for (int i = 0; i < (int)m_selectionHandles.size(); i++)
+	{
+		Entity* entity = Game::s_gameReference->m_map->FindEntity(m_selectionHandles[i]);
+		if(entity != nullptr)
+		{
+			entity->SetTeam(teamNum);
+		}
 	}
 }
 

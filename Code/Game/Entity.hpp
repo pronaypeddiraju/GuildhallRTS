@@ -76,6 +76,12 @@ public:
 	inline int				GetTeam() { return m_team; }
 	inline void				SetTeam(int team) { m_team = team; }
 
+	inline float			GetHealth() { return m_health; }
+	inline float			GetMaxHealth() { return m_maxHealth; }
+	inline void				SetHealth(float health) { m_health = health; }
+	inline void				TakeDamage(float damage) { m_health -= damage; }
+	inline float			GetAttackDamage() { return m_attackDamage; }
+
 	//To handle events
 	//void					HandleEvents(char const* eventName);
 
@@ -114,6 +120,9 @@ private:
 	// stats
 	float			m_speed = 2.f;
 	int				m_team = 0;
+	float			m_health = 40.f;
+	float			m_maxHealth = 40.f;
+	float			m_attackDamage = 5.f;
 
 	// UI collision
 	float			m_height = 1.f;
@@ -126,6 +135,5 @@ private:
 
 	Entity*			m_unitToFollow = nullptr;
 
-	float			m_health = 40.f;
 };
 
