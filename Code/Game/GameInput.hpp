@@ -96,4 +96,5 @@ public:
 
 	//GameHandle m_selectionHandle; 
 	std::vector<GameHandle> m_selectionHandles; 
+	GameHandle m_hoverHandle;
 }; 

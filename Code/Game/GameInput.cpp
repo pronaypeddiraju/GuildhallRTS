@@ -57,13 +57,12 @@ void GameInput::Update( float deltaTime )
 
 	m_frameRotation *= deltaTime;
 
-	//A11:
 	UpdateGameControllerInput();
 }
 
 void GameInput::UpdateGameControllerInput()
 {
-	if (Game::s_gameReference->m_gameState != STATE_EDIT || Game::s_gameReference->m_gameState != STATE_PLAY)
+	if (Game::s_gameReference->m_gameState != STATE_EDIT && Game::s_gameReference->m_gameState != STATE_PLAY)
 	{
 		return;
 	}
@@ -78,6 +77,15 @@ void GameInput::UpdateGameControllerInput()
 	Map* map = m_game->m_map;
 
 	Entity *entity = map->RaycastEntity(&entityTime, ray);
+	if (entity != nullptr)
+	{
+		m_hoverHandle = entity->GetHandle();
+	}
+	else
+	{
+		m_hoverHandle = GameHandle::INVALID;
+	}
+
 	if (map->RaycastTerrain(&mapTime, ray))
 	{
 		if (mapTime < entityTime)
@@ -85,6 +93,7 @@ void GameInput::UpdateGameControllerInput()
 			entity = nullptr;
 		}
 	}
+	
 
 	for (int selectIndex = 0; selectIndex < (int)m_selectionHandles.size(); ++selectIndex)
 	{

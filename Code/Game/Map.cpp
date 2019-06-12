@@ -279,6 +279,23 @@ void Map::RenderEntitySprites() const
 		}
 	}
 
+	//Draw a hovered entity
+	Entity* hovered = FindEntity(inputClass->m_hoverHandle);
+	if (hovered != nullptr)
+	{
+		std::vector<Vertex_PCU> ringVerts;
+		Vec2 position = hovered->GetPosition();
+		AddVertsForRing2D(ringVerts, position, m_entitySelectRadius - 0.1f, m_entitySelectWidth, Rgba::WHITE);
+
+		for (int i = 0; i < (int)ringVerts.size(); i++)
+		{
+			ringVerts[i].m_position.z = -0.01f;
+		}
+
+		g_renderContext->BindModelMatrix(Matrix44::IDENTITY);
+		g_renderContext->DrawVertexArray(ringVerts);
+	}
+
 	//Draw the entity sprite
 	g_renderContext->BindShader(Game::s_gameReference->m_defaultLit);
 	g_renderContext->BindTextureView(0U, nullptr);
@@ -433,6 +450,11 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 //------------------------------------------------------------------------------------------------------------------------------
 Entity* Map::FindEntity(const GameHandle& handle) const
 {
+	if (m_entities.size() == 0 || handle == GameHandle::INVALID)
+	{
+		return nullptr;
+	}
+
 	uint slot = handle.GetIndex();
 	Entity *entity = m_entities[slot];
 
