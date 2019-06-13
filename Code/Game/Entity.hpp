@@ -36,6 +36,7 @@ public:
 	void					MakeFromXML(const std::string& fileName);
 
 	void					Update(float deltaTime);
+	void					UpdateAnimations(float deltaTime);
 	void					CheckTasks();
 
 	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
@@ -60,6 +61,8 @@ public:
 
 	bool					IsDestroyed() const;
 	bool					IsSelectable() const;
+	bool					IsGarbage() const;
+	bool					IsAlive() const;
 
 	void					SetPosition(Vec2 pos);
 	void					ResetTargetPosition();
@@ -133,8 +136,10 @@ private:
 	float			m_health = 40.f;
 	float			m_maxHealth = 40.f;
 	float			m_attackDamage = 5.f;
+	float			m_deathTime = 5.f;
 	bool			m_isAlive = true;
 	bool			m_doingDamage = false;
+	bool			m_isGarbage = false;
 
 	// UI collision
 	float			m_height = 1.f;

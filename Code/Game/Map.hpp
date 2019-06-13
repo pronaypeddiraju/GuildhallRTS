@@ -47,6 +47,7 @@ public:
 
 	void				Update(float deltaTime); 
 	void				UpdateEntities(float deltaTime);
+	void				ClearDeadEntities();
 	void				Render() const; // assumes a camera is already bound
 	void				Shutdown();
 

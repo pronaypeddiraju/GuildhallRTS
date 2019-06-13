@@ -135,36 +135,71 @@ void Entity::MakeFromXML(const std::string& fileName)
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Update(float deltaTime)
 {
-	if (m_health <= 0)
+	if (m_health <= 0 && m_isAlive)
 	{
 		//Die
 		m_position = m_targetPosition;
 		m_prevState = m_currentState;
+		ResetTaskData();
 		m_currentState = ANIMATION_DIE;
 		SetDeadState();
-		return;
+		m_currentAnimTime = 0.f;
+	}
+
+	if (!m_isAlive && m_currentAnimTime < m_deathTime)
+	{
+		m_currentAnimTime += deltaTime;
+	}
+	else if(!m_isAlive && m_currentAnimTime > m_deathTime)
+	{
+		Destroy();
 	}
 
 	CheckTasks();
 
+	UpdateAnimations(deltaTime);
+	m_currentAnimTime += deltaTime;
+
+	//Process any tasks in the queue
+	ProcessTasks();
+}
+
+void Entity::UpdateAnimations(float deltaTime)
+{
 	//Lerp to the destination
 	Vec2 disp = m_targetPosition - m_position;
 	float magnitude = disp.GetLength();
 
-	
-	if (m_unitToAttack != nullptr)
+	if (m_isAlive)
 	{
-		Vec2 attackUnitPos = m_unitToAttack->GetPosition();
-		float distanceSq = GetDistanceSquared2D(attackUnitPos, m_position);
-		if (distanceSq < m_proximitySquared)
+		//I'm alive, determine what state I should be in
+		if (m_unitToAttack != nullptr)
+		{
+			Vec2 attackUnitPos = m_unitToAttack->GetPosition();
+			float distanceSq = GetDistanceSquared2D(attackUnitPos, m_position);
+			if (distanceSq < m_proximitySquared)
+			{
+				m_position = m_targetPosition;
+				m_prevState = m_currentState;
+				if (m_currentState != ANIMATION_ATTACK)
+				{
+					m_currentAnimTime = 0.f;
+				}
+				m_currentState = ANIMATION_ATTACK;
+			}
+			else
+			{
+				m_position += disp.GetNormalized() * m_speed * deltaTime;
+				m_prevState = m_currentState;
+				m_currentState = ANIMATION_WALK;
+			}
+		}
+		else if (magnitude < m_speed * deltaTime)
 		{
 			m_position = m_targetPosition;
 			m_prevState = m_currentState;
-			if (m_currentState != ANIMATION_ATTACK)
-			{
-				m_currentAnimTime = 0.f;
-			}
-			m_currentState = ANIMATION_ATTACK;
+			m_currentState = ANIMATION_IDLE;
+			m_currentAnimTime = 0.f;
 		}
 		else
 		{
@@ -173,24 +208,6 @@ void Entity::Update(float deltaTime)
 			m_currentState = ANIMATION_WALK;
 		}
 	}
-	else if (magnitude < m_speed * deltaTime)
-	{
-		m_position = m_targetPosition;
-		m_prevState = m_currentState;
-		m_currentState = ANIMATION_IDLE;
-		m_currentAnimTime = 0.f;
-	}
-	else
-	{
-		m_position += disp.GetNormalized() * m_speed * deltaTime;
-		m_prevState = m_currentState;
-		m_currentState = ANIMATION_WALK;
-	}
-
-	m_currentAnimTime += deltaTime;
-
-	//Process any tasks in the queue
-	ProcessTasks();
 }
 
 void Entity::CheckTasks()
@@ -365,6 +382,7 @@ void Entity::ResetTaskData()
 void Entity::Destroy()
 {
 	SetBit(m_flags, ENTITY_DESTROYED_BIT);
+	m_isGarbage = true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -389,6 +407,18 @@ bool Entity::IsDestroyed() const
 bool Entity::IsSelectable() const
 {
 	return IsBitSet(m_flags, ENTITY_SELECTABLE_BIT);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::IsGarbage() const
+{
+	return m_isGarbage;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::IsAlive() const
+{
+	return m_isAlive;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

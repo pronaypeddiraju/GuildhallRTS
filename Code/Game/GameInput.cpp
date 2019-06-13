@@ -77,7 +77,7 @@ void GameInput::UpdateGameControllerInput()
 	Map* map = m_game->m_map;
 
 	Entity *entity = map->RaycastEntity(&entityTime, ray);
-	if (entity != nullptr)
+	if (entity != nullptr && entity->IsAlive())
 	{
 		m_hoverHandle = entity->GetHandle();
 	}
@@ -315,7 +315,7 @@ void GameInput::SelectEntityAtClientPosition(const IntVec2& position)
 		m_selectionHandles.push_back(GameHandle::INVALID);
 	}
 
-	if (entity)
+	if (entity != nullptr && entity->IsAlive())
 	{
 		if (entity->GetTeam() == m_game->GetCurrentTeam())
 		{

@@ -164,14 +164,38 @@ void Map::Update(float deltaTime)
 	UpdateEntities(deltaTime);
 
 	ResolveEntityCollisions();
+
+	ClearDeadEntities();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::UpdateEntities(float deltaTime)
 {
 	int numEntities = (int)m_entities.size();
 	for (int index = 0; index < numEntities; index++)
 	{
-		m_entities[index]->Update(deltaTime);
+		if (m_entities[index] != nullptr)
+		{
+			m_entities[index]->Update(deltaTime);
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::ClearDeadEntities()
+{
+	//Remove anything that has been destroyed
+	int numEntities = (int)m_entities.size();
+	for (int index = 0; index < numEntities; index++)
+	{
+		if(m_entities[index] == nullptr)
+			continue;
+
+		if (m_entities[index]->IsGarbage())
+		{
+			delete m_entities[index];
+			m_entities[index] = nullptr;
+		}
 	}
 }
 
@@ -300,9 +324,11 @@ void Map::RenderEntitySprites() const
 	g_renderContext->BindShader(Game::s_gameReference->m_defaultLit);
 	g_renderContext->BindTextureView(0U, nullptr);
 
-	int numEntities = (int)m_entities.size();
-	for (int index = 0; index < numEntities; index++)
+	for (int index = 0; index < (int)m_entities.size(); index++)
 	{
+		if(m_entities[index] == nullptr)
+			continue;
+
 		IsoSpriteDefenition* isoSprite = &m_entities[index]->m_animationSet[m_entities[index]->m_currentState]->GetIsoSpriteAtTime(m_entities[index]->m_currentAnimTime);
 		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType(), Rgba::WHITE, m_entities[index]->m_currentState);
 	}
@@ -499,8 +525,14 @@ void Map::ResolveEntityCollisions()
 {
 	for (int entityIndex = 0; entityIndex < (int)m_entities.size(); ++entityIndex)
 	{
+		if(m_entities[entityIndex] == nullptr)
+			continue;
+
 		for (int otherEntityIndex = entityIndex; otherEntityIndex < (int)m_entities.size(); ++otherEntityIndex)
 		{
+			if (m_entities[otherEntityIndex] == nullptr)
+				continue;
+
 			//Push them out of each other
 			if (DoDiscsOverlap(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(), m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius()))
 			{
@@ -523,14 +555,17 @@ Entity* Map::RaycastEntity(float *out, const Ray3D& ray, float maxDistance /*= I
 		Entity* entity = m_entities[index];
 		float time[2];
 
-		if (entity->IsSelectable() && entity->RaycastHit(time, ray))
+		if (entity != nullptr)
 		{
-			float smaller = GetLowerValue(time[0], time[1]);
-
-			if ((smaller >= 0.0f) && (smaller <= maxDistance) && (smaller < bestTime))
+			if (entity->IsSelectable() && entity->RaycastHit(time, ray))
 			{
-				bestEntity = entity;
-				bestTime = smaller;
+				float smaller = GetLowerValue(time[0], time[1]);
+
+				if ((smaller >= 0.0f) && (smaller <= maxDistance) && (smaller < bestTime))
+				{
+					bestEntity = entity;
+					bestTime = smaller;
+				}
 			}
 		}
 	}
@@ -558,9 +593,12 @@ void Map::SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const 
 	for (int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
 	{
 		Entity* entity = m_entities[entityIndex];
+		if(entity == nullptr)
+			continue;
+
 		if (selectionFrustum.ContainsPoint(entity->GetPosition()))
 		{
-			if (entity->IsSelectable() && entity->GetHandle() != GameHandle::INVALID)
+			if (entity->IsAlive() && entity->IsSelectable() && entity->GetHandle() != GameHandle::INVALID)
 			{
 				if (entity->GetTeam() == Game::s_gameReference->GetCurrentTeam())
 				{
