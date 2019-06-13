@@ -317,8 +317,11 @@ void GameInput::SelectEntityAtClientPosition(const IntVec2& position)
 
 	if (entity)
 	{
-		entity->SetSelectable(true);
-		m_selectionHandles.push_back(entity->GetHandle());
+		if (entity->GetTeam() == m_game->GetCurrentTeam())
+		{
+			entity->SetSelectable(true);
+			m_selectionHandles.push_back(entity->GetHandle());
+		}
 	}
 }
 
@@ -352,35 +355,62 @@ bool GameInput::HandleMouseRBDown()
 			float out[2];
 			Entity* entity = m_game->m_map->RaycastEntity(out, ray);
 
+			Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
+
 			if (!m_shiftPressed)
 			{
 				if (entity)
 				{
-					//Follow entity
-					Vec3 dest = ray.GetPointAtTime(out[0]);
-					FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
-					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
-					thisEntity->ClearTasks();
-					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+					if (entity->GetTeam() == thisEntity->GetTeam())
+					{
+						//Follow entity
+						FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
+						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+					}
+					else if(entity->GetTeam() != thisEntity->GetTeam())
+					{
+						//Fuck up your enemies						
+						AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
+						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
+					}
 				}
 				else
 				{
 					Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
 					MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
 					m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
+					thisEntity->ResetTaskData();
 					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
 				}
 			}
 			else
 			{
-				//Shift was pressed so queue a Task
+				//Shift was pressed so clear queue and add a Task
 				if (entity)
 				{
-					//Follow entity
-					Vec3 dest = ray.GetPointAtTime(out[0]);
-					FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
-					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
-					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+					if (entity->GetTeam() == thisEntity->GetTeam())
+					{
+						//Follow your boy
+						FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
+						thisEntity->ClearTasks();
+						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+					}
+					else if (entity->GetTeam() != thisEntity->GetTeam())
+					{
+						//Fuck up your enemies						
+						AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
+						thisEntity->ClearTasks();
+						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
+					}
+				}
+				else
+				{
+					Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
+					MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
+					m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
+					thisEntity->ResetTaskData();
+					thisEntity->ClearTasks();
+					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
 				}
 			}
 		}

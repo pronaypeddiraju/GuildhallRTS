@@ -35,3 +35,29 @@ VIRTUAL void FollowTask::Execute()
 		thisEntity->Follow(entity);
 	}
 }
+
+//------------------------------------------------------------------------------------------------------------------------------
+AttackTask::AttackTask(const GameHandle& thisUnit, const GameHandle& unitToAttack)
+	: RTSTask(ATTACK)
+{
+	m_thisUnit = thisUnit;
+	m_unitToAttack = unitToAttack;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+AttackTask::~AttackTask()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+VIRTUAL void AttackTask::Execute()
+{
+	Map* map = Game::s_gameReference->m_map;
+	Entity *entity = map->FindEntity(m_unitToAttack);
+	Entity *thisEntity = map->FindEntity(m_thisUnit);
+	if (entity != nullptr && thisEntity != nullptr)
+	{
+		thisEntity->Attack(entity);
+	}
+}

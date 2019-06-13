@@ -5,6 +5,8 @@
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/XMLUtils/XMLUtils.hpp"
 #include "Engine/Math/Capsule3D.hpp"
+#include "Engine/Math/IntRange.hpp"
+#include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Renderer/SpriteDefenition.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
@@ -78,11 +80,14 @@ void Entity::MakeFromXML(const std::string& fileName)
 		//Read animation texture data
 		rootElement = rootElement->FirstChildElement();
 
-		std::string textureName = ParseXmlAttribute(*rootElement, "texture", "");
+		std::string textureName = ParseXmlAttribute(*rootElement, "walkTexture", "");
+		m_walkTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
+		textureName = ParseXmlAttribute(*rootElement, "attackTexture", "");
+		m_walkTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
+
 		Vec2 pivot = ParseXmlAttribute(*rootElement, "pivot", Vec2::ZERO);
 		IntVec2 dimensions = ParseXmlAttribute(*rootElement, "sheetDimensions", IntVec2::ZERO);
 
-		m_animTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
 
 		//Load the specific animations
 		XMLElement* childElement = rootElement->FirstChildElement();
@@ -94,16 +99,26 @@ void Entity::MakeFromXML(const std::string& fileName)
 			int spritesEachFrame = ParseXmlAttribute(*childElement, "spritesEachFrame", 8);
 			float animTime = ParseXmlAttribute(*childElement, "animTime", 1.f);
 
-			SpriteSheet sheet = SpriteSheet(m_animTexture, dimensions);
-
+			SpriteSheet walkSheet = SpriteSheet(m_walkTexture, dimensions);
+			SpriteSheet attackSheet = SpriteSheet(m_attackTexture, dimensions);
+			
 			if (animID == "idle")
 			{
 				int idleColumn = ParseXmlAttribute(*childElement, "idleColumn", 5);
-				MakeIdleCycle(sheet, numFrames, spritesEachFrame, idleColumn, id, animTime);
+				MakeIdleCycle(walkSheet, numFrames, spritesEachFrame, idleColumn, id, animTime);
 			}
 			else if(animID == "walk")
 			{
-				MakeWalkCycle(sheet, numFrames, spritesEachFrame, id, animTime);
+				MakeWalkCycle(walkSheet, numFrames, spritesEachFrame, id, animTime);
+			}
+			else if (animID == "death")
+			{
+				IntRange deathColumns = ParseXmlAttribute(*childElement, "deathColumn", IntRange(5, 7));
+				MakeDeathCycle(walkSheet, numFrames, spritesEachFrame, id, animTime, deathColumns);
+			}
+			else if (animID == "attack")
+			{
+				MakeAttackCycle(attackSheet, numFrames, spritesEachFrame, id, animTime);
 			}
 			else
 			{
@@ -120,13 +135,45 @@ void Entity::MakeFromXML(const std::string& fileName)
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Update(float deltaTime)
 {
+	if (m_health <= 0)
+	{
+		//Die
+		m_position = m_targetPosition;
+		m_prevState = m_currentState;
+		m_currentState = ANIMATION_DIE;
+		SetDeadState();
+		return;
+	}
+
 	CheckTasks();
 
 	//Lerp to the destination
 	Vec2 disp = m_targetPosition - m_position;
 	float magnitude = disp.GetLength();
 
-	if (magnitude < m_speed * deltaTime)
+	
+	if (m_unitToAttack != nullptr)
+	{
+		Vec2 attackUnitPos = m_unitToAttack->GetPosition();
+		float distanceSq = GetDistanceSquared2D(attackUnitPos, m_position);
+		if (distanceSq < m_proximitySquared)
+		{
+			m_position = m_targetPosition;
+			m_prevState = m_currentState;
+			if (m_currentState != ANIMATION_ATTACK)
+			{
+				m_currentAnimTime = 0.f;
+			}
+			m_currentState = ANIMATION_ATTACK;
+		}
+		else
+		{
+			m_position += disp.GetNormalized() * m_speed * deltaTime;
+			m_prevState = m_currentState;
+			m_currentState = ANIMATION_WALK;
+		}
+	}
+	else if (magnitude < m_speed * deltaTime)
 	{
 		m_position = m_targetPosition;
 		m_prevState = m_currentState;
@@ -138,7 +185,6 @@ void Entity::Update(float deltaTime)
 		m_position += disp.GetNormalized() * m_speed * deltaTime;
 		m_prevState = m_currentState;
 		m_currentState = ANIMATION_WALK;
-		//m_currentAnimTime = 0.f;
 	}
 
 	m_currentAnimTime += deltaTime;
@@ -149,10 +195,38 @@ void Entity::Update(float deltaTime)
 
 void Entity::CheckTasks()
 {
+	//Check if I need to follow a unit
 	if (m_unitToFollow != nullptr)
 	{
 		MoveTo(m_unitToFollow->GetPosition());
 	}
+	
+	//Check if I need to attack a unit
+	if (m_unitToAttack != nullptr)
+	{
+		//Am I next to the unit?
+		Vec2 attackUnitPos = m_unitToAttack->GetPosition();
+		if (GetDistanceSquared2D(attackUnitPos, m_position) < m_proximitySquared)
+		{
+			MoveTo(m_position);
+			DamageUnit(m_unitToAttack);
+		}
+		else
+		{
+			MoveTo(attackUnitPos);
+		}
+	}
+	
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::DamageUnit(Entity* target)
+{
+	m_directionFacing = target->GetPosition() - m_position;
+	m_directionFacing.Normalize();
+
+	target->TakeDamage(m_attackDamage);
+	//DebuggerPrintf("Doing Damage");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -201,6 +275,51 @@ void Entity::MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int sp
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Entity::MakeAttackCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime)
+{
+	std::vector<IsoSpriteDefenition> isoDefs;
+	std::vector<SpriteDefenition> spriteDefs;
+
+	for (int j = 0; j < numFrames; j++)
+	{
+		for (int i = 0; i < spritesEachFrame; i++)
+		{
+			spriteDefs.push_back(SpriteDefenition(spriteSheet.GetSpriteDef(i * spritesEachFrame + j), Vec2(0.5, 0.25)));
+		}
+
+		isoDefs.push_back(MakeIsoSpriteDef(&spriteDefs[0], spritesEachFrame));
+		spriteDefs.clear();
+	}
+
+	//Make the walk animation
+	std::string animName = entityName + ".attack";
+	m_animationSet[ANIMATION_ATTACK] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), animTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_LOOP);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::MakeDeathCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime, const IntRange& deathColumns)
+{
+	std::vector<IsoSpriteDefenition> isoDefs;
+	std::vector<SpriteDefenition> spriteDefs;
+
+	for (int j = 0; j < numFrames; j++)
+	{
+		for (int i = 0; i < spritesEachFrame; i++)
+		{
+			int spriteID = i * spritesEachFrame + j + deathColumns.minInt;
+			spriteDefs.push_back(SpriteDefenition(spriteSheet.GetSpriteDef(spriteID), Vec2(0.5, 0.25)));
+		}
+
+		isoDefs.push_back(MakeIsoSpriteDef(&spriteDefs[0], spritesEachFrame));
+		spriteDefs.clear();
+	}
+
+	//Make the death animation
+	std::string animName = entityName + ".death";
+	m_animationSet[ANIMATION_DIE] = new IsoAnimDefenition(spriteSheet, 0, (numFrames - 1), animTime, animName, isoDefs, SPRITE_ANIM_PLAYBACK_ONCE);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 IsoSpriteDefenition Entity::MakeIsoSpriteDef(const SpriteDefenition spriteDefenitions[], uint numDefenitions)
 {
 	IsoSpriteDefenition isoSpriteDef(spriteDefenitions, numDefenitions);
@@ -214,16 +333,31 @@ IsoAnimDefenition Entity::MakeIsoAnimDef(const SpriteSheet& spriteSheet, int sta
 	return animDef;
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------
+// void Entity::SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType)
+// {
+// 	m_animationSet[animType] = &animDef;
+// }
+
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType)
+void Entity::ResetTaskData()
 {
-	m_animationSet[animType] = &animDef;
+	m_unitToAttack = nullptr;
+	m_unitToAttack = nullptr;
+	m_targetPosition = m_position;
+	m_currentState = ANIMATION_IDLE;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Destroy()
 {
 	SetBit(m_flags, ENTITY_DESTROYED_BIT);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::SetDeadState()
+{
+	m_isAlive = false;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -303,9 +437,21 @@ void Entity::Follow(Entity* unitToFollow)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Entity::Attack(Entity* unitToAttack)
+{
+	m_unitToAttack = unitToAttack;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Entity::StopFollow()
 {
 	m_unitToFollow = nullptr;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::StopAttack()
+{
+	m_unitToAttack = nullptr;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

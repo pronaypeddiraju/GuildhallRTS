@@ -1980,9 +1980,14 @@ void Game::LoadGameTextures()
 
 	m_peonTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonSheetPath);
 	m_warriorTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorSheetPath);
+	m_peonAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonAttackSheetPath);
+	m_warriorAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorAttackSheetPath);
+
 
 	m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
 	m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
+	m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
+	m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
 
 	CreateIsoSpriteDefenitions();
 }

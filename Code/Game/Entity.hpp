@@ -11,6 +11,7 @@
 #include "Game/RTSTask.hpp"
 #include "Game/GameTypes.hpp"
 
+struct IntRange;
 struct Ray3D;
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -39,6 +40,8 @@ public:
 
 	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
 	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName, float animTime);
+	void					MakeAttackCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
+	void					MakeDeathCycle(const SpriteSheet& spriteSheet, int numFrames, int sprtesEachFrame, const std::string& entityName, float animTime, const IntRange& deathColumns);
 
 	IsoSpriteDefenition		MakeIsoSpriteDef(const SpriteDefenition spriteDefenitions[], uint numDefenitions);
 
@@ -47,9 +50,12 @@ public:
 											const std::vector<IsoSpriteDefenition>& isoSpriteDefs,
 											SpriteAnimPlaybackType playbackType = SPRITE_ANIM_PLAYBACK_ONCE);
 
-	void					SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType);
+	//void					SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType);
 
+	void					ResetTaskData();
+	void					DamageUnit(Entity* target);
 	void					Destroy();
+	void					SetDeadState();
 	void					SetSelectable(bool isSelectable);
 
 	bool					IsDestroyed() const;
@@ -67,8 +73,11 @@ public:
 
 	Capsule3D				CreateEntityCapsule() const;
 
+	//Entity Actions
 	void					Follow(Entity* unitToFollow);
+	void					Attack(Entity* unitToAttack);
 	void					StopFollow();
+	void					StopAttack();
 
 	inline EntityTypeT		GetType() { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
@@ -105,7 +114,8 @@ public:
 private:
 
 	EntityTypeT		m_type = PEON;
-	TextureView*	m_animTexture = nullptr;
+	TextureView*	m_walkTexture = nullptr;
+	TextureView*	m_attackTexture = nullptr;
 
 	float			m_animSetTime = 1.f;
 
@@ -123,17 +133,21 @@ private:
 	float			m_health = 40.f;
 	float			m_maxHealth = 40.f;
 	float			m_attackDamage = 5.f;
+	bool			m_isAlive = true;
 
 	// UI collision
 	float			m_height = 1.f;
 	float			m_radius = 0.5f;
+	float			m_proximitySquared = 2.3f;
 	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
 
 	Vec3			m_directionFacing = Vec3::UP;
 
 	std::vector<RTSTask*>			m_taskQueue;
 
+	//Unit pointers for tasks
 	Entity*			m_unitToFollow = nullptr;
+	Entity*			m_unitToAttack = nullptr;
 
 };
 

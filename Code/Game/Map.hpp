@@ -2,6 +2,7 @@
 #pragma once
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/IntVec2.hpp"
+#include "Engine/Renderer/AnimTypes.hpp"
 #include <vector>
 #include <cstdint>
 
@@ -52,8 +53,8 @@ public:
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
 	void				RenderEntities() const;
 	void				RenderEntitySprites() const;
-	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const;
-	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const;
+	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
+	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 
 	// Accessors
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point

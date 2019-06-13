@@ -34,3 +34,16 @@ public:
 	GameHandle m_thisUnit;
 	GameHandle m_unitToFollow;
 };
+
+//------------------------------------------------------------------------------------------------------------------------------
+class AttackTask : RTSTask
+{
+public:
+	AttackTask(const GameHandle& thisUnit, const GameHandle& unitToAttack);
+	~AttackTask();
+	virtual void Execute();
+
+public:
+	GameHandle m_thisUnit;
+	GameHandle m_unitToAttack;
+};

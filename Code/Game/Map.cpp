@@ -304,21 +304,21 @@ void Map::RenderEntitySprites() const
 	for (int index = 0; index < numEntities; index++)
 	{
 		IsoSpriteDefenition* isoSprite = &m_entities[index]->m_animationSet[m_entities[index]->m_currentState]->GetIsoSpriteAtTime(m_entities[index]->m_currentAnimTime);
-		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType(), Rgba::WHITE);
+		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType(), Rgba::WHITE, m_entities[index]->m_currentState);
 	}
 }
 
-void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const
+void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const
 {
 	Matrix44 viewMat = camera.GetViewMatrix();
 	Vec3 entityForwardRelativeToCamera = viewMat.TransformVector3D(orientation);
 	//Get the correct sprite for the direction
 	SpriteDefenition *sprite = &isoDef.GetSpriteForLocalDirection(entityForwardRelativeToCamera);
 	//Now draw the sprite
-	DrawBillBoardedSprite(position, *sprite, camera, type, drawColor);
+	DrawBillBoardedSprite(position, *sprite, camera, type, drawColor, animState);
 }
 
-void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor) const
+void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const
 {
 	// tl - tr
 	// |     | 
@@ -372,7 +372,19 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 	switch (type)
 	{
 	case PEON:
-		g_renderContext->BindTextureView(0U, Game::s_gameReference->m_peonTexture);
+		switch (animState)
+		{
+		case ANIMATION_ATTACK:
+		{
+			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_peonAttackTexture);
+		}
+		break;
+		default:
+		{
+			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_peonTexture);
+		}
+		break;
+		}
 		break;
 	case WARRIOR:
 		g_renderContext->BindTextureView(0U, Game::s_gameReference->m_warriorTexture);
@@ -550,8 +562,11 @@ void Map::SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const 
 		{
 			if (entity->IsSelectable() && entity->GetHandle() != GameHandle::INVALID)
 			{
-				entity->SetSelectable(true);
-				entityHandles.push_back(entity->GetHandle());
+				if (entity->GetTeam() == Game::s_gameReference->GetCurrentTeam())
+				{
+					entity->SetSelectable(true);
+					entityHandles.push_back(entity->GetHandle());
+				}
 			}
 		}
 	}
