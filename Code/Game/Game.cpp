@@ -364,6 +364,7 @@ void Game::PerformInitActions()
 	CreateInitialMeshes();
 	CreateInitialLight();
 	LoadInitMesh();
+	LoadAudioResources();
 
 	CreateMenuUIWidgets();
 	CreateGameUIWidgets();
@@ -1347,6 +1348,8 @@ void Game::Update( float deltaTime )
 
 	m_RTSCam->Update(deltaTime);
 
+	g_audio->SetAudioListener(m_RTSCam->m_focalPoint, m_RTSCam->GetCameraForward().GetNormalized(), m_RTSCam->GetCameraUp().GetNormalized());
+
 	//Update the moving lights
 	UpdateLightPositions();
 
@@ -1425,41 +1428,6 @@ void Game::Update( float deltaTime )
 	camTransform = Matrix44::SetTranslation3D(m_camPosition, camTransform);
 	m_mainCamera->SetModelMatrix(camTransform);
 	
-	//RenderUsingMaterial();
-	Ray3D ray = m_mainCamera->ScreenPointToWorldRay(intVecPos, clientBounds);
-	//g_debugRenderer->DebugRenderLine(ray.m_start, ray.m_direction * 80.f, 0.0f);
-	float out[2];
-	
-	uint pointCount = Raycast(out, ray, m_capsuleCPU);
-	if (pointCount > 0U)
-	{
-		Vec3 hitPoint = ray.GetPointAtTime(out[0]);
-
-		m_capsuleModel = Matrix44::IDENTITY;
-		//m_cubeTransform = Matrix44::SetTranslation3D(hitPoint, m_cubeTransform);
-		g_debugRenderer->DebugRenderCapsule(m_capsuleCPU, Vec3::ZERO, 0.f, m_textureTest);
-	}
-	else
-	{
-		g_debugRenderer->DebugRenderCapsule(m_capsuleCPU, Vec3::ZERO, 0.f, nullptr);
-	}
-
-	/*
-	uint pointCount = Raycast(out, ray, m_sphereDebug);
-	if (pointCount > 0U)
-	{
-		Vec3 hitPoint = ray.GetPointAtTime(out[0]);
-
-		m_capsuleModel = Matrix44::IDENTITY;
-		//m_cubeTransform = Matrix44::SetTranslation3D(hitPoint, m_cubeTransform);
-		g_debugRenderer->DebugRenderSphere(m_sphereDebug.m_point, m_sphereDebug.m_radius, 0.f, m_textureTest);
-	}
-	else
-	{
-		g_debugRenderer->DebugRenderSphere(m_sphereDebug.m_point, m_sphereDebug.m_radius, 0.f, nullptr);
-	}
-	*/
-
 	//Update the town center's matrix
 	m_townCenterTransform = Matrix44::SetTranslation3D(m_RTSCam->m_focalPoint, m_townCenterTransform);
 }
@@ -1904,6 +1872,13 @@ void Game::LoadInitMesh()
 		m_initMesh = new Model(g_renderContext, m_objectPath);
 	}
 	m_lastState = m_gameState;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::LoadAudioResources()
+{
+	m_attackSoundID = g_audio->CreateOrGetSound3D(m_attackSoundPath, false, false);
+	m_deathSoundID = g_audio->CreateOrGetSound3D(m_deathSoundPath, false, false);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

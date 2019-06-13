@@ -12,6 +12,7 @@
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 //Game Systems
+#include "Game/Game.hpp"
 #include "Game/IsoAnimDefenition.hpp"
 #include "Game/RTSTask.hpp"
 
@@ -138,6 +139,9 @@ void Entity::Update(float deltaTime)
 	if (m_health <= 0 && m_isAlive)
 	{
 		//Die
+		Game* game = Game::s_gameReference;
+		game->m_deathSoundPlayback = g_audio->Play3DSound(game->m_deathSoundID, m_position);
+
 		m_position = m_targetPosition;
 		m_prevState = m_currentState;
 		ResetTaskData();
@@ -250,6 +254,9 @@ void Entity::DamageUnit(Entity* target)
 	int frameNum = m_animationSet[m_currentState]->GetIsoSpriteFrameAtTime(m_currentAnimTime);
 	if (frameNum == 0 && !m_doingDamage)
 	{
+		Game* game = Game::s_gameReference;
+		game->m_attackSoundPlayback = g_audio->Play3DSound(game->m_attackSoundID, m_position);
+
 		target->TakeDamage(m_attackDamage);
 		m_doingDamage = true;
 	}

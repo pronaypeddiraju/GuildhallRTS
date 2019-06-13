@@ -94,6 +94,7 @@ public:
 	void								CreateInitialMeshes();
 	void								CreateInitialLight();
 	void								LoadInitMesh();
+	void								LoadAudioResources();
 	
 	void								BeginFrame();
 	void								EndFrame();
@@ -168,9 +169,15 @@ private:
 	std::vector<RTSCommand*>			m_commandQueue;
 	int									m_currentTeam = 1;
 
-public:
-	SoundID								m_testAudioID = NULL;
-	
+public:	
+	//Audio
+	std::string							m_deathSoundPath = "Data/Audio/SFX/pain.wav";
+	SoundID								m_deathSoundID = NULL;
+	SoundPlaybackID						m_deathSoundPlayback = NULL;
+	std::string							m_attackSoundPath = "Data/Audio/SFX/hit00.wav";
+	SoundID								m_attackSoundID = NULL;
+	SoundPlaybackID						m_attackSoundPlayback = NULL;
+
 	bool								m_beginMapLoad = false;
 	bool								m_beginEditLoad = false;
 
