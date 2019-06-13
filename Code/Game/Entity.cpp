@@ -222,11 +222,24 @@ void Entity::CheckTasks()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::DamageUnit(Entity* target)
 {
+	if (target->GetHealth() <= 0)
+	{
+		m_unitToAttack = nullptr;
+	}
+
 	m_directionFacing = target->GetPosition() - m_position;
 	m_directionFacing.Normalize();
 
-	target->TakeDamage(m_attackDamage);
-	//DebuggerPrintf("Doing Damage");
+	int frameNum = m_animationSet[m_currentState]->GetIsoSpriteFrameAtTime(m_currentAnimTime);
+	if (frameNum == 0 && !m_doingDamage)
+	{
+		target->TakeDamage(m_attackDamage);
+		m_doingDamage = true;
+	}
+	else if(frameNum != 0)
+	{
+		m_doingDamage = false;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

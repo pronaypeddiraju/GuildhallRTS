@@ -20,11 +20,16 @@ public:
 	void						AddIsoSpriteDefenition(const IsoSpriteDefenition& isoSpriteDef);
 
 	IsoSpriteDefenition&		GetIsoSpriteAtTime(float seconds);
+	int							GetIsoSpriteFrameAtTime(float seconds);
 
 private:
 	IsoSpriteDefenition&		GetSpriteDefAtTime_Once(float seconds);
 	IsoSpriteDefenition&		GetSpriteDefAtTime_Loop(float seconds);
 	IsoSpriteDefenition&		GetSpriteDefAtTime_PingPong(float seconds);
+
+	int							GetSpriteFrameAtTime_Once(float seconds);
+	int							GetSpriteFrameAtTime_Loop(float seconds);
+	int							GetSpriteFrameAtTime_PingPong(float seconds);
 
 private:
 	const SpriteSheet&					m_spriteSheet;

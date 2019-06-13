@@ -134,6 +134,7 @@ private:
 	float			m_maxHealth = 40.f;
 	float			m_attackDamage = 5.f;
 	bool			m_isAlive = true;
+	bool			m_doingDamage = false;
 
 	// UI collision
 	float			m_height = 1.f;

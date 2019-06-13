@@ -49,6 +49,25 @@ IsoSpriteDefenition& IsoAnimDefenition::GetIsoSpriteAtTime(float seconds)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+int IsoAnimDefenition::GetIsoSpriteFrameAtTime(float seconds)
+{
+	switch (m_playbackType)
+	{
+	case SPRITE_ANIM_PLAYBACK_ONCE:
+		return GetSpriteFrameAtTime_Once(seconds);
+		break;
+	case SPRITE_ANIM_PLAYBACK_LOOP:
+		return GetSpriteFrameAtTime_Loop(seconds);
+		break;
+	case SPRITE_ANIM_PLAYBACK_PINGPONG:
+		return GetSpriteFrameAtTime_PingPong(seconds);
+		break;
+	}
+
+	return 0;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 IsoSpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_Once(float seconds)
 {
 	//Get total number of defs
@@ -105,6 +124,64 @@ IsoSpriteDefenition& IsoAnimDefenition::GetSpriteDefAtTime_PingPong(float second
 	{
 		int reverseIndexFromEnd = numBaseFrames - animFrameNum;		
 		return m_isoSpriteDefs[reverseIndexFromEnd + m_endDefIndex];
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int IsoAnimDefenition::GetSpriteFrameAtTime_Once(float seconds)
+{
+	//Get total number of defs
+	int numFrames = (m_endDefIndex - m_startDefIndex) + 1;
+	float frameDuration = m_durationSeconds / numFrames;
+
+	//Get the animation frame number
+	int animFrameNum;
+	if (seconds < m_durationSeconds)
+	{
+		animFrameNum = (int)floorf(seconds / frameDuration);
+	}
+	else
+	{
+		animFrameNum = m_endDefIndex;
+	}
+
+	return animFrameNum;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int IsoAnimDefenition::GetSpriteFrameAtTime_Loop(float seconds)
+{
+	//Get total number of frames
+	int numFrames = (m_endDefIndex - m_startDefIndex) + 1;
+	float frameDuration = m_durationSeconds / numFrames;
+
+	//Get the animation frame number
+	float timeInCycle = fmodf(seconds, m_durationSeconds);
+	int animFrameNum = (int)floorf(timeInCycle / frameDuration);
+
+	return animFrameNum;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int IsoAnimDefenition::GetSpriteFrameAtTime_PingPong(float seconds)
+{
+	//Get number of frames and each frame duration
+	int numFrames = (m_endDefIndex - m_startDefIndex) * 2;
+	int numBaseFrames = m_endDefIndex - m_startDefIndex + 1;
+	float frameDuration = m_durationSeconds / numFrames;
+
+	//Get time in Cycle and animation frame number at that time
+	float timeInCycle = fmodf(seconds, m_durationSeconds);
+	int animFrameNum = (int)floorf(timeInCycle / frameDuration);
+
+	if (animFrameNum < numBaseFrames)
+	{
+		return animFrameNum + m_startDefIndex;
+	}
+	else
+	{
+		int reverseIndexFromEnd = numBaseFrames - animFrameNum;
+		return reverseIndexFromEnd + m_endDefIndex;
 	}
 }
 

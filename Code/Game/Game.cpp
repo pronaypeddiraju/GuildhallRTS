@@ -951,6 +951,8 @@ void Game::RenderGameUI() const
 			default:
 				break;
 			}
+			text += " Health: ";
+			text += std::to_string(entity->GetHealth());
 			text += " Team: ";
 			text += std::to_string(team);
 
