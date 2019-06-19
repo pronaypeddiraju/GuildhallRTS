@@ -28,7 +28,6 @@
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/Shader.hpp"
 #include "Engine/Renderer/TextureView.hpp"
-
 //Game Systems
 #include "Game/App.hpp"
 #include "Game/GameInput.hpp"
@@ -36,7 +35,7 @@
 #include "Game/RTSCamera.hpp"
 #include "Game/RTSCommand.hpp"
 #include "Game/UIWidget.hpp"
-#include "Entity.hpp"
+#include "Game/Entity.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 float g_shakeAmount = 0.0f;
@@ -287,16 +286,6 @@ void Game::StartUp()
 	g_eventSystem->SubscribeEventCallBackFn("ResumeGame", ResumeGame);
 	g_eventSystem->SubscribeEventCallBackFn("ReturnToMenu", ReturnToMenu);
 	g_eventSystem->SubscribeEventCallBackFn("QuitGame", QuitGame);
-	   
-	/*
-	//Only to keep track of what input does what
-	DebugRenderOptionsT options;
-	options.space = DEBUG_RENDER_SCREEN;
-	g_debugRenderer->DebugAddToLog(options, "F1 and F2 to increase/decrease ambient light intensity", Rgba::WHITE, 20000.f);
-	g_debugRenderer->DebugAddToLog(options, "F3 to toggle directional light", Rgba::WHITE, 20000.f);
-	g_debugRenderer->DebugAddToLog(options, "F4 to toggle normal or lit shaders", Rgba::WHITE, 20000.f);	
-	*/
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -741,8 +730,6 @@ void Game::Shutdown()
 
 	delete m_initMesh;
 	m_initMesh = nullptr;
-
-	//FreeResources();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -845,9 +832,6 @@ void Game::Render() const
 	break;
 	}
 
-	//Show the controls for the UI Camera
-	//RenderControlsToUI();
-
 	if(m_isPaused)
 	{
 		RenderPauseScreen();
@@ -860,9 +844,6 @@ void Game::Render() const
 		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
 	}	
-
-	//Uncomment this when debugging
-	//DebugRenderToCamera();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -908,7 +889,6 @@ void Game::RenderGameState() const
 	RenderGameUI();
 
 	g_renderContext->EndCamera();
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -975,7 +955,6 @@ void Game::RenderGameUI() const
 	}
 
 	g_renderContext->DrawVertexArray(textVerts);
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1060,7 +1039,6 @@ void Game::RenderControlsToUI() const
 	g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
 
 	g_renderContext->BeginCamera(*m_UICamera); 
-	//g_renderContext->ClearColorTargets(Rgba::BLACK);
 
 	std::vector<Vertex_PCU> textVerts;
 	AABB2 infoBox = AABB2(Vec2(-640.0f, 340.f), Vec2(640.f, 360.f));
@@ -1093,10 +1071,6 @@ void Game::RenderPauseScreen() const
 
 	if (g_devConsole->GetFrameCount() > 1)
 	{
-		//Decrement our stop watch here
-		//float time = static_cast<float>(GetCurrentTimeSeconds());
-		//float intensity = (sin(time) + 1.f);
-
 		TonemapBufferT buffer;
 		buffer.intensity = m_pauseTimer;
 		
@@ -1133,13 +1107,6 @@ void Game::RenderInitState() const
 	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
 	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Initializing Game.", Rgba::WHITE);
 	g_renderContext->DrawVertexArray(textVerts);
-
-	/*
-	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
-	std::vector<Vertex_PCU> boxVerts;
-	AddVertsForBoundingBox(boxVerts, titleBox, Rgba::RED, 10.f);
-	g_renderContext->DrawVertexArray(boxVerts);
-	*/
 
 	g_renderContext->EndCamera();
 }
@@ -1185,12 +1152,6 @@ void Game::RenderMainMenuState() const
 void Game::RenderMenuUI() const
 {
 	//Render the Menu UI 
-	/*
-	IntVec2 client = g_windowContext->GetTrueClientBounds();
-	Vec2 boundsSize = Vec2(client.x, client.y); 
-	m_menuParent->UpdateBounds(AABB2(Vec2(UI_SCREEN_HEIGHT * UI_SCREEN_ASPECT * -0.5f, UI_SCREEN_HEIGHT * -0.5f), Vec2(UI_SCREEN_HEIGHT * 0.5f, UI_SCREEN_HEIGHT * 0.5f)));
-	*/
-
 	m_menuParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
 
 	g_renderContext->BeginCamera(*m_UICamera);	
@@ -1229,7 +1190,6 @@ void Game::RenderUsingMaterial() const
 void Game::RenderUsingLegacy() const
 {
 	//Bind the shader we are using (This case it's the default shader we made in Shaders folder)
-	//g_renderContext->BindShader( m_shader );
 	if(m_normalMode)
 	{
 		g_renderContext->BindShader( m_normalShader );
@@ -1272,7 +1232,6 @@ void Game::DebugRenderToScreen() const
 	g_debugRenderer->DebugRenderToScreen();
 
 	g_renderContext->EndCamera();
-	
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1311,9 +1270,6 @@ void Game::PostRender()
 		m_lastState = m_gameState;
 		m_gameState = STATE_PLAY;
 	}
-
-	//Uncomment this when debugging
-	//DebugRenderToScreen();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1352,9 +1308,6 @@ void Game::Update( float deltaTime )
 
 	//Update the moving lights
 	UpdateLightPositions();
-
-	//Update the FX Buffer
-	//g_renderContext->UpdateFxBuffer(m_stopWatch->GetNormalizedElapsedTime());
 
 	ProcessCommands();
 
@@ -1515,27 +1468,6 @@ void Game::ProcessCommands()
 			m_commandQueue[index] = nullptr;
 		}
 	}
-
-	/*
-	while (itr != m_commandQueue.end()) 
-	{
-		if (*itr != nullptr)
-		{
-			switch ((*itr)->m_commandType)
-			{
-			case CREATE_ENTITY: {} break;
-			case MOVE_ENTITY: {} break;
-			default:
-				break;
-			}
-
-			(*itr)->Execute();
-			delete (*itr);
-			*itr = nullptr;
-		}
-		itr++;
-	}
-	*/
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1688,7 +1620,6 @@ void Game::CreateEditUIWidgets()
 	button->SetRadioType(true);
 	button->unHovercolor = Rgba::WHITE;
 	button->hoverColor = Rgba::GREEN;
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1849,7 +1780,6 @@ void Game::UpdateLightPositions()
 	//options.beginColor = Rgba::MAGENTA;
 	//options.endColor = Rgba::MAGENTA * 0.4f;
 	//g_debugRenderer->DebugRenderPoint(options, m_dynamicLight3Pos, 0.1f, 0.1f, nullptr);
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1905,7 +1835,6 @@ void Game::EndFrame()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateInitialMeshes()
 {
-
 	//Meshes for A4
 	CPUMesh mesh;
 	CPUMeshAddQuad(&mesh, AABB2(Vec2(-0.5f, -0.5f), Vec2(0.5f, 0.5f)));
@@ -1972,6 +1901,7 @@ void Game::LoadGameTextures()
 	CreateIsoSpriteDefenitions();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateIsoSpriteDefenitions()
 {
 	//use this spot to create an isoSpriteDefenition
@@ -2034,5 +1964,4 @@ void Game::UpdateMouseInputs(float deltaTime)
 	// this gives us our current camera's orientation.  we will 
 	// use this to translate our local movement to a world movement 
 	Matrix44 camMatrix = Matrix44::MakeFromEuler( camEuler ); 
-
 }

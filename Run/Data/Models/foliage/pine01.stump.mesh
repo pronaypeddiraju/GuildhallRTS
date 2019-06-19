@@ -2,7 +2,7 @@
 		src="foliage/pine01.stump.obj"
 		invert="false"
 		tangents="true"
-		scale="1.0f / 256.0f"
+		scale="0.00390625f"
 		transform="-y -z -x">
 
 		<material index="0" src="foliage/foliage.mat" />

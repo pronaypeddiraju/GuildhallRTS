@@ -503,6 +503,16 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		SpawnUnit(WARRIOR);
 	}
 	break;
+	case N_KEY:
+	{
+		if (Game::s_gameReference->m_gameState != STATE_EDIT && Game::s_gameReference->m_gameState != STATE_PLAY)
+		{
+			return;
+		}
+
+		SpawnUnit(TREE);
+	}
+	break;
 	case LSHIFT_KEY:
 	{
 		m_shiftPressed = true;
@@ -619,6 +629,13 @@ void GameInput::SpawnUnit(EntityTypeT type)
 		{
 			//Use the command on game here
 			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), WARRIOR);
+			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+		}
+		break;
+		case TREE:
+		{
+			//Use the command on game here
+			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), TREE);
 			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
 		}
 		break;

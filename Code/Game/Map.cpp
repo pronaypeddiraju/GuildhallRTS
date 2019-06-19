@@ -55,6 +55,7 @@ bool Map::Load( char const* filename )
 	return result;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::LoadFoliageModels()
 {
 	//Open the xml file and parse it
@@ -258,6 +259,7 @@ void Map::Shutdown()
 	m_mapIndices.clear();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::RenderTerrain( Material* matOverride /*= nullptr */ ) const
 {
 	if(matOverride != nullptr)
@@ -375,7 +377,7 @@ void Map::RenderEntitySprites() const
 		break;
 		case TREE:
 		{
-
+			RenderResourceEntity(*m_entities[index]);
 		}
 		default:
 			break;
@@ -385,6 +387,7 @@ void Map::RenderEntitySprites() const
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::RenderIsoSpriteForEntity(const Entity& entity) const
 {
 	IsoSpriteDefenition* isoSprite = &entity.m_animationSet[entity.m_currentState]->GetIsoSpriteAtTime(entity.m_currentAnimTime);
@@ -482,6 +485,42 @@ void Map::RenderIsoSpriteForEntity(const Entity& entity) const
 	g_renderContext->DrawMesh(m_quad);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::RenderResourceEntity(const Entity& entity) const
+{
+	float ratio = entity.GetHealth() / entity.GetMaxHealth();
+	//Render the model at entity position
+	GPUMesh* mesh = nullptr;
+
+	if (ratio >= 0.8f)
+	{
+		mesh = g_renderContext->CreateOrGetMeshFromFile(entity.GetMeshIDForState(SOURCE));
+	}
+	else if (ratio < 0.8f && ratio >= 0.3f)
+	{
+		mesh = g_renderContext->CreateOrGetMeshFromFile(entity.GetMeshIDForState(FULL));
+	}
+	else if (ratio < 0.3f)
+	{
+		mesh = g_renderContext->CreateOrGetMeshFromFile(entity.GetMeshIDForState(WEAK));
+	}
+
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	objectModel = objectModel.MakeUniformScale3D(0.00390625f);
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
+
+	if (mesh == nullptr)
+	{
+		ERROR_AND_DIE("The mesh to be rendered was nullptr");
+	}
+
+	g_renderContext->BindMaterial(g_renderContext->CreateOrGetMaterialFromFile(m_treeMaterialFile));
+	g_renderContext->BindModelMatrix(objectModel);
+	//g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(mesh);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const
 {
 	Matrix44 viewMat = camera.GetViewMatrix();
@@ -492,6 +531,7 @@ void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientatio
 	DrawBillBoardedSprite(position, *sprite, camera, type, drawColor, animState);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const
 {
 	// tl - tr

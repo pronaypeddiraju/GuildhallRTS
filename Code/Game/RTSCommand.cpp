@@ -42,6 +42,10 @@ VIRTUAL void CreateEntityCommand::Execute()
 		map->CreateEntity(m_createPosition, "warrior", *Game::s_gameReference->m_warriorSheet, m_entityType, team);
 	}
 	break;
+	case TREE:
+	{
+		map->CreateEntity(m_createPosition, "tree", *Game::s_gameReference->m_warriorSheet, m_entityType, team);
+	}
 	default:
 		break;
 	}

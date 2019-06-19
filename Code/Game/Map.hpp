@@ -4,6 +4,7 @@
 #include "Engine/Math/IntVec2.hpp"
 #include "Engine/Renderer/AnimTypes.hpp"
 #include <vector>
+#include <map>
 #include <cstdint>
 
 #include "Game/GameTypes.hpp"
@@ -26,6 +27,7 @@ class IsoSpriteDefenition;
 class GPUMesh;
 class RTSCamera;
 class SpriteSheet;
+class Model;
 
 //------------------------------------------------------------------------------------------------------------------------------
 struct MapTile
@@ -56,6 +58,7 @@ public:
 	void				RenderEntities() const;
 	void				RenderEntitySprites() const;
 	void				RenderIsoSpriteForEntity(const Entity& entity) const;
+	void				RenderResourceEntity(const Entity& entity) const;
 	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 
@@ -99,6 +102,11 @@ private:
 	CPUMesh*				m_entityCPUMesh = nullptr;
 	GPUMesh*				m_entityMesh = nullptr; 
 
+	//Resource Models
+	std::map<std::string, Model*>	m_treeModelsMap;
+	
+	//Building Models
+
 	AABB2					m_mapBounds;
 
 	// map entity data
@@ -124,4 +132,5 @@ private:
 	std::string				m_warriorXMLFile = "Data/Gameplay/warrior.xml";
 	std::string				m_treeXMLFile = "Data/Gameplay/tree.xml";
 	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
+	std::string				m_treeMaterialFile = "Data/Models/foliage/foliage.mat";
 };

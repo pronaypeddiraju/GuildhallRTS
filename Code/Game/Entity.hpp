@@ -85,6 +85,7 @@ public:
 
 	//Resource Actions
 	void					SetAsResource(bool resource);
+	const std::string&		GetMeshIDForState(ResourceMeshT meshType) const;
 
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }

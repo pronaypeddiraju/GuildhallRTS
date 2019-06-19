@@ -116,7 +116,7 @@ void Entity::MakeFromXML(const std::string& fileName)
 					m_radius = ParseXmlAttribute(*rootElement, "radius", m_radius);		
 				}
 
-				XMLElement* childElement = rootElement->FirstChildElement();
+				XMLElement* childElement = rootElement->NextSiblingElement();
 
 				if (childElement != nullptr)
 				{
@@ -547,6 +547,21 @@ void Entity::StopAttack()
 void Entity::SetAsResource(bool resource)
 {
 	m_isResource = resource;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+const std::string& Entity::GetMeshIDForState(ResourceMeshT meshType) const
+{
+	std::map<ResourceMeshT, std::string>::const_iterator requestedMeshID = m_meshIDMap.find(meshType);
+	if (requestedMeshID != m_meshIDMap.end())
+	{
+		//Model requested exists in the map
+		return requestedMeshID->second;
+	}
+	else
+	{
+		ASSERT_RECOVERABLE(true, "Mesh type doesn't exist");
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
