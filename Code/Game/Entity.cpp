@@ -76,61 +76,100 @@ void Entity::MakeFromXML(const std::string& fileName)
 		m_health = ParseXmlAttribute(*rootElement, "health", m_health);
 		m_speed = ParseXmlAttribute(*rootElement, "speed", m_speed);
 		bool selectable = ParseXmlAttribute(*rootElement, "selectable", true);
+		bool isResource = ParseXmlAttribute(*rootElement, "resource", true);
+
 		SetSelectable(selectable);
+		SetAsResource(isResource);
 
 		//Read animation texture data
 		rootElement = rootElement->FirstChildElement();
 
-		std::string textureName = ParseXmlAttribute(*rootElement, "walkTexture", "");
-		m_walkTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
-		textureName = ParseXmlAttribute(*rootElement, "attackTexture", "");
-		m_walkTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
-
-		Vec2 pivot = ParseXmlAttribute(*rootElement, "pivot", Vec2::ZERO);
-		IntVec2 dimensions = ParseXmlAttribute(*rootElement, "sheetDimensions", IntVec2::ZERO);
-
-
-		//Load the specific animations
-		XMLElement* childElement = rootElement->FirstChildElement();
-
-		while (childElement != nullptr)
+		if (!isResource)
 		{
-			std::string animID = ParseXmlAttribute(*childElement , "id", "idle");
-			int numFrames = ParseXmlAttribute(*childElement, "numFrames", 1);
-			int spritesEachFrame = ParseXmlAttribute(*childElement, "spritesEachFrame", 8);
-			float animTime = ParseXmlAttribute(*childElement, "animTime", 1.f);
+			//Follow pattern for non resource
 
-			SpriteSheet walkSheet = SpriteSheet(m_walkTexture, dimensions);
-			SpriteSheet attackSheet = SpriteSheet(m_attackTexture, dimensions);
-			
-			if (animID == "idle")
-			{
-				int idleColumn = ParseXmlAttribute(*childElement, "idleColumn", 5);
-				MakeIdleCycle(walkSheet, numFrames, spritesEachFrame, idleColumn, id, animTime);
-			}
-			else if(animID == "walk")
-			{
-				MakeWalkCycle(walkSheet, numFrames, spritesEachFrame, id, animTime);
-			}
-			else if (animID == "death")
-			{
-				IntRange deathColumns = ParseXmlAttribute(*childElement, "deathColumn", IntRange(5, 7));
-				MakeDeathCycle(walkSheet, numFrames, spritesEachFrame, id, animTime, deathColumns);
-			}
-			else if (animID == "attack")
-			{
-				MakeAttackCycle(attackSheet, numFrames, spritesEachFrame, id, animTime);
-			}
-			else
-			{
-				ASSERT_RECOVERABLE(true, "Animation type not defined in project");
-			}
+			std::string textureName = ParseXmlAttribute(*rootElement, "walkTexture", "");
+			m_walkTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
+			textureName = ParseXmlAttribute(*rootElement, "attackTexture", "");
+			m_walkTexture = g_renderContext->CreateOrGetTextureViewFromFile(textureName);
 
-			childElement = childElement->NextSiblingElement();
+			Vec2 pivot = ParseXmlAttribute(*rootElement, "pivot", Vec2::ZERO);
+			IntVec2 dimensions = ParseXmlAttribute(*rootElement, "sheetDimensions", IntVec2::ZERO);
+
+			//Load the specific animations
+			XMLElement* childElement = rootElement->FirstChildElement();
+
+			while (childElement != nullptr)
+			{
+				MakeAnimationsForEntity(childElement, dimensions, id);				
+				childElement = childElement->NextSiblingElement();
+			}
 		}
+		else
+		{
+			//Follows pattern for models
+			if (rootElement != nullptr)
+			{
+				std::string name = rootElement->Name();
+				if (name == "collision")
+				{
+					m_radius = ParseXmlAttribute(*rootElement, "radius", m_radius);		
+				}
 
+				XMLElement* childElement = rootElement->FirstChildElement();
+
+				if (childElement != nullptr)
+				{
+					SetMeshIDsForResource(childElement);
+				}
+			}
+		}
 	}
 
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::SetMeshIDsForResource(XMLElement* xmlElement)
+{
+	m_meshIDMap[SOURCE] = ParseXmlAttribute(*xmlElement, "src", "");
+	m_meshIDMap[BASE] = ParseXmlAttribute(*xmlElement, "base", "");
+	m_meshIDMap[FULL] = ParseXmlAttribute(*xmlElement, "full", "");
+	m_meshIDMap[WEAK] = ParseXmlAttribute(*xmlElement, "weak", "");
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::MakeAnimationsForEntity(XMLElement* xmlElement, const IntVec2& dimensions, const std::string& id)
+{
+	std::string animID = ParseXmlAttribute(*xmlElement, "id", "idle");
+	int numFrames = ParseXmlAttribute(*xmlElement, "numFrames", 1);
+	int spritesEachFrame = ParseXmlAttribute(*xmlElement, "spritesEachFrame", 8);
+	float animTime = ParseXmlAttribute(*xmlElement, "animTime", 1.f);
+
+	SpriteSheet walkSheet = SpriteSheet(m_walkTexture, dimensions);
+	SpriteSheet attackSheet = SpriteSheet(m_attackTexture, dimensions);
+
+	if (animID == "idle")
+	{
+		int idleColumn = ParseXmlAttribute(*xmlElement, "idleColumn", 5);
+		MakeIdleCycle(walkSheet, numFrames, spritesEachFrame, idleColumn, id, animTime);
+	}
+	else if (animID == "walk")
+	{
+		MakeWalkCycle(walkSheet, numFrames, spritesEachFrame, id, animTime);
+	}
+	else if (animID == "death")
+	{
+		IntRange deathColumns = ParseXmlAttribute(*xmlElement, "deathColumn", IntRange(5, 7));
+		MakeDeathCycle(walkSheet, numFrames, spritesEachFrame, id, animTime, deathColumns);
+	}
+	else if (animID == "attack")
+	{
+		MakeAttackCycle(attackSheet, numFrames, spritesEachFrame, id, animTime);
+	}
+	else
+	{
+		ASSERT_RECOVERABLE(true, "Animation type not defined in project");
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -140,7 +179,7 @@ void Entity::Update(float deltaTime)
 	{
 		//Die
 		Game* game = Game::s_gameReference;
-		game->m_deathSoundPlayback = g_audio->Play3DSound(game->m_deathSoundID, m_position);
+		game->m_deathSoundPlayback = g_audio->Play3DSound(game->m_deathSoundID, m_position, game->m_SFXChannel);
 
 		m_position = m_targetPosition;
 		m_prevState = m_currentState;
@@ -252,15 +291,15 @@ void Entity::DamageUnit(Entity* target)
 	m_directionFacing.Normalize();
 
 	int frameNum = m_animationSet[m_currentState]->GetIsoSpriteFrameAtTime(m_currentAnimTime);
-	if (frameNum == 0 && !m_doingDamage)
+	if (frameNum == 3 && !m_doingDamage)
 	{
 		Game* game = Game::s_gameReference;
-		game->m_attackSoundPlayback = g_audio->Play3DSound(game->m_attackSoundID, m_position);
+		game->m_attackSoundPlayback = g_audio->Play3DSound(game->m_attackSoundID, m_position, game->m_SFXChannel);
 
 		target->TakeDamage(m_attackDamage);
 		m_doingDamage = true;
 	}
-	else if(frameNum != 0)
+	else if(frameNum != 3)
 	{
 		m_doingDamage = false;
 	}
@@ -502,6 +541,12 @@ void Entity::StopFollow()
 void Entity::StopAttack()
 {
 	m_unitToAttack = nullptr;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::SetAsResource(bool resource)
+{
+	m_isResource = resource;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

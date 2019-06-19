@@ -8,6 +8,7 @@
 #include "Engine/Math/Plane3D.hpp"
 #include "Engine/Math/Ray3D.hpp"
 #include "Engine/Math/Vertex_Lit.hpp"
+#include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/CPUMesh.hpp"
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
@@ -47,9 +48,44 @@ bool Map::Load( char const* filename )
 	UNUSED(filename);
 
 	m_terrainMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialName);
+	
+	LoadFoliageModels();
 
 	bool result = Create(64, 64);
 	return result;
+}
+
+void Map::LoadFoliageModels()
+{
+	//Open the xml file and parse it
+	tinyxml2::XMLDocument meshDoc;
+	meshDoc.LoadFile(m_treeModelsXMLFile.c_str());
+
+	if (meshDoc.ErrorID() != tinyxml2::XML_SUCCESS)
+	{
+
+		ERROR_AND_DIE(">> Error loading Mesh XML file ");
+		return;
+	}
+	else
+	{
+		//We loaded the file successfully
+		XMLElement* root = meshDoc.RootElement();
+		XMLElement* childElement = root->FirstChildElement();
+
+		std::string sourceName = "";
+
+		while (childElement != nullptr)
+		{
+			sourceName = ParseXmlAttribute(*childElement, "path", "");
+
+			if (sourceName != "")
+			{
+				g_renderContext->CreateOrGetMeshFromFile(sourceName);
+				childElement = childElement->NextSiblingElement();
+			}
+		}
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -329,9 +365,121 @@ void Map::RenderEntitySprites() const
 		if(m_entities[index] == nullptr)
 			continue;
 
-		IsoSpriteDefenition* isoSprite = &m_entities[index]->m_animationSet[m_entities[index]->m_currentState]->GetIsoSpriteAtTime(m_entities[index]->m_currentAnimTime);
-		DrawBillBoardedIsoSprites(m_entities[index]->GetPosition(), m_entities[index]->GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, m_entities[index]->GetType(), Rgba::WHITE, m_entities[index]->m_currentState);
+		switch (m_entities[index]->GetType())
+		{
+		case PEON:
+		case WARRIOR:
+		{
+			RenderIsoSpriteForEntity(*m_entities[index]);
+		}
+		break;
+		case TREE:
+		{
+
+		}
+		default:
+			break;
+		}
+
+		
 	}
+}
+
+void Map::RenderIsoSpriteForEntity(const Entity& entity) const
+{
+	IsoSpriteDefenition* isoSprite = &entity.m_animationSet[entity.m_currentState]->GetIsoSpriteAtTime(entity.m_currentAnimTime);
+	DrawBillBoardedIsoSprites(entity.GetPosition(), entity.GetDirectionFacing(), *isoSprite, *Game::s_gameReference->m_RTSCam, entity.GetType(), Rgba::WHITE, entity.m_currentState);
+
+	if (!entity.IsAlive())
+		return;
+
+	//DrawHealthBars(m_entit);
+	//Draw the health bar
+	Vec3 corners[4];
+
+	float width = m_healthBarWidth;
+	float height = m_healthBarHeight;
+	Vec2 pivot = m_healthBarPivot;
+
+	corners[0] = Vec3::ZERO + height * Vec3::UP;
+	corners[1] = Vec3::ZERO + height * Vec3::UP + width * Vec3::RIGHT;
+	corners[2] = Vec3::ZERO;
+	corners[3] = Vec3::ZERO + width * Vec3::RIGHT;
+
+	Vec2 localOffset = -1.f * (pivot * Vec2(width, height));
+	Vec3 worldOffset = localOffset.x * Vec3::RIGHT + localOffset.y * Vec3::UP;
+
+	// offset so pivot point is at position
+	for (uint i = 0; i < 4; ++i) {
+		corners[i] += worldOffset;
+	}
+
+	CPUMesh mesh;
+
+	AABB2 box = AABB2(corners[2], corners[1]);
+
+	CPUMeshAddQuad(&mesh, box, Rgba::BLACK);
+	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
+
+	//Billboard here
+
+	RTSCamera* camera = Game::s_gameReference->m_RTSCam;
+	Matrix44 mat = camera->GetModelMatrix();
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	objectModel.SetRotationFromMatrix(objectModel, mat);
+
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, -1.4f), objectModel);
+
+	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(m_quad);
+
+	//Making the actual health bar
+	float ratio = entity.GetHealth() / entity.GetMaxHealth();
+	width *= ratio;
+
+	corners[0] = Vec3::ZERO + height * Vec3::UP;
+	corners[1] = Vec3::ZERO + height * Vec3::UP + width * Vec3::RIGHT;
+	corners[2] = Vec3::ZERO;
+	corners[3] = Vec3::ZERO + width * Vec3::RIGHT;
+
+	localOffset = -1.f * (pivot * Vec2(width, height));
+	worldOffset = localOffset.x * Vec3::RIGHT + localOffset.y * Vec3::UP;
+
+	// offset so pivot point is at position
+	for (uint i = 0; i < 4; ++i) {
+		corners[i] += worldOffset;
+	}
+
+	mesh;
+
+	box = AABB2(corners[2], corners[1]);
+
+	Rgba drawColor = Rgba::GREEN;
+	if (ratio < 0.8f && ratio > 0.3f)
+	{
+		drawColor = Rgba::YELLOW;
+	}
+	else if (ratio < 0.3f)
+	{
+		drawColor = Rgba::RED;
+	}
+
+	CPUMeshAddQuad(&mesh, box, drawColor);
+	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
+
+	//Billboard here
+	mat = camera->GetModelMatrix();
+	objectModel = Matrix44::IDENTITY;
+	objectModel.SetRotationFromMatrix(objectModel, mat);
+
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, -1.4f), objectModel);
+
+	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(m_quad);
 }
 
 void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const
@@ -413,7 +561,19 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 		}
 		break;
 	case WARRIOR:
-		g_renderContext->BindTextureView(0U, Game::s_gameReference->m_warriorTexture);
+		switch (animState)
+		{
+		case ANIMATION_ATTACK:
+		{
+			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_warriorAttackTexture);
+		}
+		break;
+		default:
+		{
+			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_warriorTexture);
+		}
+		break;
+		}
 		break;
 	default:
 		break;
@@ -476,6 +636,11 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 		entity->SetType(WARRIOR);
 	}
 	break;
+	case TREE:
+	{
+		entity->MakeFromXML(m_treeXMLFile);
+		entity->SetType(TREE);
+	}
 	default:
 		break;
 	}
@@ -525,12 +690,12 @@ void Map::ResolveEntityCollisions()
 {
 	for (int entityIndex = 0; entityIndex < (int)m_entities.size(); ++entityIndex)
 	{
-		if(m_entities[entityIndex] == nullptr)
+		if(m_entities[entityIndex] == nullptr || !m_entities[entityIndex]->IsAlive())
 			continue;
 
 		for (int otherEntityIndex = entityIndex; otherEntityIndex < (int)m_entities.size(); ++otherEntityIndex)
 		{
-			if (m_entities[otherEntityIndex] == nullptr)
+			if (m_entities[otherEntityIndex] == nullptr || !m_entities[otherEntityIndex]->IsAlive())
 				continue;
 
 			//Push them out of each other

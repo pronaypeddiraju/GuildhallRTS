@@ -1,22 +1,36 @@
 <unit id = "warrior"
       health = "80"
-      speed = "20"
-      selectable = "true">
+      speed = "5"
+      selectable = "true"
+      resource="false">
 
    <!-- what animations to play when doing a certain action -->
-   <animset texture = "warrior.walkdeath.png"
+   <animset walkTexture = "warrior.walkdeath.png"
+            attackTexture = "warrior.attack.png"
             sheetDimensions = "8, 8"
             pivot = ".5, .25" >
 
       <anim id = "idle"
          numFrames = "1"
          spritesEachFrame = "8"
-         animTime = "1" />
+         animTime = "1"
+         idleColumn = "5" />
 
       <anim id = "walk" 
          numFrames = "5"
          spritesEachFrame = "8"
          animTime = "0.5" />
+
+      <anim id = "death"
+         numFrames = "3"
+         spritesEachFrame = "8"
+         animTime = "1" 
+         deathColumn = "5, 7"/>
+
+      <anim id = "attack" 
+         numFrames = "6"
+         spritesEachFrame = "8"
+         animTime = "1" />
 
    </animset>
    

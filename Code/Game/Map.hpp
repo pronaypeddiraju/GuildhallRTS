@@ -43,7 +43,8 @@ public:
 
 	//For now load just calls create with 64x64 as parameters
 	bool				Load( char const* filename );          
-	bool				Create( int mapWidth, int mapHeight ); 
+	void				LoadFoliageModels();
+	bool				Create(int mapWidth, int mapHeight);
 
 	void				Update(float deltaTime); 
 	void				UpdateEntities(float deltaTime);
@@ -54,6 +55,7 @@ public:
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
 	void				RenderEntities() const;
 	void				RenderEntitySprites() const;
+	void				RenderIsoSpriteForEntity(const Entity& entity) const;
 	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 
@@ -109,10 +111,17 @@ private:
 	float					m_entitySelectRadius = 1.f;
 	float					m_entitySelectWidth = 0.1f;
 
+	//Heath bar data
+	float					m_healthBarWidth = 1.f;
+	float					m_healthBarHeight = 0.1f;
+	Vec2					m_healthBarPivot = Vec2(0.5, -2.0f);
+
 	GPUMesh*				m_quad = nullptr;
 	//Matrix44				m_quadTransfrom;
 
 	//Data driving 
 	std::string				m_peonXMLFile = "Data/Gameplay/peon.xml";
 	std::string				m_warriorXMLFile = "Data/Gameplay/warrior.xml";
+	std::string				m_treeXMLFile = "Data/Gameplay/tree.xml";
+	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
 };

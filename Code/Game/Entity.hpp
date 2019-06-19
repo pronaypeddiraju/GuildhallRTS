@@ -4,6 +4,7 @@
 #include "Engine/Commons/EngineCommon.hpp"
 #include "Engine/Math/Vec3.hpp"
 #include "Engine/Math/Capsule3D.hpp"
+#include "Engine/Core/XMLUtils/XMLUtils.hpp"
 
 //Game Systems
 #include "Game/GameHandle.hpp"
@@ -34,6 +35,8 @@ public:
 	~Entity();
 
 	void					MakeFromXML(const std::string& fileName);
+	void					SetMeshIDsForResource(XMLElement* xmlElement);
+	void					MakeAnimationsForEntity(XMLElement* xmlElement, const IntVec2& dimensions, const std::string& id);
 
 	void					Update(float deltaTime);
 	void					UpdateAnimations(float deltaTime);
@@ -50,8 +53,6 @@ public:
 											float durationSeconds, const std::string& animName,
 											const std::vector<IsoSpriteDefenition>& isoSpriteDefs,
 											SpriteAnimPlaybackType playbackType = SPRITE_ANIM_PLAYBACK_ONCE);
-
-	//void					SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType);
 
 	void					ResetTaskData();
 	void					DamageUnit(Entity* target);
@@ -82,23 +83,21 @@ public:
 	void					StopFollow();
 	void					StopAttack();
 
-	inline EntityTypeT		GetType() { return m_type; }
+	//Resource Actions
+	void					SetAsResource(bool resource);
+
+	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
 
 	inline int				GetTeam() { return m_team; }
 	inline void				SetTeam(int team) { m_team = team; }
 
-	inline float			GetHealth() { return m_health; }
-	inline float			GetMaxHealth() { return m_maxHealth; }
+	inline const float		GetHealth() const  { return m_health; }
+	inline const float		GetMaxHealth() const  { return m_maxHealth; }
 	inline void				SetHealth(float health) { m_health = health; }
 	inline void				TakeDamage(float damage) { m_health -= damage; }
 	inline float			GetAttackDamage() { return m_attackDamage; }
 
-	//To handle events
-	//void					HandleEvents(char const* eventName);
-
-	// return just one result if it hits - return the closest result
-	// depending on its physics collision
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
 
 	//Task Handling
@@ -109,7 +108,6 @@ public:
 public:
 	//Animation Data
 	IsoAnimDefenition*	m_animationSet[eAnimationType::ANIMATION_COUNT];
-	// AnimationDefinition *m_currentAnimation; 
 	eAnimationType		m_currentState = ANIMATION_IDLE;
 	eAnimationType		m_prevState = ANIMATION_IDLE;
 	float				m_currentAnimTime = 0.f;
@@ -141,7 +139,11 @@ private:
 	bool			m_doingDamage = false;
 	bool			m_isGarbage = false;
 
-	// UI collision
+	//Resource Information
+	bool			m_isResource = false;
+	std::map<ResourceMeshT, std::string>	m_meshIDMap;
+
+	// collision
 	float			m_height = 1.f;
 	float			m_radius = 0.5f;
 	float			m_proximitySquared = 2.3f;

@@ -1,7 +1,8 @@
 <unit id = "peon"
       health = "40"
-      speed = "1"
-      selectable = "true">
+      speed = "3"
+      selectable = "true"
+      resource="false">
 
    <!-- what animations to play when doing a certain action -->
    <animset walkTexture = "peon.walkdeath.png"

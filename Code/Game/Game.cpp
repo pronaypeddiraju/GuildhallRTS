@@ -1877,8 +1877,11 @@ void Game::LoadInitMesh()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadAudioResources()
 {
-	m_attackSoundID = g_audio->CreateOrGetSound3D(m_attackSoundPath, false, false);
-	m_deathSoundID = g_audio->CreateOrGetSound3D(m_deathSoundPath, false, false);
+	m_attackSoundID = g_audio->CreateOrGetSound3D(m_attackSoundPath);
+	m_deathSoundID = g_audio->CreateOrGetSound3D(m_deathSoundPath);
+
+	m_musicChannel = g_audio->CreateOrGetChannelGroup("BGM");
+	m_SFXChannel = g_audio->CreateOrGetChannelGroup("SFX");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

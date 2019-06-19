@@ -178,6 +178,9 @@ public:
 	SoundID								m_attackSoundID = NULL;
 	SoundPlaybackID						m_attackSoundPlayback = NULL;
 
+	ChannelGroupID						m_SFXChannel;
+	ChannelGroupID						m_musicChannel;
+
 	bool								m_beginMapLoad = false;
 	bool								m_beginEditLoad = false;
 

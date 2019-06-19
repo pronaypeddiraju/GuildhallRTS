@@ -3,5 +3,14 @@
 enum EntityTypeT
 {
 	PEON,
-	WARRIOR
+	WARRIOR,
+	TREE
+};
+
+enum ResourceMeshT
+{
+	SOURCE,
+	BASE,
+	FULL,
+	WEAK
 };

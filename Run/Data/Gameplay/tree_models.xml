@@ -1,0 +1,6 @@
+<meshes>
+	<dataFile path = "foliage/pine01.bark.mesh" />
+	<dataFile path = "foliage/pine01.leaves.mesh" />
+	<dataFile path = "foliage/pine01.stump.mesh" />
+	<dataFile path = "foliage/pine01.whole.mesh" />
+</meshes>
