@@ -1,13 +1,15 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 #include "Game/GameHandle.hpp"
+#include "Engine/Math/Vec2.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 enum TaskTypeT
 {
 	FOLLOW,
 	ATTACK,
-	GATHER
+	GATHER,
+	BUILD
 };
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -59,4 +61,17 @@ public:
 public:
 	GameHandle m_thisUnit;
 	GameHandle m_unitToGather;
+};
+
+//------------------------------------------------------------------------------------------------------------------------------
+class BuildTask : RTSTask
+{
+public:
+	BuildTask(const GameHandle& thisUnit, const Vec2& buildLocation);
+	~BuildTask();
+	virtual void Execute();
+
+public:
+	GameHandle m_thisUnit;
+	Vec2 m_buildLocation;
 };

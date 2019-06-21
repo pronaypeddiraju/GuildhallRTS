@@ -13,6 +13,7 @@
 #include "Engine/Renderer/RenderContext.hpp"
 //Game Systems
 #include "Game/Game.hpp"
+#include "Game/GameInput.hpp"
 #include "Game/IsoAnimDefenition.hpp"
 #include "Game/RTSTask.hpp"
 
@@ -237,13 +238,6 @@ void Entity::UpdateAnimations(float deltaTime)
 				m_currentState = ANIMATION_WALK;
 			}
 		}
-		else if (magnitude < m_speed * deltaTime)
-		{
-			m_position = m_targetPosition;
-			m_prevState = m_currentState;
-			m_currentState = ANIMATION_IDLE;
-			m_currentAnimTime = 0.f;
-		}
 		else if (m_unitToGather != nullptr)
 		{
 			Vec2 gatherUnitPosition = m_unitToGather->GetPosition();
@@ -264,6 +258,13 @@ void Entity::UpdateAnimations(float deltaTime)
 				m_prevState = m_currentState;
 				m_currentState = ANIMATION_WALK;
 			}
+		}
+		else if (magnitude < m_speed * deltaTime)
+		{
+			m_position = m_targetPosition;
+			m_prevState = m_currentState;
+			m_currentState = ANIMATION_IDLE;
+			m_currentAnimTime = 0.f;
 		}
 		else
 		{
@@ -314,6 +315,21 @@ void Entity::CheckTasks()
 		}
 	}
 
+	//Check if I need to build something
+	if (m_buildLocation != Vec2::ZERO)
+	{
+		if (GetDistanceSquared2D(m_buildLocation, m_position) < m_proximitySquared)
+		{
+			MoveTo(m_position);
+			Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER);
+			m_buildLocation = Vec2::ZERO;
+		}
+		else
+		{
+			MoveTo(m_buildLocation);
+		}
+	}
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -359,10 +375,15 @@ void Entity::GatherUnit(Entity* target)
 		Game* game = Game::s_gameReference;
 		game->m_attackSoundPlayback = g_audio->Play3DSound(game->m_attackSoundID, m_position, game->m_SFXChannel);
 
-		UNIMPLEMENTED("Resource Apply");
-		//float gainedResource = target->DrainResource(m_attackDamage);
+		DamageUnit(target);
 
 		//Apply your resource here
+		m_currentResourceInventory += m_attackDamage;
+		if (m_currentResourceInventory > m_totalResourceInventory)
+		{
+			m_currentResourceInventory = m_totalResourceInventory;
+			//DropOffResources();
+		}
 
 		m_doingDamage = true;
 	}
@@ -476,12 +497,6 @@ IsoAnimDefenition Entity::MakeIsoAnimDef(const SpriteSheet& spriteSheet, int sta
 	return animDef;
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-// void Entity::SetAnimation(IsoAnimDefenition& animDef, eAnimationType animType)
-// {
-// 	m_animationSet[animType] = &animDef;
-// }
-
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::ResetTaskData()
 {
@@ -539,6 +554,12 @@ bool Entity::IsAlive() const
 bool Entity::IsResource() const
 {
 	return m_isResource;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::IsBuilding() const
+{
+	return m_isBuilding;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -644,6 +665,26 @@ const std::string& Entity::GetMeshIDForState(ResourceMeshT meshType) const
 	}
 	
 	ASSERT_RECOVERABLE(true, "Mesh type doesn't exist");
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::SetAsBuilding(bool building)
+{
+	m_isBuilding = building;
+	m_speed = 0.f;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::Build(const Vec2& buildPos)
+{
+	m_buildLocation = buildPos;
+	MoveTo(m_buildLocation);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::DrainResource(float damage)
+{
+	m_health -= damage;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

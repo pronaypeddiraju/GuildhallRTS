@@ -936,6 +936,8 @@ void Game::RenderGameUI() const
 			text += std::to_string(entity->GetHealth());
 			text += " Team: ";
 			text += std::to_string(team);
+			text += " Inventory: ";
+			text += std::to_string(entity->GetCurrentResource());
 
 			if (healthRatio > 0.8f)
 			{
@@ -1799,7 +1801,7 @@ void Game::LoadInitMesh()
 	m_lastState = STATE_LOAD;
 	if (m_initMesh == nullptr)
 	{
-		//m_initMesh = new Model(g_renderContext, m_objectPath);
+		m_initMesh = new Model(g_renderContext, m_objectPath);
 	}
 	m_lastState = m_gameState;
 }

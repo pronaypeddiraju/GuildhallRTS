@@ -1,5 +1,7 @@
 #include "Game/RTSTask.hpp"
+//Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
+//Game Systems
 #include "Game/Map.hpp"
 #include "Game/Game.hpp"
 #include "Game/Entity.hpp"
@@ -88,3 +90,27 @@ void GatherTask::Execute()
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+BuildTask::BuildTask(const GameHandle& thisUnit, const Vec2& buildLocation)
+	:RTSTask(BUILD)
+{
+	m_thisUnit = thisUnit;
+	m_buildLocation = buildLocation;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+BuildTask::~BuildTask()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void BuildTask::Execute()
+{
+	Map* map = Game::s_gameReference->m_map;
+	Entity *thisEntity = map->FindEntity(m_thisUnit);
+	if (thisEntity != nullptr)
+	{
+		thisEntity->Build(m_buildLocation);
+	}
+}

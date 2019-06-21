@@ -23,6 +23,7 @@ public:
 	void								BeginFrame();
 	
 	void								Update( float deltaTime ); 
+	void								SetupMapCastPosition();
 	void								UpdateKeyBoardPan();
 	void								UpdateMousePan();
 	void								UpdateGameControllerInput();
@@ -80,6 +81,7 @@ public:
 	float m_frameZoom				 = 0.f;
 
 	bool m_isRotating				 = false;
+	bool m_buildingSpawnSelect		 = false;
 
 	bool m_APressed					 = false;
 	bool m_WPressed					 = false;
@@ -89,6 +91,8 @@ public:
 	bool m_LMousePressed			 = true;
 
 	bool m_shiftPressed = true;
+
+	Vec2 m_terrainCastLocation = Vec2::ZERO;
 
 	AABB2 m_screenBounds;
 

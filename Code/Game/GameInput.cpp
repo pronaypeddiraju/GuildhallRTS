@@ -58,6 +58,26 @@ void GameInput::Update( float deltaTime )
 	m_frameRotation *= deltaTime;
 
 	UpdateGameControllerInput();
+
+	if (m_buildingSpawnSelect)
+	{
+		SetupMapCastPosition();
+		
+	}
+}
+
+void GameInput::SetupMapCastPosition()
+{
+	IntVec2 mousePosition = g_windowContext->GetClientMousePosition();
+	IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
+	Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
+
+	//Select the map if we hit that
+	float terrainOut[2];
+	m_game->m_map->RaycastTerrain(terrainOut, ray);
+
+	Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
+	m_terrainCastLocation = Vec2(dest.x, dest.y);
 }
 
 void GameInput::UpdateGameControllerInput()
@@ -357,67 +377,53 @@ bool GameInput::HandleMouseRBDown()
 
 			Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
 
-			if (!m_shiftPressed)
+			if (m_shiftPressed)
 			{
-				if (entity)
+				thisEntity->ClearTasks();
+			}
+
+			if (entity)
+			{
+				if (entity->GetTeam() == thisEntity->GetTeam())
 				{
-					if (entity->GetTeam() == thisEntity->GetTeam())
+					//Follow entity
+					FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
+					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
+				}
+				else if (entity->GetTeam() != thisEntity->GetTeam() && !entity->IsResource())
+				{
+					//Fuck up your enemies						
+					AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
+					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
+				}
+				else if (entity->IsResource())
+				{
+					if (thisEntity->GetType() == PEON)
 					{
-						//Follow entity
-						FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
-						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
-					}
-					else if(entity->GetTeam() != thisEntity->GetTeam() && !entity->IsResource())
-					{
-						//Fuck up your enemies						
-						AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
-						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
-					}
-					else if (entity->IsResource())
-					{
+						//Gather some shit
 						GatherTask *gatherTask = new GatherTask(m_selectionHandles[selectIndex], entity->GetHandle());
 						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(gatherTask));
 					}
-				}
-				else
-				{
-					Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
-					MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
-					m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
-					thisEntity->ResetTaskData();
-					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+					else
+					{
+						MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], entity->GetPosition());
+						m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
+						thisEntity->ResetTaskData();
+						m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+					}
 				}
 			}
 			else
 			{
-				//Shift was pressed so clear queue and add a Task
-				if (entity)
-				{
-					if (entity->GetTeam() == thisEntity->GetTeam())
-					{
-						//Follow your boy
-						FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
-						thisEntity->ClearTasks();
-						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
-					}
-					else if (entity->GetTeam() != thisEntity->GetTeam())
-					{
-						//Fuck up your enemies						
-						AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
-						thisEntity->ClearTasks();
-						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
-					}
-				}
-				else
-				{
-					Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
-					MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], Vec2(dest.x, dest.y));
-					m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
-					thisEntity->ResetTaskData();
-					thisEntity->ClearTasks();
-					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
-				}
+				Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
+				m_terrainCastLocation = Vec2(dest.x, dest.y);
+
+				MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], m_terrainCastLocation);
+				m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
+				thisEntity->ResetTaskData();
+				m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
 			}
+
 		}
 	}
 
@@ -516,6 +522,54 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		}
 
 		SpawnUnit(TREE);
+	}
+	break;
+	case B_KEY:
+	{
+		if (Game::s_gameReference->m_gameState != STATE_EDIT && Game::s_gameReference->m_gameState != STATE_PLAY)
+		{
+			return;
+		}
+
+		if (m_buildingSpawnSelect)
+		{
+
+			for (int i = 0; i < m_selectionHandles.size(); i++)
+			{
+				if (m_selectionHandles[i] != GameHandle::INVALID)
+				{
+					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
+					if (thisEntity->GetType() == PEON)
+					{
+						//build some shit
+						BuildTask *buildTask = new BuildTask(m_selectionHandles[i], m_terrainCastLocation);
+						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
+						m_buildingSpawnSelect = false;
+						break;
+					}
+				}
+			}
+			//SpawnUnit(TOWNCENTER);
+		}
+		else
+		{
+			for (int i = 0; i < m_selectionHandles.size(); i++)
+			{
+				if (m_selectionHandles[i] != GameHandle::INVALID)
+				{
+					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
+					if (thisEntity->GetType() == PEON)
+					{
+						if (!m_buildingSpawnSelect)
+						{
+							m_buildingSpawnSelect = true;
+						}
+						break;
+					}
+				}
+			}
+		}
+		
 	}
 	break;
 	case LSHIFT_KEY:
@@ -621,32 +675,8 @@ void GameInput::SpawnUnit(EntityTypeT type)
 		Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
 		Vec3 point = camPosition + ray.m_direction * out[0];
 
-		switch (type)
-		{
-		case PEON:
-		{
-			//Use the command on game here
-			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), PEON);
-			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-		}
-		break;
-		case WARRIOR:
-		{
-			//Use the command on game here
-			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), WARRIOR);
-			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-		}
-		break;
-		case TREE:
-		{
-			//Use the command on game here
-			CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), TREE);
-			m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-		}
-		break;
-		default:
-			break;
-		}
+		CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), type);
+		m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
 	}
 }
 

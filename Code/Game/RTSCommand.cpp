@@ -34,18 +34,24 @@ VIRTUAL void CreateEntityCommand::Execute()
 	{
 	case PEON:
 	{
-		map->CreateEntity(m_createPosition, "peon", *Game::s_gameReference->m_peonSheet, m_entityType, team);
+		map->CreateEntity(m_createPosition, m_entityType, team);
 	}
 	break;
 	case WARRIOR:
 	{
-		map->CreateEntity(m_createPosition, "warrior", *Game::s_gameReference->m_warriorSheet, m_entityType, team);
+		map->CreateEntity(m_createPosition, m_entityType, team);
 	}
 	break;
 	case TREE:
 	{
-		map->CreateEntity(m_createPosition, "tree", *Game::s_gameReference->m_warriorSheet, m_entityType, team);
+		map->CreateEntity(m_createPosition, m_entityType, team);
 	}
+	break;
+	case TOWNCENTER:
+	{
+		map->CreateEntity(m_createPosition, m_entityType, team);
+	}
+	break;
 	default:
 		break;
 	}

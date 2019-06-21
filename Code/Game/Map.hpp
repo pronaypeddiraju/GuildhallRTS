@@ -56,9 +56,11 @@ public:
 
 	void				RenderTerrain( Material* matOverride = nullptr ) const;
 	void				RenderEntities() const;
-	void				RenderEntitySprites() const;
+	void				RenderEntityData() const;
 	void				RenderIsoSpriteForEntity(const Entity& entity) const;
 	void				RenderResourceEntity(const Entity& entity) const;
+	void				RenderTownCenter(const Entity& entity) const;
+	void				RenderBuildingPreview() const;
 	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 
@@ -66,7 +68,7 @@ public:
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
 
 	// Entity Methods
-	Entity*				CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType, int team = 1);
+	Entity*				CreateEntity(const Vec2& pos, EntityTypeT entityType, int team = 1);
 	Entity*				FindEntity(const GameHandle& handle) const;
 	Entity*				GetEntityAtIndex(int index);
 	void				ResolveEntityCollisions();
@@ -106,6 +108,7 @@ private:
 	std::map<std::string, Model*>	m_treeModelsMap;
 	
 	//Building Models
+	Model*					m_townCenter = nullptr;
 
 	AABB2					m_mapBounds;
 
@@ -133,4 +136,6 @@ private:
 	std::string				m_treeXMLFile = "Data/Gameplay/tree.xml";
 	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
 	std::string				m_treeMaterialFile = "Data/Models/foliage/foliage.mat";
+	std::string				m_townCenterModelFile = "building/towncenter.mesh";
+	std::string				m_townCenterMaterial = "building/towncenter.mat";
 };

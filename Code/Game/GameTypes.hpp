@@ -4,7 +4,8 @@ enum EntityTypeT
 {
 	PEON,
 	WARRIOR,
-	TREE
+	TREE,
+	TOWNCENTER
 };
 
 enum ResourceMeshT

@@ -66,6 +66,7 @@ public:
 	bool					IsGarbage() const;
 	bool					IsAlive() const;
 	bool					IsResource() const;
+	bool					IsBuilding() const;
 
 	void					SetPosition(Vec2 pos);
 	void					ResetTargetPosition();
@@ -90,6 +91,10 @@ public:
 	void					SetAsResource(bool resource);
 	const std::string&		GetMeshIDForState(ResourceMeshT meshType) const;
 
+	//Building Actions
+	void					SetAsBuilding(bool building);
+	void					Build(const Vec2& buildPos);
+
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
 
@@ -97,10 +102,11 @@ public:
 	inline void				SetTeam(int team) { m_team = team; }
 
 	inline const float		GetHealth() const  { return m_health; }
+	inline const float		GetCurrentResource() const { return m_currentResourceInventory; }
 	inline const float		GetMaxHealth() const  { return m_maxHealth; }
 	inline void				SetHealth(float health) { m_health = health; }
 	inline void				TakeDamage(float damage) { m_health -= damage; }
-	//float					DrainResource(float damage);
+	void					DrainResource(float damage);
 	inline float			GetAttackDamage() { return m_attackDamage; }
 
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
@@ -150,6 +156,10 @@ private:
 	//Resource Information
 	bool			m_isResource = false;
 	std::map<ResourceMeshT, std::string>	m_meshIDMap;
+
+	//Build Information
+	bool			m_isBuilding = false;
+	Vec2			m_buildLocation = Vec2::ZERO;
 
 	// collision
 	float			m_height = 1.f;

@@ -13,6 +13,7 @@
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
+#include "Engine/Renderer/Model.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/SpriteDefenition.hpp"
 #include "Engine/Renderer/Camera.hpp"
@@ -48,7 +49,8 @@ bool Map::Load( char const* filename )
 	UNUSED(filename);
 
 	m_terrainMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialName);
-	
+	m_townCenter = Game::s_gameReference->m_initMesh;
+
 	LoadFoliageModels();
 
 	bool result = Create(64, 64);
@@ -241,7 +243,14 @@ void Map::Render() const
 {
 	RenderTerrain(m_terrainMaterial);
 	//RenderEntities();
-	RenderEntitySprites();
+	RenderEntityData();
+
+	GameInput* controller = Game::s_gameReference->m_gameInput;
+	if ( controller->m_buildingSpawnSelect)
+	{
+		//Show building preview
+		RenderBuildingPreview();
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -315,7 +324,7 @@ void Map::RenderEntities() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Map::RenderEntitySprites() const
+void Map::RenderEntityData() const
 {
 	//First draw a ring under any selected entity
 	g_renderContext->BindShader(Game::s_gameReference->m_shader);
@@ -379,6 +388,12 @@ void Map::RenderEntitySprites() const
 		{
 			RenderResourceEntity(*m_entities[index]);
 		}
+		break;
+		case TOWNCENTER:
+		{
+			RenderTownCenter(*m_entities[index]);
+		}
+		break;
 		default:
 			break;
 		}
@@ -521,6 +536,36 @@ void Map::RenderResourceEntity(const Entity& entity) const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Map::RenderTownCenter(const Entity& entity) const
+{
+	//float ratio = entity.GetHealth() / entity.GetMaxHealth();
+	//Render the model at entity position
+
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	//objectModel = objectModel.MakeUniformScale3D(0.00390625f);
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
+
+	g_renderContext->BindMaterial(m_townCenter->m_material);
+	g_renderContext->BindModelMatrix(objectModel);
+	//g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(m_townCenter->m_mesh);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::RenderBuildingPreview() const
+{
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	//objectModel = objectModel.MakeUniformScale3D(0.00390625f);
+	Vec3 terrainPos = Vec3(Game::s_gameReference->m_gameInput->m_terrainCastLocation);
+	objectModel = Matrix44::SetTranslation3D(terrainPos, objectModel);
+
+	g_renderContext->BindMaterial(m_townCenter->m_material);
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(m_townCenter->m_mesh);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const
 {
 	Matrix44 viewMat = camera.GetViewMatrix();
@@ -647,11 +692,8 @@ AABB2 Map::GetXYBounds() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const SpriteSheet& spriteSheet, EntityTypeT entityType, int team )
+Entity* Map::CreateEntity(const Vec2& pos, EntityTypeT entityType, int team )
 {
-	UNUSED(spriteSheet);
-	UNUSED(entityName);
-
 	uint slot = GetFreeEntityIndex();
 	uint cyclicID = GetNextCyclicID();
 
@@ -669,9 +711,6 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 	break;
 	case WARRIOR:
 	{
-		//entity->MakeWalkCycle(spriteSheet, 5, 8, entityName);
-		//entity->MakeIdleCycle(spriteSheet, 1, 8, 5, entityName);
-
 		entity->MakeFromXML(m_warriorXMLFile);
 		entity->SetType(WARRIOR);
 	}
@@ -681,6 +720,13 @@ Entity* Map::CreateEntity(const Vec2& pos, const std::string& entityName, const 
 		entity->MakeFromXML(m_treeXMLFile);
 		entity->SetType(TREE);
 	}
+	break;
+	case TOWNCENTER:
+	{
+		entity->SetAsBuilding(true);
+		entity->SetType(TOWNCENTER);
+	}
+	break;
 	default:
 		break;
 	}
@@ -741,12 +787,12 @@ void Map::ResolveEntityCollisions()
 			//Push them out of each other
 			if (DoDiscsOverlap(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(), m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius()))
 			{
-				if (m_entities[otherEntityIndex]->GetTeam() == 0)
+				if (m_entities[otherEntityIndex]->GetTeam() == 0 || m_entities[otherEntityIndex]->IsBuilding())
 				{
 					PushDiscOutOfDisc(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(),
 						m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius());
 				}
-				else if (m_entities[entityIndex]->GetTeam() == 0)
+				else if (m_entities[entityIndex]->GetTeam() == 0 || m_entities[entityIndex]->IsBuilding())
 				{
 					PushDiscOutOfDisc(m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius(),
 						m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius());
