@@ -321,7 +321,7 @@ void Entity::CheckTasks()
 		if (GetDistanceSquared2D(m_buildLocation, m_position) < m_proximitySquared)
 		{
 			MoveTo(m_position);
-			Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER);
+			Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
 			m_buildLocation = Vec2::ZERO;
 		}
 		else

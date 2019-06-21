@@ -58,7 +58,7 @@ public:
 
 	//Actions
 	void								SetTeamForSelectedEntities(int teamNum);
-	void								SpawnUnit(EntityTypeT type);
+	void								SpawnUnit(EntityTypeT type, const Vec2& buildPos = Vec2::ZERO);
 
 public:
 	// Configuration - Keyboard Input

@@ -384,6 +384,9 @@ bool GameInput::HandleMouseRBDown()
 
 			if (entity)
 			{
+
+				thisEntity->ResetTaskData();
+
 				if (entity->GetTeam() == thisEntity->GetTeam())
 				{
 					//Follow entity
@@ -658,7 +661,7 @@ void GameInput::SetTeamForSelectedEntities(int teamNum)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void GameInput::SpawnUnit(EntityTypeT type)
+void GameInput::SpawnUnit(EntityTypeT type, const Vec2& buildPos)
 {
 	//Create entity here using the command
 	IntVec2 mousePos = g_windowContext->GetClientMousePosition();
@@ -675,7 +678,16 @@ void GameInput::SpawnUnit(EntityTypeT type)
 		Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
 		Vec3 point = camPosition + ray.m_direction * out[0];
 
-		CreateEntityCommand* command = new CreateEntityCommand(Vec2(point.x, point.y), type);
+		CreateEntityCommand* command;
+
+		if (type == TOWNCENTER)
+		{
+			command = new CreateEntityCommand(buildPos, type);
+		}
+		else
+		{
+			command = new CreateEntityCommand(Vec2(point.x, point.y), type);
+		}
 		m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
 	}
 }
