@@ -506,7 +506,7 @@ void Map::RenderResourceEntity(const Entity& entity) const
 	}
 
 	Matrix44 objectModel = Matrix44::IDENTITY;
-	objectModel = objectModel.MakeUniformScale3D(0.00390625f);
+	//objectModel = objectModel.MakeUniformScale3D(0.00390625f);
 	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
 
 	if (mesh == nullptr)
@@ -733,7 +733,7 @@ void Map::ResolveEntityCollisions()
 		if(m_entities[entityIndex] == nullptr || !m_entities[entityIndex]->IsAlive())
 			continue;
 
-		for (int otherEntityIndex = entityIndex; otherEntityIndex < (int)m_entities.size(); ++otherEntityIndex)
+		for (int otherEntityIndex = entityIndex + 1; otherEntityIndex < (int)m_entities.size(); ++otherEntityIndex)
 		{
 			if (m_entities[otherEntityIndex] == nullptr || !m_entities[otherEntityIndex]->IsAlive())
 				continue;
@@ -741,8 +741,21 @@ void Map::ResolveEntityCollisions()
 			//Push them out of each other
 			if (DoDiscsOverlap(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(), m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius()))
 			{
-				PushDiscsApart(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(),
-					m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius());
+				if (m_entities[otherEntityIndex]->GetTeam() == 0)
+				{
+					PushDiscOutOfDisc(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(),
+						m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius());
+				}
+				else if (m_entities[entityIndex]->GetTeam() == 0)
+				{
+					PushDiscOutOfDisc(m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius(),
+						m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius());
+				}
+				else
+				{
+					PushDiscsApart(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(),
+						m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius());
+				}
 			}
 		}
 	}

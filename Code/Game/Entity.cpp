@@ -547,6 +547,10 @@ void Entity::StopAttack()
 void Entity::SetAsResource(bool resource)
 {
 	m_isResource = resource;
+	if (resource)
+	{
+		m_team = 0;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -558,10 +562,8 @@ const std::string& Entity::GetMeshIDForState(ResourceMeshT meshType) const
 		//Model requested exists in the map
 		return requestedMeshID->second;
 	}
-	else
-	{
-		ASSERT_RECOVERABLE(true, "Mesh type doesn't exist");
-	}
+	
+	ASSERT_RECOVERABLE(true, "Mesh type doesn't exist");
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

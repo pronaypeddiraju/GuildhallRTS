@@ -1799,7 +1799,7 @@ void Game::LoadInitMesh()
 	m_lastState = STATE_LOAD;
 	if (m_initMesh == nullptr)
 	{
-		m_initMesh = new Model(g_renderContext, m_objectPath);
+		//m_initMesh = new Model(g_renderContext, m_objectPath);
 	}
 	m_lastState = m_gameState;
 }
