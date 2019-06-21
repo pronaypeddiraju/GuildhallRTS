@@ -887,6 +887,7 @@ void Game::RenderGameState() const
 	g_renderContext->BindMaterial(m_testMaterial);
 
 	RenderGameUI();
+	RenderSelectionUI();
 
 	g_renderContext->EndCamera();
 }
@@ -957,6 +958,62 @@ void Game::RenderGameUI() const
 	}
 
 	g_renderContext->DrawVertexArray(textVerts);
+}
+
+void Game::RenderSelectionUI() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	std::vector<Vertex_PCU> textVerts;
+
+	Vec2 textPos = Vec2(440.0f, 340.f);
+	int numSelected = (int)m_gameInput->m_selectionHandles.size();
+
+	if (numSelected > 0)
+	{
+		//Get the first entity and show their tasks
+		Entity* entity = m_map->FindEntity(m_gameInput->m_selectionHandles[0]);
+
+		if (entity == nullptr)
+			return;
+
+		EntityTypeT type = entity->GetType();
+
+		std::string text = "Tasks: ";
+		Rgba textColor = Rgba::GREEN;
+
+		switch (type)
+		{
+		case PEON:
+		{
+			text = "\n 2. Move To ";
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 10.f), 10.f, text, textColor);
+			text = "\n 3. Attack ";
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 20.f), 10.f, text, textColor);
+			text = "\n 4. Gather ";
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 30.f), 10.f, text, textColor);
+			text = "\n 5. Build ";
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 40.f), 10.f, text, textColor);
+		}
+		break;
+		case WARRIOR:
+		{
+			text = "\n 2. Move To ";
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 10.f), 10.f, text, textColor);
+			text = "\n 3. Attack ";
+			m_squirrelFont->AddVertsForText2D(textVerts, textPos - Vec2(0.f, 20.f), 10.f, text, textColor);
+		}
+		break;
+		default:
+			break;
+		}
+	}
+
+	if (textVerts.size() > 0)
+	{
+		g_renderContext->DrawVertexArray(textVerts);
+	}
+	
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
