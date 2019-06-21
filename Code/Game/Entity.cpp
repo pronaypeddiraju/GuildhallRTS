@@ -244,6 +244,27 @@ void Entity::UpdateAnimations(float deltaTime)
 			m_currentState = ANIMATION_IDLE;
 			m_currentAnimTime = 0.f;
 		}
+		else if (m_unitToGather != nullptr)
+		{
+			Vec2 gatherUnitPosition = m_unitToGather->GetPosition();
+			float distanceSq = GetDistanceSquared2D(gatherUnitPosition, m_position);
+			if (distanceSq < m_proximitySquared)
+			{
+				m_position = m_targetPosition;
+				m_prevState = m_currentState;
+				if (m_currentState != ANIMATION_ATTACK)
+				{
+					m_currentAnimTime = 0.f;
+				}
+				m_currentState = ANIMATION_ATTACK;
+			}
+			else
+			{
+				m_position += disp.GetNormalized() * m_speed * deltaTime;
+				m_prevState = m_currentState;
+				m_currentState = ANIMATION_WALK;
+			}
+		}
 		else
 		{
 			m_position += disp.GetNormalized() * m_speed * deltaTime;
@@ -277,6 +298,22 @@ void Entity::CheckTasks()
 		}
 	}
 	
+	//Check if I need to gather something
+	if (m_unitToGather != nullptr)
+	{
+		//Am I next to the unit?
+		Vec2 gatherUnitPos = m_unitToGather->GetPosition();
+		if (GetDistanceSquared2D(gatherUnitPos, m_position) < m_proximitySquared)
+		{
+			MoveTo(m_position);
+			GatherUnit(m_unitToGather);
+		}
+		else
+		{
+			MoveTo(gatherUnitPos);
+		}
+	}
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -300,6 +337,36 @@ void Entity::DamageUnit(Entity* target)
 		m_doingDamage = true;
 	}
 	else if(frameNum != 3)
+	{
+		m_doingDamage = false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::GatherUnit(Entity* target)
+{
+	if (target->GetHealth() <= 0)
+	{
+		m_unitToGather = nullptr;
+	}
+
+	m_directionFacing = target->GetPosition() - m_position;
+	m_directionFacing.Normalize();
+
+	int frameNum = m_animationSet[m_currentState]->GetIsoSpriteFrameAtTime(m_currentAnimTime);
+	if (frameNum == 3 && !m_doingDamage)
+	{
+		Game* game = Game::s_gameReference;
+		game->m_attackSoundPlayback = g_audio->Play3DSound(game->m_attackSoundID, m_position, game->m_SFXChannel);
+
+		UNIMPLEMENTED("Resource Apply");
+		//float gainedResource = target->DrainResource(m_attackDamage);
+
+		//Apply your resource here
+
+		m_doingDamage = true;
+	}
+	else if (frameNum != 3)
 	{
 		m_doingDamage = false;
 	}
@@ -420,6 +487,7 @@ void Entity::ResetTaskData()
 {
 	m_unitToAttack = nullptr;
 	m_unitToAttack = nullptr;
+	m_unitToGather = nullptr;
 	m_targetPosition = m_position;
 	m_currentState = ANIMATION_IDLE;
 }
@@ -465,6 +533,12 @@ bool Entity::IsGarbage() const
 bool Entity::IsAlive() const
 {
 	return m_isAlive;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::IsResource() const
+{
+	return m_isResource;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -529,6 +603,12 @@ void Entity::Follow(Entity* unitToFollow)
 void Entity::Attack(Entity* unitToAttack)
 {
 	m_unitToAttack = unitToAttack;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::Gather(Entity* unitToGather)
+{
+	m_unitToGather = unitToGather;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

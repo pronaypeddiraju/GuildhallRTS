@@ -47,3 +47,16 @@ public:
 	GameHandle m_thisUnit;
 	GameHandle m_unitToAttack;
 };
+
+//------------------------------------------------------------------------------------------------------------------------------
+class GatherTask : RTSTask
+{
+public:
+	GatherTask(const GameHandle& thisUnit, const GameHandle& unitToGather);
+	~GatherTask();
+	virtual void Execute();
+
+public:
+	GameHandle m_thisUnit;
+	GameHandle m_unitToGather;
+};

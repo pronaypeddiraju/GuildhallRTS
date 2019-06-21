@@ -56,6 +56,7 @@ public:
 
 	void					ResetTaskData();
 	void					DamageUnit(Entity* target);
+	void					GatherUnit(Entity* target);
 	void					Destroy();
 	void					SetDeadState();
 	void					SetSelectable(bool isSelectable);
@@ -64,6 +65,7 @@ public:
 	bool					IsSelectable() const;
 	bool					IsGarbage() const;
 	bool					IsAlive() const;
+	bool					IsResource() const;
 
 	void					SetPosition(Vec2 pos);
 	void					ResetTargetPosition();
@@ -80,6 +82,7 @@ public:
 	//Entity Actions
 	void					Follow(Entity* unitToFollow);
 	void					Attack(Entity* unitToAttack);
+	void					Gather(Entity* unitToGather);
 	void					StopFollow();
 	void					StopAttack();
 
@@ -97,6 +100,7 @@ public:
 	inline const float		GetMaxHealth() const  { return m_maxHealth; }
 	inline void				SetHealth(float health) { m_health = health; }
 	inline void				TakeDamage(float damage) { m_health -= damage; }
+	//float					DrainResource(float damage);
 	inline float			GetAttackDamage() { return m_attackDamage; }
 
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
@@ -140,6 +144,9 @@ private:
 	bool			m_doingDamage = false;
 	bool			m_isGarbage = false;
 
+	float			m_currentResourceInventory = 0.f;
+	float			m_totalResourceInventory = 20.f;
+
 	//Resource Information
 	bool			m_isResource = false;
 	std::map<ResourceMeshT, std::string>	m_meshIDMap;
@@ -157,6 +164,6 @@ private:
 	//Unit pointers for tasks
 	Entity*			m_unitToFollow = nullptr;
 	Entity*			m_unitToAttack = nullptr;
-
+	Entity*			m_unitToGather = nullptr;
 };
 

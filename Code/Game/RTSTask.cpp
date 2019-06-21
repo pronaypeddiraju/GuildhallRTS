@@ -61,3 +61,30 @@ VIRTUAL void AttackTask::Execute()
 		thisEntity->Attack(entity);
 	}
 }
+
+//------------------------------------------------------------------------------------------------------------------------------
+GatherTask::GatherTask(const GameHandle& thisUnit, const GameHandle& unitToGather)
+	: RTSTask(GATHER)
+{
+	m_thisUnit = thisUnit;
+	m_unitToGather = unitToGather;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+GatherTask::~GatherTask()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GatherTask::Execute()
+{
+	Map* map = Game::s_gameReference->m_map;
+	Entity *entity = map->FindEntity(m_unitToGather);
+	Entity *thisEntity = map->FindEntity(m_thisUnit);
+	if (entity != nullptr && thisEntity != nullptr)
+	{
+		thisEntity->Gather(entity);
+	}
+}
+

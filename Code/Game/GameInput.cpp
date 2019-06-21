@@ -367,11 +367,16 @@ bool GameInput::HandleMouseRBDown()
 						FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
 						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(followTask));
 					}
-					else if(entity->GetTeam() != thisEntity->GetTeam())
+					else if(entity->GetTeam() != thisEntity->GetTeam() && !entity->IsResource())
 					{
 						//Fuck up your enemies						
 						AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
 						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
+					}
+					else if (entity->IsResource())
+					{
+						GatherTask *gatherTask = new GatherTask(m_selectionHandles[selectIndex], entity->GetHandle());
+						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(gatherTask));
 					}
 				}
 				else
