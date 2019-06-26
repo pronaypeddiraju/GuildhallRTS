@@ -78,6 +78,7 @@ void Entity::MakeFromXML(const std::string& fileName)
 		m_speed = ParseXmlAttribute(*rootElement, "speed", m_speed);
 		bool selectable = ParseXmlAttribute(*rootElement, "selectable", true);
 		bool isResource = ParseXmlAttribute(*rootElement, "resource", true);
+		bool isBuilding = ParseXmlAttribute(*rootElement, "building", true);
 
 		SetSelectable(selectable);
 		SetAsResource(isResource);
@@ -85,7 +86,7 @@ void Entity::MakeFromXML(const std::string& fileName)
 		//Read animation texture data
 		rootElement = rootElement->FirstChildElement();
 
-		if (!isResource)
+		if (!isResource && !isBuilding)
 		{
 			//Follow pattern for non resource
 
@@ -114,14 +115,20 @@ void Entity::MakeFromXML(const std::string& fileName)
 				std::string name = rootElement->Name();
 				if (name == "collision")
 				{
-					m_radius = ParseXmlAttribute(*rootElement, "radius", m_radius);		
+					m_collisionRadius = ParseXmlAttribute(*rootElement, "radius", m_collisionRadius);		
+					rootElement = rootElement->NextSiblingElement();
 				}
 
-				XMLElement* childElement = rootElement->NextSiblingElement();
-
-				if (childElement != nullptr)
+				name = rootElement->Name();
+				if (name == "occupancy")
 				{
-					SetMeshIDsForResource(childElement);
+					m_occupancy = ParseXmlAttribute(*rootElement, "tilesXY", m_occupancy);
+					rootElement = rootElement->NextSiblingElement();
+				}
+				
+				if (rootElement != nullptr)
+				{
+					SetMeshIDsForResource(rootElement);
 				}
 			}
 		}

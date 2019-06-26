@@ -60,6 +60,9 @@ public:
 	void								SetTeamForSelectedEntities(int teamNum);
 	void								SpawnUnit(EntityTypeT type, const Vec2& buildPos = Vec2::ZERO);
 
+	//Utilities
+	Vec2								GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 occupancy);
+
 public:
 	// Configuration - Keyboard Input
 	float m_keyboardPanSpeed         = 10.0f; 
@@ -72,7 +75,6 @@ public:
 	float m_zoomSpeed                = 24.0f; 
 	const float m_maxZoom			 = 100.f;
 
-	// EXTRA:  Support Middle Mouse Button "Drag Pan"
 	Game* m_game					 = nullptr;
 
 	Vec2 m_framePan					 = Vec2::ONE;

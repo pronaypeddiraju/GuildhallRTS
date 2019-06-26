@@ -2,7 +2,8 @@
       health = "80"
       speed = "5"
       selectable = "true"
-      resource="false">
+      resource="false"
+      building = "false">
 
    <!-- what animations to play when doing a certain action -->
    <animset walkTexture = "warrior.walkdeath.png"

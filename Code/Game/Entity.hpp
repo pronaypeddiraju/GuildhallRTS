@@ -2,8 +2,9 @@
 #pragma once
 //Engine Systems
 #include "Engine/Commons/EngineCommon.hpp"
-#include "Engine/Math/Vec3.hpp"
 #include "Engine/Math/Capsule3D.hpp"
+#include "Engine/Math/IntVec2.hpp"
+#include "Engine/Math/Vec3.hpp"
 #include "Engine/Core/XMLUtils/XMLUtils.hpp"
 
 //Game Systems
@@ -160,6 +161,7 @@ private:
 	//Build Information
 	bool			m_isBuilding = false;
 	Vec2			m_buildLocation = Vec2::ZERO;
+	IntVec2			m_occupancy = IntVec2::ZERO;
 
 	// collision
 	float			m_height = 1.f;

@@ -46,6 +46,7 @@ public:
 	//For now load just calls create with 64x64 as parameters
 	bool				Load( char const* filename );          
 	void				LoadFoliageModels();
+	void				LoadBuildingModels();
 	bool				Create(int mapWidth, int mapHeight);
 
 	void				Update(float deltaTime); 
@@ -58,6 +59,7 @@ public:
 	void				RenderEntities() const;
 	void				RenderEntityData() const;
 	void				RenderIsoSpriteForEntity(const Entity& entity) const;
+	void				DrawHealthBar(const Entity& entity) const;
 	void				RenderResourceEntity(const Entity& entity) const;
 	void				RenderTownCenter(const Entity& entity) const;
 	void				RenderBuildingPreview() const;
@@ -90,6 +92,7 @@ private:
 public: 
 	IntVec2					m_tileDimensions; // how many tiles X and Y
 	IntVec2					m_vertDimensions; // how many verts X and Y
+	IntVec2					m_townCenterOcc = IntVec2(4, 2);
 
 private:
 	std::vector<MapTile>	m_mapTiles;
@@ -103,9 +106,6 @@ private:
 
 	CPUMesh*				m_entityCPUMesh = nullptr;
 	GPUMesh*				m_entityMesh = nullptr; 
-
-	//Resource Models
-	std::map<std::string, Model*>	m_treeModelsMap;
 	
 	//Building Models
 	Model*					m_townCenter = nullptr;
@@ -134,7 +134,10 @@ private:
 	std::string				m_peonXMLFile = "Data/Gameplay/peon.xml";
 	std::string				m_warriorXMLFile = "Data/Gameplay/warrior.xml";
 	std::string				m_treeXMLFile = "Data/Gameplay/tree.xml";
+	std::string				m_townCenterXMLFile = "Data/Gameplay/building_townCenter.xml";
+
 	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
+	std::string				m_buildingModelsXMLFile = "Data/Gameplay/building_models.xml";
 	std::string				m_treeMaterialFile = "Data/Models/foliage/foliage.mat";
 	std::string				m_townCenterModelFile = "building/towncenter.mesh";
 	std::string				m_townCenterMaterial = "building/towncenter.mat";

@@ -62,7 +62,6 @@ void GameInput::Update( float deltaTime )
 	if (m_buildingSpawnSelect)
 	{
 		SetupMapCastPosition();
-		
 	}
 }
 
@@ -555,15 +554,16 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
 					if (thisEntity->GetType() == PEON)
 					{
+						Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_townCenterOcc);
+
 						//build some shit
-						BuildTask *buildTask = new BuildTask(m_selectionHandles[i], m_terrainCastLocation);
+						BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos);
 						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
 						m_buildingSpawnSelect = false;
 						break;
 					}
 				}
 			}
-			//SpawnUnit(TOWNCENTER);
 		}
 		else
 		{
@@ -833,17 +833,47 @@ void GameInput::SpawnUnit(EntityTypeT type, const Vec2& buildPos)
 		Vec3 camPosition = m_game->m_RTSCam->m_modelMatrix.GetTVector();
 		Vec3 point = camPosition + ray.m_direction * out[0];
 
+		IntVec2 mapBounds = m_game->m_map->m_tileDimensions;
+
+		Vec2 pointOnMap = GetCorrectedMapPosition(Vec2(point.x, point.y), mapBounds, IntVec2(0, 0));
+
 		CreateEntityCommand* command;
 
 		if (type == TOWNCENTER)
 		{
-			command = new CreateEntityCommand(buildPos, type);
+			pointOnMap = GetCorrectedMapPosition(buildPos, mapBounds, m_game->m_map->m_townCenterOcc);
 		}
-		else
-		{
-			command = new CreateEntityCommand(Vec2(point.x, point.y), type);
-		}
+		
+		command = new CreateEntityCommand(pointOnMap, type);
 		m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
 	}
 }
 
+Vec2 GameInput::GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 occupancy)
+{
+	IntVec2 clampPosition;
+
+	clampPosition.x = (int)Clamp(position.x, 0.f, (float)limits.x);
+	clampPosition.y = (int)Clamp(position.y, 0.f, (float)limits.y);
+
+	if (clampPosition.x == 0)
+	{
+		clampPosition.x = (int)((float)occupancy.x / 2.f);
+	}
+	else if (clampPosition.x == limits.x)
+	{
+		clampPosition.x -= (int)((float)occupancy.x / 2.f);
+	}
+
+	if (clampPosition.y == 0)
+	{
+		clampPosition.y = (int)((float)occupancy.y / 2.f);
+	}
+	else if (clampPosition.y == limits.y)
+	{
+		clampPosition.y -= (int)((float)occupancy.y / 2.f);
+	}
+
+	Vec2 correctedPos = Vec2(clampPosition.x + 0.5f, clampPosition.y + 0.5f);
+	return correctedPos;
+}

@@ -52,6 +52,7 @@ bool Map::Load( char const* filename )
 	m_townCenter = Game::s_gameReference->m_initMesh;
 
 	LoadFoliageModels();
+	LoadBuildingModels();
 
 	bool result = Create(64, 64);
 	return result;
@@ -63,6 +64,40 @@ void Map::LoadFoliageModels()
 	//Open the xml file and parse it
 	tinyxml2::XMLDocument meshDoc;
 	meshDoc.LoadFile(m_treeModelsXMLFile.c_str());
+
+	if (meshDoc.ErrorID() != tinyxml2::XML_SUCCESS)
+	{
+
+		ERROR_AND_DIE(">> Error loading Mesh XML file ");
+		return;
+	}
+	else
+	{
+		//We loaded the file successfully
+		XMLElement* root = meshDoc.RootElement();
+		XMLElement* childElement = root->FirstChildElement();
+
+		std::string sourceName = "";
+
+		while (childElement != nullptr)
+		{
+			sourceName = ParseXmlAttribute(*childElement, "path", "");
+
+			if (sourceName != "")
+			{
+				g_renderContext->CreateOrGetMeshFromFile(sourceName);
+				childElement = childElement->NextSiblingElement();
+			}
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::LoadBuildingModels()
+ {
+	//Open the xml file and parse it
+	tinyxml2::XMLDocument meshDoc;
+	meshDoc.LoadFile(m_buildingModelsXMLFile.c_str());
 
 	if (meshDoc.ErrorID() != tinyxml2::XML_SUCCESS)
 	{
@@ -338,7 +373,7 @@ void Map::RenderEntityData() const
 		{
 			std::vector<Vertex_PCU> ringVerts;
 			Vec2 position = selected->GetPosition();
-			AddVertsForRing2D(ringVerts, position, m_entitySelectRadius, m_entitySelectWidth, Rgba::GREEN);
+			AddVertsForRing2D(ringVerts, position, selected->GetCollisionRadius(), m_entitySelectWidth, Rgba::GREEN);
 
 			for (int i = 0; i < (int)ringVerts.size(); i++)
 			{
@@ -356,7 +391,7 @@ void Map::RenderEntityData() const
 	{
 		std::vector<Vertex_PCU> ringVerts;
 		Vec2 position = hovered->GetPosition();
-		AddVertsForRing2D(ringVerts, position, m_entitySelectRadius - 0.1f, m_entitySelectWidth, Rgba::WHITE);
+		AddVertsForRing2D(ringVerts, position, hovered->GetCollisionRadius() - 0.1f, m_entitySelectWidth, Rgba::WHITE);
 
 		for (int i = 0; i < (int)ringVerts.size(); i++)
 		{
@@ -411,7 +446,12 @@ void Map::RenderIsoSpriteForEntity(const Entity& entity) const
 	if (!entity.IsAlive())
 		return;
 
-	//DrawHealthBars(m_entit);
+	DrawHealthBar(entity);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::DrawHealthBar(const Entity& entity) const
+{
 	//Draw the health bar
 	Vec3 corners[4];
 
@@ -440,7 +480,6 @@ void Map::RenderIsoSpriteForEntity(const Entity& entity) const
 	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
 
 	//Billboard here
-
 	RTSCamera* camera = Game::s_gameReference->m_RTSCam;
 	Matrix44 mat = camera->GetModelMatrix();
 	Matrix44 objectModel = Matrix44::IDENTITY;
@@ -455,7 +494,7 @@ void Map::RenderIsoSpriteForEntity(const Entity& entity) const
 
 	//Making the actual health bar
 	float ratio = entity.GetHealth() / entity.GetMaxHealth();
-	width *= ratio;
+	width = ratio * m_healthBarWidth;
 
 	corners[0] = Vec3::ZERO + height * Vec3::UP;
 	corners[1] = Vec3::ZERO + height * Vec3::UP + width * Vec3::RIGHT;
@@ -469,8 +508,6 @@ void Map::RenderIsoSpriteForEntity(const Entity& entity) const
 	for (uint i = 0; i < 4; ++i) {
 		corners[i] += worldOffset;
 	}
-
-	mesh;
 
 	box = AABB2(corners[2], corners[1]);
 
@@ -531,23 +568,18 @@ void Map::RenderResourceEntity(const Entity& entity) const
 
 	g_renderContext->BindMaterial(g_renderContext->CreateOrGetMaterialFromFile(m_treeMaterialFile));
 	g_renderContext->BindModelMatrix(objectModel);
-	//g_renderContext->BindTextureView(0U, nullptr);
 	g_renderContext->DrawMesh(mesh);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Map::RenderTownCenter(const Entity& entity) const
 {
-	//float ratio = entity.GetHealth() / entity.GetMaxHealth();
 	//Render the model at entity position
-
 	Matrix44 objectModel = Matrix44::IDENTITY;
-	//objectModel = objectModel.MakeUniformScale3D(0.00390625f);
 	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
 
 	g_renderContext->BindMaterial(m_townCenter->m_material);
 	g_renderContext->BindModelMatrix(objectModel);
-	//g_renderContext->BindTextureView(0U, nullptr);
 	g_renderContext->DrawMesh(m_townCenter->m_mesh);
 }
 
@@ -555,8 +587,12 @@ void Map::RenderTownCenter(const Entity& entity) const
 void Map::RenderBuildingPreview() const
 {
 	Matrix44 objectModel = Matrix44::IDENTITY;
-	//objectModel = objectModel.MakeUniformScale3D(0.00390625f);
-	Vec3 terrainPos = Vec3(Game::s_gameReference->m_gameInput->m_terrainCastLocation);
+
+	GameInput* input = Game::s_gameReference->m_gameInput;
+	Vec2 castLocation = input->m_terrainCastLocation;
+	Vec2 correctedPos = input->GetCorrectedMapPosition(castLocation, m_tileDimensions, m_townCenterOcc);
+
+	Vec3 terrainPos = Vec3(correctedPos);
 	objectModel = Matrix44::SetTranslation3D(terrainPos, objectModel);
 
 	g_renderContext->BindMaterial(m_townCenter->m_material);
@@ -618,14 +654,11 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
 
 	//Billboard here
-	
 	Matrix44 mat = camera.GetModelMatrix();
 	Matrix44 objectModel = Matrix44::IDENTITY;
 	objectModel.SetRotationFromMatrix(objectModel, mat);
 
 	objectModel = Matrix44::SetTranslation3D(position, objectModel);
-	
-
 	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
 
 	switch (type)
@@ -723,8 +756,9 @@ Entity* Map::CreateEntity(const Vec2& pos, EntityTypeT entityType, int team )
 	break;
 	case TOWNCENTER:
 	{
-		entity->SetAsBuilding(true);
+		entity->MakeFromXML(m_townCenterXMLFile);
 		entity->SetType(TOWNCENTER);
+		entity->SetAsBuilding(true);
 	}
 	break;
 	default:

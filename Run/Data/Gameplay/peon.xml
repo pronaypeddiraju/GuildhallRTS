@@ -2,7 +2,8 @@
       health = "40"
       speed = "3"
       selectable = "true"
-      resource="false">
+      resource="false"
+      building = "false">
 
    <!-- what animations to play when doing a certain action -->
    <animset walkTexture = "peon.walkdeath.png"

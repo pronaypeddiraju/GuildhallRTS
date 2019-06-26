@@ -1,21 +1,21 @@
-<unit id="tree.pine01"
-   health="40"
+<unit id="building.townCenter"
+   health="200"
    speed="0"
    selectable="true"
-   resource="true"
-   building = "false">
+   resource="false"
+   building = "true">
 
-   <collision radius="0.75" />
-   <occupancy tilesXY = "1,1" />
+   <collision radius="3.0" />
+   <occupancy tilesXY = "6,3" />
 
    <!-- models are made up of...
    src: model to use when untouched - full and weak will default to this
    base: stump of a tree - unchanged and always rendered.  defaults to nothing
    full: top part of model to use when full
    weak: top part of modelt o use when weak -->
-   <model src="foliage/pine01.whole.mesh"
-      base="foliage/pine01.stump.mesh"
-      full="foliage/pine01.leaves.mesh"
-      weak="foliage/pine01.bark.mesh" />
+   <model src="building/towncenter.mesh"
+      base="building/towncenter.mesh"
+      full="building/towncenter.mesh"
+      weak="building/towncenter.mesh" />
 
 </unit>
