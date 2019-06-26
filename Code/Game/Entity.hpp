@@ -98,6 +98,7 @@ public:
 	void					SetAsBuilding(bool building);
 	void					SetIsBuilt(bool isbuilt);
 	void					Build(const Vec2& buildLocation);
+	void					Construction(float deltaTime);
 
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
@@ -168,6 +169,8 @@ private:
 	IntVec2			m_occupancy = IntVec2::ZERO;
 	int				m_currentSupply = 0;
 	int				m_maxSupply = 40;
+	float			m_buildTime = 0.f;
+	float			m_buildTimeLimit = 5.f;
 
 	// collision
 	float			m_height = 1.f;

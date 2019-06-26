@@ -206,6 +206,9 @@ void Entity::Update(float deltaTime)
 		Destroy();
 	}
 
+	//If I am a building I should handle the construction process
+
+
 	CheckTasks();
 
 	UpdateAnimations(deltaTime);
@@ -714,6 +717,17 @@ void Entity::Build(const Vec2& buildLocation)
 {
 	m_buildLocation = buildLocation;
 	MoveTo(buildLocation);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::Construction(float deltaTime)
+{
+	m_buildTime += deltaTime;
+
+	if (m_buildTime > m_buildTimeLimit)
+	{
+		SetIsBuilt(true);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
