@@ -14,6 +14,7 @@
 //Game Systems
 #include "Game/Game.hpp"
 #include "Game/GameInput.hpp"
+#include "Game/Map.hpp"
 #include "Game/IsoAnimDefenition.hpp"
 #include "Game/RTSTask.hpp"
 
@@ -206,9 +207,6 @@ void Entity::Update(float deltaTime)
 		Destroy();
 	}
 
-	//If I am a building I should handle the construction process
-
-
 	CheckTasks();
 
 	UpdateAnimations(deltaTime);
@@ -255,6 +253,27 @@ void Entity::UpdateAnimations(float deltaTime)
 			if (distanceSq < m_proximitySquared)
 			{
 				m_position = m_targetPosition;
+				m_prevState = m_currentState;
+				if (m_currentState != ANIMATION_ATTACK)
+				{
+					m_currentAnimTime = 0.f;
+				}
+				m_currentState = ANIMATION_ATTACK;
+			}
+			else
+			{
+				m_position += disp.GetNormalized() * m_speed * deltaTime;
+				m_prevState = m_currentState;
+				m_currentState = ANIMATION_WALK;
+			}
+		}
+		else if (m_unitToBuild != nullptr)
+		{
+			Vec2 buildUnitPosition = m_unitToBuild->GetPosition();
+			float distanceSq = GetDistanceSquared2D(buildUnitPosition, m_position);
+			if (distanceSq < m_buildingProximity)
+			{
+				m_targetPosition = m_position;
 				m_prevState = m_currentState;
 				if (m_currentState != ANIMATION_ATTACK)
 				{
@@ -330,6 +349,33 @@ void Entity::CheckTasks()
 	{
 		PerformBuildActions();
 	}
+
+	//Check if there is construction I need to do
+	if (m_unitToBuild != nullptr)
+	{
+		if (!m_unitToBuild->IsBuilt())
+		{
+			//m_unitToBuild->ConstructBuilding(m_attackDamage * deltaTime);
+			float distSquared = GetDistanceSquared2D(m_unitToBuild->GetPosition(), GetPosition());
+			float radSquared = m_unitToBuild->GetCollisionRadius() + GetCollisionRadius();
+			radSquared *= radSquared;
+
+			if ((distSquared - radSquared) < 0.5f)
+			{
+				m_unitToBuild->ConstructBuilding(m_attackDamage * 0.01f);
+			}
+			else
+			{
+				MoveTo(m_unitToBuild->GetPosition());
+			}
+
+		}
+		else
+		{
+			MoveTo(m_position);
+			m_unitToBuild = nullptr;
+		}
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -338,23 +384,13 @@ void Entity::PerformBuildActions()
 	if (GetDistanceSquared2D(m_buildLocation, m_position) < m_proximitySquared)
 	{
 		MoveTo(m_position);
-		Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
-		m_unitToBuild = nullptr;
+		//Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
+		m_unitToBuild = Game::s_gameReference->m_map->CreateEntity(m_buildLocation, TOWNCENTER);
 		m_buildLocation = Vec2::ZERO;
 	}
 	else
 	{
 		MoveTo(m_buildLocation);
-
-		/*
-		if (!m_unitToBuild->IsBuilt())
-		{
-			MoveTo(m_buildLocation);
-		}
-		else
-		{
-		}
-		*/
 	}
 }
 
@@ -529,7 +565,9 @@ void Entity::ResetTaskData()
 	m_unitToAttack = nullptr;
 	m_unitToAttack = nullptr;
 	m_unitToGather = nullptr;
+	m_unitToBuild = nullptr;
 	m_targetPosition = m_position;
+	m_buildLocation = Vec2::ZERO;
 	m_currentState = ANIMATION_IDLE;
 }
 
@@ -700,6 +738,12 @@ const std::string& Entity::GetMeshIDForState(ResourceMeshT meshType) const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Entity::SetUnitToBuild(Entity* unitToBuild)
+{
+	m_unitToBuild = unitToBuild;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Entity::SetAsBuilding(bool building)
 {
 	m_isBuildingType = building;
@@ -720,13 +764,21 @@ void Entity::Build(const Vec2& buildLocation)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::Construction(float deltaTime)
+void Entity::ConstructBuilding(float supply)
 {
-	m_buildTime += deltaTime;
-
-	if (m_buildTime > m_buildTimeLimit)
+	if (!IsBuildingType())
 	{
-		SetIsBuilt(true);
+		return;
+	}
+	else
+	{
+		m_health += supply;
+
+		if (m_health >= m_maxHealth)
+		{
+			m_health = m_maxHealth;
+			SetIsBuilt(true);
+		}
 	}
 }
 

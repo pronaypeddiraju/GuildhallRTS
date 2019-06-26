@@ -84,7 +84,6 @@ public:
 	void								PerformInitActions();
 	void								CreateMenuUIWidgets();
 	void								CreateEditUIWidgets();
-	void								CreateGameUIWidgets();
 	void								CreatePauseUIWidgets();
 
 	void								GetandSetShaders();
@@ -133,10 +132,6 @@ public:
 	void								Update( float deltaTime );
 	void								UpdateMouseInputs(float deltaTime);
 	void								UpdateLightPositions();
-	void								UpdateCamera( float deltaTime );
-	void								ClearGarbageEntities();
-	void								CheckXboxInputs();
-	void								CheckCollisions();
 
 	//Mouse Input handling
 	bool								HandleMouseLBDown();

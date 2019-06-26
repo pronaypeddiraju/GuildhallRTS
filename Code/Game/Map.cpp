@@ -756,10 +756,13 @@ Entity* Map::CreateEntity(const Vec2& pos, EntityTypeT entityType, int team )
 	break;
 	case TOWNCENTER:
 	{
+		//This is some sketch bro
 		entity->MakeFromXML(m_townCenterXMLFile);
 		entity->SetType(TOWNCENTER);
 		entity->SetAsBuilding(true);
-		entity->SetIsBuilt(true);
+		entity->SetIsBuilt(false);
+		entity->SetMaxHealth(entity->GetHealth());
+		entity->SetHealth(0.f);
 	}
 	break;
 	default:

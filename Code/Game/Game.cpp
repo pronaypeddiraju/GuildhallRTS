@@ -356,7 +356,6 @@ void Game::PerformInitActions()
 	LoadAudioResources();
 
 	CreateMenuUIWidgets();
-	CreateGameUIWidgets();
 	CreateEditUIWidgets();
 	CreatePauseUIWidgets();
 
@@ -1352,7 +1351,6 @@ void Game::Update( float deltaTime )
 	}
 
 	//Update all game input
-	CheckXboxInputs();
 	m_gameInput->Update(deltaTime);
 
 	Vec2 framePan = m_gameInput->GetFramePan();
@@ -1442,22 +1440,6 @@ void Game::Update( float deltaTime )
 	
 	//Update the town center's matrix
 	m_townCenterTransform = Matrix44::SetTranslation3D(m_RTSCam->m_focalPoint, m_townCenterTransform);
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::ClearGarbageEntities()
-{
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::CheckXboxInputs()
-{
-	//XboxController playerController = g_inputSystem->GetXboxController(0);
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::CheckCollisions()
-{		
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1679,26 +1661,6 @@ void Game::CreateEditUIWidgets()
 	button->SetRadioType(true);
 	button->unHovercolor = Rgba::WHITE;
 	button->hoverColor = Rgba::GREEN;
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::CreateGameUIWidgets()
-{
-	/*
-	// Menu Widgets
-	m_gameParent = new UIWidget(this, nullptr);
-	m_gameParent->SetColor(Rgba(0.f, 0.f, 0.f, 0.f));
-	m_gameParent->UpdateBounds(AABB2(Vec2(0.f, 0.f), Vec2(UI_SCREEN_ASPECT * UI_SCREEN_HEIGHT, UI_SCREEN_HEIGHT)));
-
-	/*
-	//Init
-	Vec4 size = Vec4(0.4f, 0.3f, 0.f, 0.f);
-	Vec4 position = Vec4(0.4f, 1.0, 0.f, -120.f);
-
-	UILabel* label = m_gameParent->CreateChild<UILabel>(m_gameParent->GetWorldBounds(), size, position);
-	label->SetLabelText("NUM_1: Go to init state");
-	label->SetColor(Rgba::WHITE);
-	*/
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

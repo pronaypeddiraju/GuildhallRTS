@@ -386,7 +386,7 @@ bool GameInput::HandleMouseRBDown()
 
 				thisEntity->ResetTaskData();
 
-				if (entity->GetTeam() == thisEntity->GetTeam())
+				if (entity->GetTeam() == thisEntity->GetTeam() && !entity->IsBuildingType())
 				{
 					//Follow entity
 					FollowTask *followTask = new FollowTask(m_selectionHandles[selectIndex], entity->GetHandle());
@@ -412,6 +412,13 @@ bool GameInput::HandleMouseRBDown()
 						m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
 						thisEntity->ResetTaskData();
 						m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+					}
+				}
+				else if (entity->IsBuildingType())
+				{
+					if (thisEntity->GetType() == PEON)
+					{
+						thisEntity->SetUnitToBuild(entity);
 					}
 				}
 			}

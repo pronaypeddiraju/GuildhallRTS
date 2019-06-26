@@ -95,10 +95,11 @@ public:
 	const std::string&		GetMeshIDForState(ResourceMeshT meshType) const;
 
 	//Building Actions
+	void					SetUnitToBuild(Entity* unitToBuild);
 	void					SetAsBuilding(bool building);
 	void					SetIsBuilt(bool isbuilt);
 	void					Build(const Vec2& buildLocation);
-	void					Construction(float deltaTime);
+	void					ConstructBuilding(float deltaTime);
 
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
@@ -106,13 +107,15 @@ public:
 	inline int				GetTeam() { return m_team; }
 	inline void				SetTeam(int team) { m_team = team; }
 
-	inline const float		GetHealth() const  { return m_health; }
-	inline const float		GetCurrentResource() const { return m_currentResourceInventory; }
-	inline const float		GetMaxHealth() const  { return m_maxHealth; }
-	inline void				SetHealth(float health) { m_health = health; }
-	inline void				TakeDamage(float damage) { m_health -= damage; }
+	const float				GetHealth() const  { return m_health; }
+	const float				GetCurrentResource() const { return m_currentResourceInventory; }
+	const float				GetMaxHealth() const  { return m_maxHealth; }
+	void					SetMaxHealth(float maxHealth) { m_maxHealth = maxHealth; }
+	void					SetHealth(float health) { m_health = health; }
+	void					TakeDamage(float damage) { m_health -= damage; }
 	void					DrainResource(float damage);
-	inline float			GetAttackDamage() { return m_attackDamage; }
+	float					GetAttackDamage() { return m_attackDamage; }
+	float					GetProximitySquared() { return m_proximitySquared; }
 
 	bool					RaycastHit(float *out, const Ray3D& ray) const;
 
@@ -176,6 +179,7 @@ private:
 	float			m_height = 1.f;
 	float			m_radius = 0.5f;
 	float			m_proximitySquared = 2.3f;
+	float			m_buildingProximity = 15.f;
 	Vec3			m_orientation = Vec3::BACK; //Am I standing? Am I lying down?
 
 	Vec3			m_directionFacing = Vec3::UP;
