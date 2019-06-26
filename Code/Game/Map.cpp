@@ -759,6 +759,7 @@ Entity* Map::CreateEntity(const Vec2& pos, EntityTypeT entityType, int team )
 		entity->MakeFromXML(m_townCenterXMLFile);
 		entity->SetType(TOWNCENTER);
 		entity->SetAsBuilding(true);
+		entity->SetIsBuilt(true);
 	}
 	break;
 	default:
@@ -821,12 +822,12 @@ void Map::ResolveEntityCollisions()
 			//Push them out of each other
 			if (DoDiscsOverlap(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(), m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius()))
 			{
-				if (m_entities[otherEntityIndex]->GetTeam() == 0 || m_entities[otherEntityIndex]->IsBuilding())
+				if (m_entities[otherEntityIndex]->GetTeam() == 0 || m_entities[otherEntityIndex]->IsBuildingType())
 				{
 					PushDiscOutOfDisc(m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius(),
 						m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius());
 				}
-				else if (m_entities[entityIndex]->GetTeam() == 0 || m_entities[entityIndex]->IsBuilding())
+				else if (m_entities[entityIndex]->GetTeam() == 0 || m_entities[entityIndex]->IsBuildingType())
 				{
 					PushDiscOutOfDisc(m_entities[otherEntityIndex]->GetEditablePosition(), m_entities[otherEntityIndex]->GetCollisionRadius(),
 						m_entities[entityIndex]->GetEditablePosition(), m_entities[entityIndex]->GetCollisionRadius());

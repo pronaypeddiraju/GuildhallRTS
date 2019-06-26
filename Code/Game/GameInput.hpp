@@ -54,9 +54,10 @@ public:
 
 	//Key input handling
 	void								HandleKeyPressed( unsigned char keyCode );
-	void								HandleKeyReleased( unsigned char keyCode );
-
+	void								HandleKeyReleased(unsigned char keyCode);
+	
 	//Actions
+	void								MakeBuilding();
 	void								SetTeamForSelectedEntities(int teamNum);
 	void								SpawnUnit(EntityTypeT type, const Vec2& buildPos = Vec2::ZERO);
 

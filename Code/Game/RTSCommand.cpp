@@ -75,7 +75,7 @@ MoveCommand::~MoveCommand()
 VIRTUAL void MoveCommand::Execute()
 {
 	Map* map = Game::s_gameReference->m_map;
-	Entity *entity = map->FindEntity(m_unit);
+	Entity *entity = map->FindEntity(m_unit);	
 	if (entity != nullptr) 
 	{
 		entity->MoveTo(m_position);

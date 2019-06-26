@@ -109,6 +109,7 @@ void BuildTask::Execute()
 {
 	Map* map = Game::s_gameReference->m_map;
 	Entity *thisEntity = map->FindEntity(m_thisUnit);
+
 	if (thisEntity != nullptr)
 	{
 		thisEntity->Build(m_buildLocation);

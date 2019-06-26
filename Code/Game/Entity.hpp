@@ -43,6 +43,7 @@ public:
 	void					UpdateAnimations(float deltaTime);
 	void					CheckTasks();
 
+	void					PerformBuildActions();
 	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
 	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName, float animTime);
 	void					MakeAttackCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
@@ -67,7 +68,8 @@ public:
 	bool					IsGarbage() const;
 	bool					IsAlive() const;
 	bool					IsResource() const;
-	bool					IsBuilding() const;
+	bool					IsBuildingType() const;
+	bool					IsBuilt() const;
 
 	void					SetPosition(Vec2 pos);
 	void					ResetTargetPosition();
@@ -94,7 +96,8 @@ public:
 
 	//Building Actions
 	void					SetAsBuilding(bool building);
-	void					Build(const Vec2& buildPos);
+	void					SetIsBuilt(bool isbuilt);
+	void					Build(const Vec2& buildLocation);
 
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
@@ -159,9 +162,12 @@ private:
 	std::map<ResourceMeshT, std::string>	m_meshIDMap;
 
 	//Build Information
-	bool			m_isBuilding = false;
+	bool			m_isBuildingType = false;
+	bool			m_isBuilt = false;
 	Vec2			m_buildLocation = Vec2::ZERO;
 	IntVec2			m_occupancy = IntVec2::ZERO;
+	int				m_currentSupply = 0;
+	int				m_maxSupply = 40;
 
 	// collision
 	float			m_height = 1.f;
@@ -177,5 +183,6 @@ private:
 	Entity*			m_unitToFollow = nullptr;
 	Entity*			m_unitToAttack = nullptr;
 	Entity*			m_unitToGather = nullptr;
+	Entity*			m_unitToBuild = nullptr;
 };
 

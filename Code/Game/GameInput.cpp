@@ -544,46 +544,7 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 			return;
 		}
 
-		if (m_buildingSpawnSelect)
-		{
-
-			for (int i = 0; i < m_selectionHandles.size(); i++)
-			{
-				if (m_selectionHandles[i] != GameHandle::INVALID)
-				{
-					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-					if (thisEntity->GetType() == PEON)
-					{
-						Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_townCenterOcc);
-
-						//build some shit
-						BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos);
-						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
-						m_buildingSpawnSelect = false;
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			for (int i = 0; i < m_selectionHandles.size(); i++)
-			{
-				if (m_selectionHandles[i] != GameHandle::INVALID)
-				{
-					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-					if (thisEntity->GetType() == PEON)
-					{
-						if (!m_buildingSpawnSelect)
-						{
-							m_buildingSpawnSelect = true;
-						}
-						break;
-					}
-				}
-			}
-		}
-		
+		MakeBuilding();
 	}
 	break;
 	case LSHIFT_KEY:
@@ -721,44 +682,54 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 	break;
 	case NUM_5:
 	{
-		if (m_buildingSpawnSelect)
+		MakeBuilding();
+	}
+	break;
+	}
+}
+
+void GameInput::MakeBuilding()
+{
+	if (m_buildingSpawnSelect)
+	{
+		for (int i = 0; i < m_selectionHandles.size(); i++)
 		{
-			for (int i = 0; i < m_selectionHandles.size(); i++)
+			if (m_selectionHandles[i] != GameHandle::INVALID)
 			{
-				if (m_selectionHandles[i] != GameHandle::INVALID)
+				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
+				if (thisEntity->GetType() == PEON)
 				{
-					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-					if (thisEntity->GetType() == PEON)
-					{
-						//build some shit
-						BuildTask *buildTask = new BuildTask(m_selectionHandles[i], m_terrainCastLocation);
-						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
-						m_buildingSpawnSelect = false;
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			for (int i = 0; i < m_selectionHandles.size(); i++)
-			{
-				if (m_selectionHandles[i] != GameHandle::INVALID)
-				{
-					Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-					if (thisEntity->GetType() == PEON)
-					{
-						if (!m_buildingSpawnSelect)
-						{
-							m_buildingSpawnSelect = true;
-						}
-						break;
-					}
+					Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_townCenterOcc);
+
+					//Entity* buildEntity = m_game->m_map->CreateEntity(buildPos, TOWNCENTER, m_game->GetCurrentTeam());
+
+					//build some shit
+					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos);
+					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
+
+					m_buildingSpawnSelect = false;
+					break;
 				}
 			}
 		}
 	}
-	break;
+	else
+	{
+		for (int i = 0; i < m_selectionHandles.size(); i++)
+		{
+			if (m_selectionHandles[i] != GameHandle::INVALID)
+			{
+				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
+				if (thisEntity->GetType() == PEON)
+				{
+					if (!m_buildingSpawnSelect)
+					{
+						m_buildingSpawnSelect = true;
+					}
+					break;
+				}
+			}
+		}
 	}
 }
 

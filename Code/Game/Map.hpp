@@ -128,7 +128,6 @@ private:
 	Vec2					m_healthBarPivot = Vec2(0.5, -2.0f);
 
 	GPUMesh*				m_quad = nullptr;
-	//Matrix44				m_quadTransfrom;
 
 	//Data driving 
 	std::string				m_peonXMLFile = "Data/Gameplay/peon.xml";

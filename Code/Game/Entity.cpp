@@ -325,18 +325,34 @@ void Entity::CheckTasks()
 	//Check if I need to build something
 	if (m_buildLocation != Vec2::ZERO)
 	{
-		if (GetDistanceSquared2D(m_buildLocation, m_position) < m_proximitySquared)
-		{
-			MoveTo(m_position);
-			Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
-			m_buildLocation = Vec2::ZERO;
-		}
-		else
+		PerformBuildActions();
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::PerformBuildActions()
+{
+	if (GetDistanceSquared2D(m_buildLocation, m_position) < m_proximitySquared)
+	{
+		MoveTo(m_position);
+		Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
+		m_unitToBuild = nullptr;
+		m_buildLocation = Vec2::ZERO;
+	}
+	else
+	{
+		MoveTo(m_buildLocation);
+
+		/*
+		if (!m_unitToBuild->IsBuilt())
 		{
 			MoveTo(m_buildLocation);
 		}
+		else
+		{
+		}
+		*/
 	}
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -564,9 +580,15 @@ bool Entity::IsResource() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-bool Entity::IsBuilding() const
+bool Entity::IsBuildingType() const
 {
-	return m_isBuilding;
+	return m_isBuildingType;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::IsBuilt() const
+{
+	return m_isBuilt;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -677,15 +699,21 @@ const std::string& Entity::GetMeshIDForState(ResourceMeshT meshType) const
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::SetAsBuilding(bool building)
 {
-	m_isBuilding = building;
+	m_isBuildingType = building;
 	m_speed = 0.f;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::Build(const Vec2& buildPos)
+void Entity::SetIsBuilt(bool isbuilt)
 {
-	m_buildLocation = buildPos;
-	MoveTo(m_buildLocation);
+	m_isBuilt = isbuilt;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::Build(const Vec2& buildLocation)
+{
+	m_buildLocation = buildLocation;
+	MoveTo(buildLocation);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
