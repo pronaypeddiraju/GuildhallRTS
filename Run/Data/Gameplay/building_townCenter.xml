@@ -6,7 +6,7 @@
    building = "true">
 
    <collision radius="3.0" />
-   <occupancy tilesXY = "6,3" />
+   <occupancy tilesXY = "4,3" />
 
    <!-- models are made up of...
    src: model to use when untouched - full and weak will default to this

@@ -92,12 +92,13 @@ private:
 public: 
 	IntVec2					m_tileDimensions; // how many tiles X and Y
 	IntVec2					m_vertDimensions; // how many verts X and Y
-	IntVec2					m_townCenterOcc = IntVec2(4, 2);
+	IntVec2					m_townCenterOcc = IntVec2(4, 3);
 
 private:
 	std::vector<MapTile>	m_mapTiles;
 	std::vector<Vertex_Lit> m_mapVerts; 
 	std::vector<uint>		m_mapIndices;
+	std::map<int, bool>		m_mapOccupancy;
 
 	std::string				m_materialName = "terrain.mat";
 	

@@ -834,22 +834,22 @@ Vec2 GameInput::GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 o
 	clampPosition.x = (int)Clamp(position.x, 0.f, (float)limits.x);
 	clampPosition.y = (int)Clamp(position.y, 0.f, (float)limits.y);
 
-	if (clampPosition.x == 0)
+	if (clampPosition.x <= (occupancy.x /2))
 	{
 		clampPosition.x = (int)((float)occupancy.x / 2.f);
 	}
-	else if (clampPosition.x == limits.x)
+	else if (clampPosition.x >= (limits.x - occupancy.x))
 	{
-		clampPosition.x -= (int)((float)occupancy.x / 2.f);
+		clampPosition.x -= occupancy.x;
 	}
 
-	if (clampPosition.y == 0)
+	if (clampPosition.y <= (occupancy.y / 2))
 	{
 		clampPosition.y = (int)((float)occupancy.y / 2.f);
 	}
-	else if (clampPosition.y == limits.y)
+	else if (clampPosition.y >= (limits.y - occupancy.y))
 	{
-		clampPosition.y -= (int)((float)occupancy.y / 2.f);
+		clampPosition.y -= occupancy.y;
 	}
 
 	Vec2 correctedPos = Vec2(clampPosition.x + 0.5f, clampPosition.y + 0.5f);

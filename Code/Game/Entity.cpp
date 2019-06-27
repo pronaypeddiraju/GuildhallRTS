@@ -131,6 +131,11 @@ void Entity::MakeFromXML(const std::string& fileName)
 				{
 					SetMeshIDsForResource(rootElement);
 				}
+
+				if (id == "building.townCenter")
+				{
+					Game::s_gameReference->m_map->m_townCenterOcc = m_occupancy;
+				}
 			}
 		}
 	}
