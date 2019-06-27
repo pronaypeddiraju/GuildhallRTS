@@ -1000,6 +1000,32 @@ int Map::GetTownCenterCost() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+Entity* Map::GetClosestEntityOfType(EntityTypeT type, const Vec2& position)
+{
+	Entity* closestEntity = nullptr;
+	float distanceSq = 10000;
+
+	for (int entityIndex = 0; entityIndex < GetNumEntities(); entityIndex++)
+	{
+		if (m_entities[entityIndex] == nullptr)
+			continue;
+
+		if (m_entities[entityIndex]->GetType() == type && m_entities[entityIndex]->IsAlive())
+		{
+			float checkDistSq = GetDistanceSquared2D(position, m_entities[entityIndex]->GetPosition());
+
+			if (checkDistSq < distanceSq)
+			{
+				closestEntity = m_entities[entityIndex];
+				distanceSq = checkDistSq;
+			}
+		}
+	}
+
+	return closestEntity;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::PurgeDestroyedEntities()
 {
 	for (int index = 0; index < (int)m_entities.size(); index++)

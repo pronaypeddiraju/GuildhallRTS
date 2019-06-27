@@ -40,9 +40,13 @@ public:
 	void					MakeAnimationsForEntity(XMLElement* xmlElement, const IntVec2& dimensions, const std::string& id);
 
 	void					Update(float deltaTime);
+	void					ResumeGathering();
 	void					UpdateAnimations(float deltaTime);
 	void					CheckTasks();
 
+	void					PerformMovement(const Vec2& displacement, float deltaTime);
+	void					PerformAttack();
+	void					PerformDropOff();
 	void					PerformBuildActions();
 	void					MakeWalkCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, const std::string& entityName, float animTime);
 	void					MakeIdleCycle(const SpriteSheet& spriteSheet, int numFrames, int spritesEachFrame, int idleColumn, const std::string& entityName, float animTime);
@@ -108,7 +112,7 @@ public:
 	inline void				SetTeam(int team) { m_team = team; }
 
 	const float				GetHealth() const  { return m_health; }
-	const float				GetCurrentResource() const { return m_currentResourceInventory; }
+	const int				GetCurrentResource() const { return m_currentResourceInventory; }
 	const float				GetMaxHealth() const  { return m_maxHealth; }
 	void					SetMaxHealth(float maxHealth) { m_maxHealth = maxHealth; }
 	void					SetHealth(float health) { m_health = health; }
@@ -157,13 +161,15 @@ private:
 	bool			m_isAlive = true;
 	bool			m_doingDamage = false;
 	bool			m_isGarbage = false;
+	bool			m_isGathering = false;
 
-	float			m_currentResourceInventory = 0.f;
-	float			m_totalResourceInventory = 20.f;
+	int				m_currentResourceInventory = 0;
+	int				m_totalResourceInventory = 20;
 
 	//Resource Information
 	bool			m_isResource = false;
 	std::map<ResourceMeshT, std::string>	m_meshIDMap;
+	bool			m_dropOffResources = false;
 
 	//Build Information
 	bool			m_isBuildingType = false;
@@ -191,5 +197,8 @@ private:
 	Entity*			m_unitToAttack = nullptr;
 	Entity*			m_unitToGather = nullptr;
 	Entity*			m_unitToBuild = nullptr;
+
+	Entity*			m_returnGatherUnit = nullptr;
+	Entity*			m_closestTownCenter = nullptr;
 };
 

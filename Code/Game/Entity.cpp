@@ -49,6 +49,11 @@ Entity::Entity(GameHandle handle, Vec2 position, const std::string& xmlName)
 //------------------------------------------------------------------------------------------------------------------------------
 Entity::~Entity()
 {
+	//Remove occupancy from map
+	if (m_occupancy != IntVec2::ZERO)
+	{
+		Game::s_gameReference->m_map->SetOccupancyForUnit(m_position, m_occupancy, false);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -212,6 +217,25 @@ void Entity::Update(float deltaTime)
 		Destroy();
 	}
 
+	if (m_unitToGather != nullptr)
+	{
+		if (m_unitToGather->GetPosition() < Vec2::ZERO)
+		{
+			m_unitToGather = nullptr;
+			m_returnGatherUnit = nullptr;
+			m_isGathering = false;
+		}
+	}
+
+	if (m_currentResourceInventory >= m_totalResourceInventory)
+	{
+		m_dropOffResources = true;
+	}
+	else
+	{
+		ResumeGathering();
+	}
+
 	CheckTasks();
 
 	UpdateAnimations(deltaTime);
@@ -219,6 +243,40 @@ void Entity::Update(float deltaTime)
 
 	//Process any tasks in the queue
 	ProcessTasks();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::ResumeGathering()
+{
+	if (m_type != PEON)
+		return;
+
+	m_dropOffResources = false;
+
+	if (m_isGathering)
+	{
+		if (m_returnGatherUnit != nullptr)
+		{
+			if (m_returnGatherUnit->IsAlive() && m_returnGatherUnit->GetPosition() > Vec2::ZERO)
+			{
+				m_unitToGather = m_returnGatherUnit;
+			}
+			else
+			{
+				if (m_unitToGather == nullptr || !m_unitToGather->IsAlive())
+				{
+					m_unitToGather = Game::s_gameReference->m_map->GetClosestEntityOfType(TREE, m_position);
+				}
+			}
+		}
+		else
+		{
+			if (m_unitToGather == nullptr || !m_unitToGather->IsAlive())
+			{
+				m_unitToGather = Game::s_gameReference->m_map->GetClosestEntityOfType(TREE, m_position);
+			}
+		}
+	}
 }
 
 void Entity::UpdateAnimations(float deltaTime)
@@ -236,40 +294,31 @@ void Entity::UpdateAnimations(float deltaTime)
 			float distanceSq = GetDistanceSquared2D(attackUnitPos, m_position);
 			if (distanceSq < m_proximitySquared)
 			{
-				m_position = m_targetPosition;
-				m_prevState = m_currentState;
-				if (m_currentState != ANIMATION_ATTACK)
-				{
-					m_currentAnimTime = 0.f;
-				}
-				m_currentState = ANIMATION_ATTACK;
+				PerformAttack();
 			}
 			else
 			{
-				m_position += disp.GetNormalized() * m_speed * deltaTime;
-				m_prevState = m_currentState;
-				m_currentState = ANIMATION_WALK;
+				PerformMovement(disp, deltaTime);
 			}
 		}
 		else if (m_unitToGather != nullptr)
 		{
-			Vec2 gatherUnitPosition = m_unitToGather->GetPosition();
-			float distanceSq = GetDistanceSquared2D(gatherUnitPosition, m_position);
-			if (distanceSq < m_proximitySquared)
+			if (m_dropOffResources)
 			{
-				m_position = m_targetPosition;
-				m_prevState = m_currentState;
-				if (m_currentState != ANIMATION_ATTACK)
-				{
-					m_currentAnimTime = 0.f;
-				}
-				m_currentState = ANIMATION_ATTACK;
+				PerformMovement(disp, deltaTime);
 			}
 			else
 			{
-				m_position += disp.GetNormalized() * m_speed * deltaTime;
-				m_prevState = m_currentState;
-				m_currentState = ANIMATION_WALK;
+				Vec2 gatherUnitPosition = m_unitToGather->GetPosition();
+				float distanceSq = GetDistanceSquared2D(gatherUnitPosition, m_position);
+				if (distanceSq < m_proximitySquared)
+				{
+					PerformAttack();
+				}
+				else
+				{
+					PerformMovement(disp, deltaTime);
+				}
 			}
 		}
 		else if (m_unitToBuild != nullptr)
@@ -278,19 +327,11 @@ void Entity::UpdateAnimations(float deltaTime)
 			float distanceSq = GetDistanceSquared2D(buildUnitPosition, m_position);
 			if (distanceSq < m_buildingProximity)
 			{
-				m_targetPosition = m_position;
-				m_prevState = m_currentState;
-				if (m_currentState != ANIMATION_ATTACK)
-				{
-					m_currentAnimTime = 0.f;
-				}
-				m_currentState = ANIMATION_ATTACK;
+				PerformAttack();
 			}
 			else
 			{
-				m_position += disp.GetNormalized() * m_speed * deltaTime;
-				m_prevState = m_currentState;
-				m_currentState = ANIMATION_WALK;
+				PerformMovement(disp, deltaTime);
 			}
 		}
 		else if (magnitude < m_speed * deltaTime)
@@ -302,13 +343,12 @@ void Entity::UpdateAnimations(float deltaTime)
 		}
 		else
 		{
-			m_position += disp.GetNormalized() * m_speed * deltaTime;
-			m_prevState = m_currentState;
-			m_currentState = ANIMATION_WALK;
+			PerformMovement(disp, deltaTime);
 		}
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Entity::CheckTasks()
 {
 	//Check if I need to follow a unit
@@ -336,6 +376,12 @@ void Entity::CheckTasks()
 	//Check if I need to gather something
 	if (m_unitToGather != nullptr)
 	{
+		if (m_dropOffResources)
+		{
+			PerformDropOff();
+			return;
+		}
+
 		//Am I next to the unit?
 		Vec2 gatherUnitPos = m_unitToGather->GetPosition();
 		if (GetDistanceSquared2D(gatherUnitPos, m_position) < m_proximitySquared)
@@ -356,7 +402,7 @@ void Entity::CheckTasks()
 	}
 
 	//Check if there is construction I need to do
-	if (m_unitToBuild != nullptr)
+	if (m_unitToBuild != nullptr && !m_isGathering)
 	{
 		if (!m_unitToBuild->IsBuilt())
 		{
@@ -380,6 +426,57 @@ void Entity::CheckTasks()
 			MoveTo(m_position);
 			m_unitToBuild = nullptr;
 		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::PerformMovement(const Vec2& displacement, float deltaTime)
+{
+	m_position += displacement.GetNormalized() * m_speed * deltaTime;
+	m_prevState = m_currentState;
+	m_currentState = ANIMATION_WALK;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::PerformAttack()
+{
+	m_position = m_targetPosition;
+	m_prevState = m_currentState;
+	if (m_currentState != ANIMATION_ATTACK)
+	{
+		m_currentAnimTime = 0.f;
+	}
+	m_currentState = ANIMATION_ATTACK;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::PerformDropOff()
+{
+	//Set the current tree as the return tree
+	m_returnGatherUnit = m_unitToGather;
+
+	//Find closest town center
+	if (m_closestTownCenter == nullptr)
+	{
+		m_closestTownCenter = Game::s_gameReference->m_map->GetClosestEntityOfType(TOWNCENTER, m_position);
+	}
+	
+	if (m_closestTownCenter == nullptr)
+	{
+		m_unitToGather = nullptr;
+		return;
+	}
+
+	float distanceSq = GetDistanceSquared2D(m_closestTownCenter->GetPosition(), m_position);
+	if (distanceSq < m_buildingProximity)
+	{
+		m_targetPosition = m_position;
+		Game::s_gameReference->AddResourcesForTeam(GetTeam(), GetCurrentResource());
+		m_currentResourceInventory = 0;
+	}
+	else
+	{
+		MoveTo(m_closestTownCenter->GetPosition());
 	}
 }
 
@@ -445,7 +542,7 @@ void Entity::GatherUnit(Entity* target)
 		DamageUnit(target);
 
 		//Apply your resource here
-		m_currentResourceInventory += m_attackDamage;
+		m_currentResourceInventory += (int)m_attackDamage;
 		if (m_currentResourceInventory > m_totalResourceInventory)
 		{
 			m_currentResourceInventory = m_totalResourceInventory;
@@ -571,6 +668,8 @@ void Entity::ResetTaskData()
 	m_unitToAttack = nullptr;
 	m_unitToGather = nullptr;
 	m_unitToBuild = nullptr;
+	m_returnGatherUnit = nullptr;
+	m_isGathering = false;
 	m_targetPosition = m_position;
 	m_buildLocation = Vec2::ZERO;
 	m_currentState = ANIMATION_IDLE;
@@ -705,6 +804,7 @@ void Entity::Attack(Entity* unitToAttack)
 void Entity::Gather(Entity* unitToGather)
 {
 	m_unitToGather = unitToGather;
+	m_isGathering = true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

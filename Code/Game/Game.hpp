@@ -149,6 +149,7 @@ public:
 	//Entity Data
 	int									GetCurrentTeam() const;
 	void								SetCurrentTeam(int teamNumber);
+	void								AddResourcesForTeam(int teamNum, int resourceAmount);
 
 	//Shut down
 	void								Shutdown();

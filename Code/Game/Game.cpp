@@ -1570,6 +1570,13 @@ bool Game::IsAlive()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Game::AddResourcesForTeam(int teamNum, int resourceAmount)
+{
+	teamNum -= 1;
+	m_teamResource[teamNum] += resourceAmount;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CreateMenuUIWidgets()
 {
 	// Menu Widgets

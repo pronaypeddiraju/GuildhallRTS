@@ -88,6 +88,7 @@ public:
 
 	int					GetNumEntities() const;
 	int					GetTownCenterCost() const;
+	Entity*				GetClosestEntityOfType(EntityTypeT type, const Vec2& position);
 
 private:
 	void				PurgeDestroyedEntities();   // cleanup destroyed entities, freeing up the slots; 
@@ -137,6 +138,8 @@ private:
 
 	//Costs and Limits
 	int						m_townCenterCost = 50;
+	int						m_peonCost = 10;
+	int						m_warriorCost = 15;
 
 	GPUMesh*				m_quad = nullptr;
 

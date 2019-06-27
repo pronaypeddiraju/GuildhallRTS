@@ -851,18 +851,21 @@ void GameInput::SpawnUnit(EntityTypeT type, const Vec2& buildPos)
 		{
 			pointOnMap = GetCorrectedMapPosition(buildPos, mapBounds, m_game->m_map->m_townCenterOcc);
 		}
-		
-		bool result = m_game->m_map->IsRegionOccupied(pointOnMap, IntVec2(1, 1));
 
+		bool result = m_game->m_map->IsRegionOccupied(pointOnMap, IntVec2(1, 1));
 		if (result)
 		{
 			return;
 		}
 
+		//Set occupancy for tree
+		if (type == TREE)
+		{
+			m_game->m_map->SetOccupancyForUnit(pointOnMap, IntVec2(1, 1), true);
+		}
+
 		command = new CreateEntityCommand(pointOnMap, type);
 		m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-
-		m_game->m_map->SetOccupancyForUnit(pointOnMap, IntVec2(1, 1), true);
 	}
 }
 
