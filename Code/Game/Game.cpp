@@ -887,6 +887,7 @@ void Game::RenderGameState() const
 
 	RenderGameUI();
 	RenderSelectionUI();
+	RenderTeamInfo();
 
 	g_renderContext->EndCamera();
 }
@@ -1013,6 +1014,38 @@ void Game::RenderSelectionUI() const
 		g_renderContext->DrawVertexArray(textVerts);
 	}
 	
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderTeamInfo() const
+{
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	std::vector<Vertex_PCU> textVerts;
+
+	Vec2 textPos = Vec2(440.0f, -340.f);
+
+	int team = GetCurrentTeam() - 1;
+
+	std::string text = "Team: ";
+	Rgba textColor = Rgba::GREEN;
+
+	text += std::to_string(team);
+	m_squirrelFont->AddVertsForText2D(textVerts, textPos + Vec2(0.f, 10.f), 10.f, text, textColor);
+
+	text = "Current Resources: ";
+	text += std::to_string(m_teamResource[team]);
+	m_squirrelFont->AddVertsForText2D(textVerts, textPos + Vec2(0.f, 20.f), 10.f, text, textColor);
+
+	text = "Current Supply: ";
+	text += std::to_string(m_teamCurrentSupply[team]);
+	m_squirrelFont->AddVertsForText2D(textVerts, textPos + Vec2(0.f, 30.f), 10.f, text, textColor);
+
+	text = "Max Supply: ";
+	text += std::to_string(m_teamMaxSupply[team]);
+	m_squirrelFont->AddVertsForText2D(textVerts, textPos + Vec2(0.f, 40.f), 10.f, text, textColor);
+
+	g_renderContext->DrawVertexArray(textVerts);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

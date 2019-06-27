@@ -116,6 +116,7 @@ public:
 	void								RenderGameState() const;
 	void								RenderGameUI() const;
 	void								RenderSelectionUI() const;
+	void								RenderTeamInfo() const;
 	void								RenderEditState() const;
 	void								RenderEditUI() const;
 	void								RenderControlsToUI() const;
