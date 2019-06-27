@@ -480,6 +480,9 @@ void Map::DrawHealthBar(const Entity& entity) const
 	case TOWNCENTER:
 		zHeight = -4.f;
 		break;
+	default:
+		zHeight = -1.5f;
+	break;
 	}
 
 	Vec2 pivot = m_healthBarPivot;
@@ -563,6 +566,98 @@ void Map::DrawHealthBar(const Entity& entity) const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Map::DrawProgressBar(const Entity& entity) const
+{
+	//Draw the health bar
+	Vec3 corners[4];
+
+	float width = m_healthBarWidth;
+	float height = m_healthBarHeight;
+
+	float zHeight;
+	switch (entity.GetType())
+	{
+	case TOWNCENTER:
+		zHeight = -3.5f;
+		break;
+	default:
+		zHeight = -1.5f;
+		break;
+	}
+
+	Vec2 pivot = m_healthBarPivot;
+
+	corners[0] = Vec3::ZERO + height * Vec3::UP;
+	corners[1] = Vec3::ZERO + height * Vec3::UP + width * Vec3::RIGHT;
+	corners[2] = Vec3::ZERO;
+	corners[3] = Vec3::ZERO + width * Vec3::RIGHT;
+
+	Vec2 localOffset = -1.f * (pivot * Vec2(width, height));
+	Vec3 worldOffset = localOffset.x * Vec3::RIGHT + localOffset.y * Vec3::UP;
+
+	// offset so pivot point is at position
+	for (uint i = 0; i < 4; ++i) {
+		corners[i] += worldOffset;
+	}
+
+	CPUMesh mesh;
+
+	AABB2 box = AABB2(corners[2], corners[1]);
+
+	CPUMeshAddQuad(&mesh, box, Rgba::BLACK);
+	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
+
+	//Billboard here
+	RTSCamera* camera = Game::s_gameReference->m_RTSCam;
+	Matrix44 mat = camera->GetModelMatrix();
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	objectModel.SetRotationFromMatrix(objectModel, mat);
+
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, zHeight), objectModel);
+
+	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(m_quad);
+
+	//Making the actual health bar
+	float ratio = entity.GetTrainingProgress() / entity.GetTrainingDuration();
+	width = ratio * m_healthBarWidth;
+
+	corners[0] = Vec3::ZERO + height * Vec3::UP;
+	corners[1] = Vec3::ZERO + height * Vec3::UP + width * Vec3::RIGHT;
+	corners[2] = Vec3::ZERO;
+	corners[3] = Vec3::ZERO + width * Vec3::RIGHT;
+
+	localOffset = -1.f * (pivot * Vec2(width, height));
+	worldOffset = localOffset.x * Vec3::RIGHT + localOffset.y * Vec3::UP;
+
+	// offset so pivot point is at position
+	for (uint i = 0; i < 4; ++i) {
+		corners[i] += worldOffset;
+	}
+
+	box = AABB2(corners[2], corners[1]);
+
+	Rgba drawColor = Rgba::BLUE;
+
+	CPUMeshAddQuad(&mesh, box, drawColor);
+	m_quad->CreateFromCPUMesh<Vertex_Lit>(&mesh, GPU_MEMORY_USAGE_STATIC);
+
+	//Billboard here
+	mat = camera->GetModelMatrix();
+	objectModel = Matrix44::IDENTITY;
+	objectModel.SetRotationFromMatrix(objectModel, mat);
+
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, zHeight), objectModel);
+
+	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->BindTextureView(0U, nullptr);
+	g_renderContext->DrawMesh(m_quad);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::RenderResourceEntity(const Entity& entity) const
 {
 	float ratio = entity.GetHealth() / entity.GetMaxHealth();
@@ -610,6 +705,11 @@ void Map::RenderTownCenter(const Entity& entity) const
 	g_renderContext->DrawMesh(m_townCenter->m_mesh);
 
 	DrawHealthBar(entity);
+
+	if (entity.IsTrainingUnit())
+	{
+		DrawProgressBar(entity);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -17,6 +17,7 @@
 #include "Game/Map.hpp"
 #include "Game/IsoAnimDefenition.hpp"
 #include "Game/RTSTask.hpp"
+#include "Game/RTSCommand.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 Entity::Entity()
@@ -215,6 +216,23 @@ void Entity::Update(float deltaTime)
 	else if(!m_isAlive && m_currentAnimTime > m_deathTime)
 	{
 		Destroy();
+	}
+
+	if (GetType() == TOWNCENTER)
+	{
+		if (m_isTrainingUnit)
+		{
+			m_trainingProgress += deltaTime;
+
+			if (m_trainingProgress >= m_trainingDuration)
+			{
+				m_trainingProgress = 0.f;
+				m_isTrainingUnit = false;
+
+				CreateEntityCommand* command = new CreateEntityCommand(GetPosition(), PEON);
+				Game::s_gameReference->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+			}
+		}
 	}
 
 	if (m_unitToGather != nullptr)
@@ -888,6 +906,30 @@ void Entity::ConstructBuilding(float supply)
 			SetIsBuilt(true);
 		}
 	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::SetIsTrainingUnit(bool isTraining)
+{
+	m_isTrainingUnit = isTraining;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::IsTrainingUnit() const
+{
+	return m_isTrainingUnit;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+float Entity::GetTrainingProgress() const
+{
+	return m_trainingProgress;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+float Entity::GetTrainingDuration() const
+{
+	return m_trainingDuration;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

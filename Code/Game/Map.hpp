@@ -61,6 +61,7 @@ public:
 	void				RenderEntityData() const;
 	void				RenderIsoSpriteForEntity(const Entity& entity) const;
 	void				DrawHealthBar(const Entity& entity) const;
+	void				DrawProgressBar(const Entity& entity) const;
 	void				RenderResourceEntity(const Entity& entity) const;
 	void				RenderTownCenter(const Entity& entity) const;
 	void				RenderBuildingPreview() const;

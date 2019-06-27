@@ -920,8 +920,7 @@ void GameInput::TrainPeon()
 
 				if (m_game->m_teamResource[team] >= m_game->m_map->GetPeonCost())
 				{
-					CreateEntityCommand* command = new CreateEntityCommand(thisEntity->GetPosition(), PEON);
-					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+					thisEntity->SetIsTrainingUnit(true);
 
 					m_game->m_teamResource[team] -= m_game->m_map->GetPeonCost();
 					m_game->m_teamCurrentSupply[team] += 1;

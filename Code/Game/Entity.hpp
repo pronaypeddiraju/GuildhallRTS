@@ -104,6 +104,10 @@ public:
 	void					SetIsBuilt(bool isbuilt);
 	void					Build(const Vec2& buildLocation);
 	void					ConstructBuilding(float deltaTime);
+	void					SetIsTrainingUnit(bool isTraining);
+	bool					IsTrainingUnit() const;
+	float					GetTrainingProgress() const;
+	float					GetTrainingDuration() const;
 
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
@@ -162,6 +166,10 @@ private:
 	bool			m_doingDamage = false;
 	bool			m_isGarbage = false;
 	bool			m_isGathering = false;
+
+	bool			m_isTrainingUnit = false;
+	float			m_trainingDuration = 5.f;
+	float			m_trainingProgress = 0.f;
 
 	int				m_currentResourceInventory = 0;
 	int				m_totalResourceInventory = 20;
