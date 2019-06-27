@@ -418,7 +418,18 @@ bool GameInput::HandleMouseRBDown()
 				{
 					if (thisEntity->GetType() == PEON)
 					{
-						thisEntity->SetUnitToBuild(entity);
+						if (entity->GetHealth() < entity->GetMaxHealth())
+						{
+							thisEntity->SetUnitToBuild(entity);
+						}
+						else
+						{
+							thisEntity->MoveTo(entity->GetPosition());
+						}
+					}
+					else
+					{
+						thisEntity->MoveTo(entity->GetPosition());
 					}
 				}
 			}
@@ -697,6 +708,8 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 
 void GameInput::MakeBuilding()
 {
+	int team = m_game->GetCurrentTeam();
+
 	if (m_buildingSpawnSelect)
 	{
 		for (int i = 0; i < m_selectionHandles.size(); i++)
@@ -708,11 +721,23 @@ void GameInput::MakeBuilding()
 				{
 					Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_townCenterOcc);
 
-					//Entity* buildEntity = m_game->m_map->CreateEntity(buildPos, TOWNCENTER, m_game->GetCurrentTeam());
+					if (m_game->m_map->IsRegionOccupied(buildPos, m_game->m_map->m_townCenterOcc))
+						return;
+
+					if (m_game->m_teamResource[team] < m_game->m_map->GetTownCenterCost())
+					{
+						return;
+					}
+					else
+					{
+						m_game->m_teamResource[team] -= m_game->m_map->GetTownCenterCost();
+					}
 
 					//build some shit
 					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos);
 					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
+
+					m_game->m_map->SetOccupancyForUnit(buildPos, m_game->m_map->m_townCenterOcc, true);
 
 					m_buildingSpawnSelect = false;
 					break;
@@ -729,6 +754,11 @@ void GameInput::MakeBuilding()
 				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
 				if (thisEntity->GetType() == PEON)
 				{
+					if (m_game->m_teamResource[team] < m_game->m_map->GetTownCenterCost())
+					{
+						return;
+					}
+
 					if (!m_buildingSpawnSelect)
 					{
 						m_buildingSpawnSelect = true;

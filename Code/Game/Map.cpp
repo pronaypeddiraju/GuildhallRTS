@@ -18,6 +18,7 @@
 #include "Engine/Renderer/SpriteDefenition.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
+#include "Engine/Renderer/Shader.hpp"
 
 //Game Systems
 #include "Game/GameHandle.hpp"
@@ -50,6 +51,8 @@ bool Map::Load( char const* filename )
 
 	m_terrainMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialName);
 	m_townCenter = Game::s_gameReference->m_initMesh;
+
+	m_redShader = g_renderContext->CreateOrGetShaderFromFile(m_redShaderPath);
 
 	LoadFoliageModels();
 	LoadBuildingModels();
@@ -152,11 +155,11 @@ Each tile is one UV of texture (so each quad is half a uv) - be sure to use a wr
 
 **/
 //------------------------------------------------------------------------------------------------------------------------------
-bool Map::Create( int mapWidth, int mapHeight )
+bool Map::Create(int mapWidth, int mapHeight)
 {
 	//Create a map grid
 	m_tileDimensions = IntVec2(mapWidth, mapHeight);
-	
+
 	//Create a temp CPU Mesh for now
 	CPUMesh mesh;
 	mesh.Clear();
@@ -172,17 +175,17 @@ bool Map::Create( int mapWidth, int mapHeight )
 	mesh.SetNormal(Vec3(0.f, 0.f, -1.f));
 	mesh.SetTangent(Vec3(1.f, 0.f, 0.f));
 	mesh.SetBiTangent(Vec3(0.f, 1.f, 0.f));
-	
-	for(int yIndex = 0; yIndex < vertsY; ++yIndex)
+
+	for (int yIndex = 0; yIndex < vertsY; ++yIndex)
 	{
-		for(int xIndex = 0; xIndex < vertsX; ++xIndex)
+		for (int xIndex = 0; xIndex < vertsX; ++xIndex)
 		{
 			Vertex_Lit vert;
 			vert.m_position = Vec3(xIndex * 0.5f - 0.5f, yIndex * 0.5f - 0.5f, 0.f);
 			vert.m_uv = Vec2(u, v);
 
 			//Setup data on the CPUMesh
-			mesh.SetUV(Vec2(u,v));
+			mesh.SetUV(Vec2(u, v));
 			mesh.AddVertex(vert.m_position);
 
 			//Push into vector for map
@@ -193,9 +196,9 @@ bool Map::Create( int mapWidth, int mapHeight )
 		v -= 0.5f;
 	}
 
-	for(int yIndex = 0; yIndex < vertsY - 1; ++yIndex)
+	for (int yIndex = 0; yIndex < vertsY - 1; ++yIndex)
 	{
-		for(int xIndex = 0; xIndex < vertsX - 1; ++xIndex)
+		for (int xIndex = 0; xIndex < vertsX - 1; ++xIndex)
 		{
 			int botLeft = xIndex + yIndex * vertsX;
 			int botright = botLeft + 1;
@@ -216,7 +219,7 @@ bool Map::Create( int mapWidth, int mapHeight )
 		}
 	}
 
-	if(m_terrainMesh != nullptr)
+	if (m_terrainMesh != nullptr)
 	{
 		delete m_terrainMesh;
 		m_terrainMesh = nullptr;
@@ -228,6 +231,12 @@ bool Map::Create( int mapWidth, int mapHeight )
 
 	//Set the map bounds in the AABB2
 	m_mapBounds = AABB2(Vec2(m_mapVerts[0].m_position.x, m_mapVerts[0].m_position.y), Vec2(m_mapVerts[(int)m_mapVerts.size() - 1].m_position.x, m_mapVerts[(int)m_mapVerts.size() - 1].m_position.y));
+
+	//Set occupancy values (All are false at start)
+	for (int occIndex = 0; occIndex < mapHeight * mapWidth; occIndex++)
+	{
+		m_mapOccupancy[occIndex] = false;
+	}
 
 	return true;
 }
@@ -595,7 +604,15 @@ void Map::RenderBuildingPreview() const
 	Vec3 terrainPos = Vec3(correctedPos);
 	objectModel = Matrix44::SetTranslation3D(terrainPos, objectModel);
 
-	g_renderContext->BindMaterial(m_townCenter->m_material);
+	if (IsRegionOccupied(correctedPos, m_townCenterOcc))
+	{
+		g_renderContext->BindShader(m_redShader);
+	}
+	else
+	{
+		g_renderContext->BindMaterial(m_townCenter->m_material);
+	}
+
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->BindTextureView(0U, nullptr);
 	g_renderContext->DrawMesh(m_townCenter->m_mesh);
@@ -700,6 +717,64 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(m_quad);
 	g_renderContext->BindTextureView(0U, nullptr);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::SetOccupancyForUnit(const Vec2& position, const IntVec2& occupancy, bool isOccupied)
+{
+	int posX = (int)position.x;
+	int posY = (int)position.y;
+
+	int lowLimitX = posX - occupancy.x / 2;
+	int highLimitX = posX + occupancy.x / 2 + 1;
+
+	int lowLimitY = posY - occupancy.y / 2;
+	int hightLimitY = posY + occupancy.y / 2 + 1;
+
+	for (int xIndex = lowLimitX; xIndex <= highLimitX; xIndex++)
+	{
+		for (int yIndex = lowLimitY; yIndex <= hightLimitY; yIndex++)
+		{
+			int tileID = xIndex + (yIndex * m_tileDimensions.y);
+
+			if (tileID < m_tileDimensions.x * m_tileDimensions.y)
+			{
+				m_mapOccupancy[tileID] = isOccupied;
+			}
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Map::IsRegionOccupied(const Vec2& position, const IntVec2& occupancy) const
+{
+	int posX = (int)position.x;
+	int posY = (int)position.y;
+
+	int lowLimitX = posX - occupancy.x / 2;
+	int highLimitX = posX + occupancy.x / 2 + 1;
+
+	int lowLimitY = posY - occupancy.y / 2;
+	int hightLimitY = posY + occupancy.y / 2 + 1;
+
+	for (int xIndex = lowLimitX; xIndex <= highLimitX; xIndex++)
+	{
+		for (int yIndex = lowLimitY; yIndex <= hightLimitY; yIndex++)
+		{
+			int tileID = xIndex + (yIndex * m_tileDimensions.y);
+
+			if (tileID < m_tileDimensions.x * m_tileDimensions.y)
+			{
+				auto elem = m_mapOccupancy.find(tileID);
+				if (elem->second == true)
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -913,9 +988,15 @@ void Map::SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const 
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-int Map::GetNumEntities()
+int Map::GetNumEntities() const
 {
 	return (int)m_entities.size();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int Map::GetTownCenterCost() const
+{
+	return m_townCenterCost;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

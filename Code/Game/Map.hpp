@@ -28,6 +28,7 @@ class GPUMesh;
 class RTSCamera;
 class SpriteSheet;
 class Model;
+class Shader;
 
 //------------------------------------------------------------------------------------------------------------------------------
 struct MapTile
@@ -66,6 +67,10 @@ public:
 	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 
+	//Map utils
+	void				SetOccupancyForUnit(const Vec2& position, const IntVec2& occupancy, bool isOccupied);
+	bool				IsRegionOccupied(const Vec2& position, const IntVec2& occupancy) const;
+
 	// Accessors
 	AABB2				GetXYBounds() const; // used for constraining the camera's focal point
 
@@ -81,7 +86,8 @@ public:
 	void				SelectEntitiesInFrustum(std::vector<GameHandle>& entityHandles, const Frustum& selectionFrustum);
 	bool				IsEntitySelected(const Entity& entity) const;
 
-	int					GetNumEntities();
+	int					GetNumEntities() const;
+	int					GetTownCenterCost() const;
 
 private:
 	void				PurgeDestroyedEntities();   // cleanup destroyed entities, freeing up the slots; 
@@ -101,7 +107,9 @@ private:
 	std::map<int, bool>		m_mapOccupancy;
 
 	std::string				m_materialName = "terrain.mat";
-	
+	std::string				m_redShaderPath = "redShader.xml";
+	Shader*					m_redShader = nullptr;
+
 	GPUMesh*				m_terrainMesh = nullptr; 
 	Material*				m_terrainMaterial = nullptr; 
 
@@ -110,7 +118,6 @@ private:
 	
 	//Building Models
 	Model*					m_townCenter = nullptr;
-
 	AABB2					m_mapBounds;
 
 	// map entity data
@@ -127,6 +134,9 @@ private:
 	float					m_healthBarWidth = 1.f;
 	float					m_healthBarHeight = 0.1f;
 	Vec2					m_healthBarPivot = Vec2(0.5, -2.0f);
+
+	//Costs and Limits
+	int						m_townCenterCost = 50;
 
 	GPUMesh*				m_quad = nullptr;
 
