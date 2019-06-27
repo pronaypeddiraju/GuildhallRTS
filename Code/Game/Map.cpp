@@ -466,6 +466,22 @@ void Map::DrawHealthBar(const Entity& entity) const
 
 	float width = m_healthBarWidth;
 	float height = m_healthBarHeight;
+	
+	float zHeight;
+	switch (entity.GetType())
+	{
+	case PEON:
+	case WARRIOR:
+		zHeight = -1.5f;
+		break;
+	case TREE:
+		zHeight = -3.f;
+		break;
+	case TOWNCENTER:
+		zHeight = -4.f;
+		break;
+	}
+
 	Vec2 pivot = m_healthBarPivot;
 
 	corners[0] = Vec3::ZERO + height * Vec3::UP;
@@ -494,7 +510,7 @@ void Map::DrawHealthBar(const Entity& entity) const
 	Matrix44 objectModel = Matrix44::IDENTITY;
 	objectModel.SetRotationFromMatrix(objectModel, mat);
 
-	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, -1.4f), objectModel);
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, zHeight), objectModel);
 
 	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
 	g_renderContext->BindModelMatrix(objectModel);
@@ -538,7 +554,7 @@ void Map::DrawHealthBar(const Entity& entity) const
 	objectModel = Matrix44::IDENTITY;
 	objectModel.SetRotationFromMatrix(objectModel, mat);
 
-	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, -1.4f), objectModel);
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()) + Vec3(0.f, 0.f, zHeight), objectModel);
 
 	g_renderContext->BindShader(g_renderContext->CreateOrGetShaderFromFile("default_unlit.xml"));
 	g_renderContext->BindModelMatrix(objectModel);
@@ -578,6 +594,8 @@ void Map::RenderResourceEntity(const Entity& entity) const
 	g_renderContext->BindMaterial(g_renderContext->CreateOrGetMaterialFromFile(m_treeMaterialFile));
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(mesh);
+
+	DrawHealthBar(entity);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -590,6 +608,8 @@ void Map::RenderTownCenter(const Entity& entity) const
 	g_renderContext->BindMaterial(m_townCenter->m_material);
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(m_townCenter->m_mesh);
+
+	DrawHealthBar(entity);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
