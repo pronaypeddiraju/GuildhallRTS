@@ -703,6 +703,11 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		MakeBuilding();
 	}
 	break;
+	case NUM_6:
+	{
+		TrainPeon();
+	}
+	break;
 	}
 }
 
@@ -896,4 +901,32 @@ Vec2 GameInput::GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 o
 
 	Vec2 correctedPos = Vec2(clampPosition.x + 0.5f, clampPosition.y + 0.5f);
 	return correctedPos;
+}
+
+void GameInput::TrainPeon()
+{
+	for (int selectIndex = 0; selectIndex < (int)m_selectionHandles.size(); ++selectIndex)
+	{
+		if (m_selectionHandles[selectIndex] != GameHandle::INVALID)
+		{
+			Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
+
+			if (thisEntity->GetType() == TOWNCENTER)
+			{
+				int team = m_game->GetCurrentTeam() - 1;
+
+				if (m_game->m_teamCurrentSupply[team] >= m_game->m_teamMaxSupply[team])
+					return;
+
+				if (m_game->m_teamResource[team] >= m_game->m_map->GetPeonCost())
+				{
+					CreateEntityCommand* command = new CreateEntityCommand(thisEntity->GetPosition(), PEON);
+					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+
+					m_game->m_teamResource[team] -= m_game->m_map->GetPeonCost();
+					m_game->m_teamCurrentSupply[team] += 1;
+				}
+			}
+		}
+	}
 }

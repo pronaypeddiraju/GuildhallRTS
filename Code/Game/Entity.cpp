@@ -487,7 +487,7 @@ void Entity::PerformBuildActions()
 	{
 		MoveTo(m_position);
 		//Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
-		m_unitToBuild = Game::s_gameReference->m_map->CreateEntity(m_buildLocation, TOWNCENTER);
+		m_unitToBuild = Game::s_gameReference->m_map->CreateEntity(m_buildLocation, TOWNCENTER, GetTeam());
 		m_buildLocation = Vec2::ZERO;
 	}
 	else
@@ -791,12 +791,14 @@ Capsule3D Entity::CreateEntityCapsule() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Follow(Entity* unitToFollow)
 {
+	m_isGathering = false;
 	m_unitToFollow = unitToFollow;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Attack(Entity* unitToAttack)
 {
+	m_isGathering = false;
 	m_unitToAttack = unitToAttack;
 }
 
@@ -864,6 +866,7 @@ void Entity::SetIsBuilt(bool isbuilt)
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Build(const Vec2& buildLocation)
 {
+	m_isGathering = false;
 	m_buildLocation = buildLocation;
 	MoveTo(buildLocation);
 }

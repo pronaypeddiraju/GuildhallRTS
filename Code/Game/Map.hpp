@@ -90,6 +90,8 @@ public:
 	int					GetTownCenterCost() const;
 	Entity*				GetClosestEntityOfType(EntityTypeT type, const Vec2& position);
 
+	int					GetPeonCost() const;
+
 private:
 	void				PurgeDestroyedEntities();   // cleanup destroyed entities, freeing up the slots; 
 

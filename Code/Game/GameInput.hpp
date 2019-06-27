@@ -60,6 +60,7 @@ public:
 	void								MakeBuilding();
 	void								SetTeamForSelectedEntities(int teamNum);
 	void								SpawnUnit(EntityTypeT type, const Vec2& buildPos = Vec2::ZERO);
+	void								TrainPeon();
 
 	//Utilities
 	Vec2								GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 occupancy);
@@ -105,4 +106,6 @@ public:
 	//GameHandle m_selectionHandle; 
 	std::vector<GameHandle> m_selectionHandles; 
 	GameHandle m_hoverHandle;
-}; 
+
+
+};

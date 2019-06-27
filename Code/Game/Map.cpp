@@ -1046,6 +1046,12 @@ Entity* Map::GetClosestEntityOfType(EntityTypeT type, const Vec2& position)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+int Map::GetPeonCost() const
+{
+	return m_peonCost;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::PurgeDestroyedEntities()
 {
 	for (int index = 0; index < (int)m_entities.size(); index++)
