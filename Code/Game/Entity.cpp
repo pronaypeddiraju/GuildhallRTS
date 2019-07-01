@@ -703,7 +703,18 @@ void Entity::Destroy()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::SetDeadState()
 {
-	m_isAlive = false;
+	if (m_isAlive)
+	{
+		int team = GetTeam() - 1;
+		Game::s_gameReference->m_teamCurrentSupply[team]--;
+
+		if (Game::s_gameReference->m_teamCurrentSupply[team] <= 0)
+		{
+			Game::s_gameReference->m_teamCurrentSupply[team] = 0;
+		}
+
+		m_isAlive = false;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
