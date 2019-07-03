@@ -36,6 +36,7 @@ class UIWidget;
 class UIRadioGroup;
 class IsoSpriteDefenition;
 class SpriteSheet;
+class CPUMesh;
 
 struct Camera;
 
@@ -67,6 +68,7 @@ struct ModelLoadWork
 	~ModelLoadWork();
 
 	std::string modelName;
+	CPUMesh* mesh = nullptr;
 	Model* model = nullptr;
 };
 
@@ -211,6 +213,7 @@ private:
 	int									m_modelLoading = 0;
 
 	std::vector<std::thread>			m_threads;
+	bool								m_threadedLoadComplete = false;
 
 public:	
 	//Audio

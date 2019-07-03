@@ -24,6 +24,7 @@
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/IsoSpriteDefenition.hpp"
 #include "Engine/Renderer/Model.hpp"
+#include "Engine/Renderer/ObjectLoader.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/Shader.hpp"
@@ -1383,6 +1384,34 @@ void Game::Update( float deltaTime )
 {
 	FinishReadyTextures();
 	FinishReadyModels();
+	
+	if (IsFinishedImageLoading() && IsFinishedModelLoading() && !m_threadedLoadComplete)
+	{
+		m_lastState = m_gameState;
+		m_gameState = STATE_MENU;
+
+		m_textureTest = g_renderContext->CreateOrGetTextureViewFromFile(m_testImagePath);
+		m_boxTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_boxTexturePath);
+		m_sphereTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_sphereTexturePath);
+		m_backgroundTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_backgroundPath);
+
+		m_peonTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonSheetPath);
+		m_warriorTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorSheetPath);
+		m_peonAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonAttackSheetPath);
+		m_warriorAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorAttackSheetPath);
+
+		m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
+		m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
+		m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
+		m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
+
+		CreateMenuUIWidgets();
+		CreateEditUIWidgets();
+		CreatePauseUIWidgets();
+
+		m_threadedLoadComplete = true;
+	}
+
 
 	//First just return if we are paused
 	if (m_pauseTimer < m_stopWatch->GetDuration())
@@ -1457,32 +1486,6 @@ void Game::Update( float deltaTime )
 
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
 	{
-
-		if (IsFinishedImageLoading() && IsFinishedModelLoading())
-		{
-			m_lastState = m_gameState;
-			m_gameState = STATE_MENU;
-
-			m_textureTest = g_renderContext->CreateOrGetTextureViewFromFile(m_testImagePath);
-			m_boxTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_boxTexturePath);
-			m_sphereTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_sphereTexturePath);
-			m_backgroundTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_backgroundPath);
-
-			m_peonTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonSheetPath);
-			m_warriorTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorSheetPath);
-			m_peonAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonAttackSheetPath);
-			m_warriorAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorAttackSheetPath);
-
-			m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
-			m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
-			m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
-			m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
-
-			CreateMenuUIWidgets();
-			CreateEditUIWidgets();
-			CreatePauseUIWidgets();
-		}
-
 		//We have rendered the 1st frame
 		//PerformInitActions();
 
@@ -1903,8 +1906,7 @@ void Game::LoadInitMesh()
 {
 	m_lastState = STATE_LOAD;
 	if (m_initMesh == nullptr)
-	{
-		/*
+	{		
 		StartLoadingModel(m_objectPath);
 
 		int coreCount = std::thread::hardware_concurrency();
@@ -1913,9 +1915,8 @@ void Game::LoadInitMesh()
 		{
 			m_threads.emplace_back(&Game::ModelLoadThread, this, m_gameState);
 		}
-		*/
 
-		m_initMesh = new Model(g_renderContext, m_objectPath);
+		//m_initMesh = new Model(g_renderContext, m_objectPath);
 	}
 	m_lastState = m_gameState;
 }
@@ -2033,6 +2034,9 @@ void Game::FinishReadyTextures()
 		textureView = texture->CreateTextureView2D();
 
 		g_renderContext->RegisterTextureView(work->imageName, textureView);
+		
+		delete work->image;
+		work->image = nullptr;
 		delete work;
 		delete texture;
 
@@ -2061,7 +2065,15 @@ void Game::ModelLoadThread(GameState state)
 	{
 		while (m_modelLoadQueue.dequeue(&work))
 		{
+			//Load the file and make the CPUMesh here
+			std::string filePath = MODEL_PATH + work->modelName;
+			ObjectLoader object;
+			object.m_renderContext = g_renderContext;
+			object.LoadFromXML(filePath.c_str());
+			work->mesh = object.m_cpuMesh;
 
+			//work->model = new Model();
+			//work->model->m_material = new Material(g_renderContext, )
 			m_modelFinishedQueue.enqueue(work);
 		}
 		Sleep(0);
@@ -2074,9 +2086,27 @@ void Game::FinishReadyModels()
 	ModelLoadWork* work;
 	while (m_modelFinishedQueue.dequeue(&work))
 	{
-		//Load your model mesh here
+		//Create the Model with GPUMesh here
+		GPUMesh* gpuMesh = new GPUMesh(g_renderContext);
+		gpuMesh->CreateFromCPUMesh<Vertex_Lit>(work->mesh);
+		gpuMesh->m_defaultMaterial = work->modelName;
+		work->model = new Model(gpuMesh);
+
+		std::string materialPath = "";
+		//Setup materials
+		std::vector<std::string> splits = SplitStringOnDelimiter(work->modelName, '.');
+		if (splits[splits.size() - 1] == "obj" || splits[splits.size() - 1] == "mesh")
+		{
+			materialPath = MODEL_PATH + splits[0] + ".mat";
+		}
+
+		work->model->m_material = g_renderContext->CreateOrGetMaterialFromFile(materialPath);
 
 		--m_modelLoading;
+		m_initMesh = work->model;
+
+		delete work;
+		delete gpuMesh;
 
 		ASSERT_RECOVERABLE(m_modelLoading >= 0, "m_modelLoading is less than 0");
 	}
