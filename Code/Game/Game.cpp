@@ -28,6 +28,7 @@
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/Shader.hpp"
 #include "Engine/Renderer/TextureView.hpp"
+#include "Engine/Core/Profiler.hpp"
 //Game Systems
 #include "Game/App.hpp"
 #include "Game/GameInput.hpp"
@@ -347,6 +348,8 @@ void Game::SetupCameras()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::PerformInitActions()
 {
+	PROFILE_LOG_SCOPE("Resource Loading");
+
 	GetandSetShaders();
 	LoadGameTextures();
 	LoadGameMaterials();
