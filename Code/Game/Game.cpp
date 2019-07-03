@@ -248,11 +248,21 @@ Game::Game()
 
 	m_stopWatch = new StopWatch(nullptr);
 	m_stopWatch->Start(3.f);
+
+	PerformInitActions();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 Game::~Game()
-{	m_isGameAlive = false;
+{	
+	for (std::thread& threadHandle : m_threads)
+	{
+		threadHandle.join();
+	}
+
+	m_threads.clear();
+
+	m_isGameAlive = false;
 	Shutdown();
 
 	s_gameReference = nullptr;
@@ -358,12 +368,9 @@ void Game::PerformInitActions()
 	LoadInitMesh();
 	LoadAudioResources();
 
-	CreateMenuUIWidgets();
-	CreateEditUIWidgets();
-	CreatePauseUIWidgets();
-
-	m_lastState = STATE_INIT;
-	m_gameState = STATE_MENU;
+	//This will happen in your update now
+	//m_lastState = STATE_INIT;
+	//m_gameState = STATE_MENU;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1226,6 +1233,11 @@ void Game::RenderLoadState() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderMainMenuState() const
 {
+	if (!IsFinishedImageLoading())
+	{
+		return;
+	}
+
 	g_renderContext->BindShader(m_shader);
 
 	g_renderContext->BeginCamera(*m_UICamera); 
@@ -1369,6 +1381,9 @@ void Game::PostRender()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::Update( float deltaTime )
 {
+	FinishReadyTextures();
+	FinishReadyModels();
+
 	//First just return if we are paused
 	if (m_pauseTimer < m_stopWatch->GetDuration())
 	{
@@ -1442,8 +1457,34 @@ void Game::Update( float deltaTime )
 
 	if(g_devConsole->GetFrameCount() > 1 && !m_devConsoleSetup)
 	{
+
+		if (IsFinishedImageLoading() && IsFinishedModelLoading())
+		{
+			m_lastState = m_gameState;
+			m_gameState = STATE_MENU;
+
+			m_textureTest = g_renderContext->CreateOrGetTextureViewFromFile(m_testImagePath);
+			m_boxTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_boxTexturePath);
+			m_sphereTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_sphereTexturePath);
+			m_backgroundTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_backgroundPath);
+
+			m_peonTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonSheetPath);
+			m_warriorTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorSheetPath);
+			m_peonAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonAttackSheetPath);
+			m_warriorAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorAttackSheetPath);
+
+			m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
+			m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
+			m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
+			m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
+
+			CreateMenuUIWidgets();
+			CreateEditUIWidgets();
+			CreatePauseUIWidgets();
+		}
+
 		//We have rendered the 1st frame
-		PerformInitActions();
+		//PerformInitActions();
 
 		ColorTargetView* target = g_renderContext->GetFrameColorTarget();
 		float aspect = (float)target->m_width / (float)target->m_height;
@@ -1667,7 +1708,7 @@ void Game::CreateEditUIWidgets()
 	UIButton* button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
-	button->SetButtonTexture("stone_diffuse.png");
+	button->SetButtonTexture("Data/Images/stone_diffuse.png");
 	button->unHovercolor = Rgba::WHITE;
 	button->hoverColor = Rgba::GREEN;
 	button->SetRadioType(true);
@@ -1678,7 +1719,7 @@ void Game::CreateEditUIWidgets()
 	button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
-	button->SetButtonTexture("stone_normal.png");
+	button->SetButtonTexture("Data/Images/stone_normal.png");
 	button->SetRadioType(true);
 	button->unHovercolor = Rgba::WHITE;
 	button->hoverColor = Rgba::GREEN;
@@ -1689,7 +1730,7 @@ void Game::CreateEditUIWidgets()
 	button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
-	button->SetButtonTexture("stone_spec.png");
+	button->SetButtonTexture("Data/Images/stone_spec.png");
 	button->SetRadioType(true);
 	button->unHovercolor = Rgba::WHITE;
 	button->hoverColor = Rgba::GREEN;
@@ -1700,7 +1741,7 @@ void Game::CreateEditUIWidgets()
 	button = m_editRadGroup->CreateChild<UIButton>(m_editRadGroup->GetWorldBounds(), size, position);
 	button->SetOnClick("isActive=true");
 	button->SetColor(Rgba::WHITE);
-	button->SetButtonTexture("Test_StbiFlippedAndOpenGL.png");
+	button->SetButtonTexture("Data/Images/Test_StbiFlippedAndOpenGL.png");
 	button->SetRadioType(true);
 	button->unHovercolor = Rgba::WHITE;
 	button->hoverColor = Rgba::GREEN;
@@ -1863,6 +1904,17 @@ void Game::LoadInitMesh()
 	m_lastState = STATE_LOAD;
 	if (m_initMesh == nullptr)
 	{
+		/*
+		StartLoadingModel(m_objectPath);
+
+		int coreCount = std::thread::hardware_concurrency();
+		int halfCores = coreCount / 2;
+		for (int i = 0; i < halfCores; ++i)
+		{
+			m_threads.emplace_back(&Game::ModelLoadThread, this, m_gameState);
+		}
+		*/
+
 		m_initMesh = new Model(g_renderContext, m_objectPath);
 	}
 	m_lastState = m_gameState;
@@ -1943,8 +1995,109 @@ void Game::CreateInitialMeshes()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Game::StartLoadingTexture(std::string fileName)
+{
+	ImageLoadWork* work = new ImageLoadWork(fileName);
+	work->imageName = fileName;
+
+	++m_imageLoading;
+	m_loadQueue.enqueue(work);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::ImageLoadThread(GameState state)
+{
+	ImageLoadWork* work;
+
+	while (state == STATE_INIT) 
+	{
+		while (m_loadQueue.dequeue(&work)) 
+		{
+			//We use our image default constructor to load
+			work->image = new Image(work->imageName.c_str());
+			m_finishedQueue.enqueue(work);
+		}
+		Sleep(0);
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::FinishReadyTextures()
+{
+	ImageLoadWork* work;
+	while (m_finishedQueue.dequeue(&work)) 
+	{
+		Texture2D *texture = new Texture2D(g_renderContext);
+		TextureView* textureView = nullptr;
+		texture->LoadTextureFromImage(*work->image);
+		textureView = texture->CreateTextureView2D();
+
+		g_renderContext->RegisterTextureView(work->imageName, textureView);
+		delete work;
+		delete texture;
+
+		--m_imageLoading;
+		
+		ASSERT_RECOVERABLE(m_imageLoading >= 0, "m_imageLoading is less than 0");
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::StartLoadingModel(std::string fileName)
+{
+	ModelLoadWork* work = new ModelLoadWork(fileName);
+	work->modelName = fileName;
+
+	++m_modelLoading;
+	m_modelLoadQueue.enqueue(work);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::ModelLoadThread(GameState state)
+{
+	ModelLoadWork* work;
+
+	while (state == STATE_INIT)
+	{
+		while (m_modelLoadQueue.dequeue(&work))
+		{
+
+			m_modelFinishedQueue.enqueue(work);
+		}
+		Sleep(0);
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::FinishReadyModels()
+{
+	ModelLoadWork* work;
+	while (m_modelFinishedQueue.dequeue(&work))
+	{
+		//Load your model mesh here
+
+		--m_modelLoading;
+
+		ASSERT_RECOVERABLE(m_modelLoading >= 0, "m_modelLoading is less than 0");
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::IsFinishedImageLoading() const
+{
+	return (m_imageLoading == 0);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::IsFinishedModelLoading() const
+{
+	return (m_modelLoading == 0);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::LoadGameTextures()
 {
+	/*
 	//Get the test texture
 	m_textureTest = g_renderContext->CreateOrGetTextureViewFromFile(m_testImagePath);
 	m_boxTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_boxTexturePath);
@@ -1961,8 +2114,30 @@ void Game::LoadGameTextures()
 	m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
 	m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
 	m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
+	*/
 
-	CreateIsoSpriteDefenitions();
+	//CreateIsoSpriteDefenitions();
+
+	StartLoadingTexture(m_testImagePath);
+	StartLoadingTexture(m_boxTexturePath);
+	StartLoadingTexture(m_sphereTexturePath);
+	StartLoadingTexture(m_backgroundPath);
+
+	StartLoadingTexture(m_peonSheetPath);
+	StartLoadingTexture(m_warriorSheetPath);
+	StartLoadingTexture(m_peonAttackSheetPath);
+	StartLoadingTexture(m_warriorAttackSheetPath);
+	
+	StartLoadingTexture("Data/Images/stone_diffuse.png");
+	StartLoadingTexture("Data/Images/stone_normal.png");
+	StartLoadingTexture("Data/Images/stone_spec.png");
+	
+	int coreCount = std::thread::hardware_concurrency();
+	int halfCores = coreCount / 2;
+	for (int i = 0; i < halfCores; ++i) 
+	{
+		m_threads.emplace_back(&Game::ImageLoadThread, this, m_gameState);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -2028,4 +2203,28 @@ void Game::UpdateMouseInputs(float deltaTime)
 	// this gives us our current camera's orientation.  we will 
 	// use this to translate our local movement to a world movement 
 	Matrix44 camMatrix = Matrix44::MakeFromEuler( camEuler ); 
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+ImageLoadWork::ImageLoadWork(const std::string& fileName)	
+{
+	imageName = fileName;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+ImageLoadWork::~ImageLoadWork()
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+ModelLoadWork::ModelLoadWork(const std::string& fileName)
+{
+	modelName = fileName;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+ModelLoadWork::~ModelLoadWork()
+{
+
 }

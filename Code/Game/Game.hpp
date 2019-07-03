@@ -2,6 +2,8 @@
 #pragma once
 //Engine Systems
 #include "Engine/Audio/AudioSystem.hpp"
+#include "Engine/Core/Async/AsyncQueue.hpp"
+#include "Engine/Core/Image.hpp"
 #include "Engine/Math/Capsule3D.hpp"
 #include "Engine/Math/Matrix44.hpp"
 #include "Engine/Math/Sphere.hpp"
@@ -12,13 +14,13 @@
 #include "Game/GameCommon.hpp"
 //Others
 #include <vector>
+#include <thread>
 
 //------------------------------------------------------------------------------------------------------------------------------
 class BitmapFont;
 class ColorTargetView;
 class GameInput;
 class GPUMesh;
-class Image;
 class Map;
 class Model;
 class RTSCamera;
@@ -46,6 +48,26 @@ enum GameState
 	STATE_PLAY,
 	STATE_EDIT,
 	STATE_NULL
+};
+
+//------------------------------------------------------------------------------------------------------------------------------
+struct ImageLoadWork
+{
+	ImageLoadWork(const std::string& fileName);
+	~ImageLoadWork();
+
+	std::string imageName;
+	Image* image = nullptr;
+};
+
+//------------------------------------------------------------------------------------------------------------------------------
+struct ModelLoadWork
+{
+	ModelLoadWork(const std::string& fileName);
+	~ModelLoadWork();
+
+	std::string modelName;
+	Model* model = nullptr;
 };
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -91,6 +113,18 @@ public:
 	void								CreateIsoSpriteDefenitions();
 	void								LoadGameMaterials();
 	void								CreateInitialMeshes();
+	
+	//Async Load Textrues
+	void								StartLoadingTexture(std::string fileName);
+	void								ImageLoadThread(GameState state);
+	void								FinishReadyTextures();
+	bool								IsFinishedImageLoading() const;
+	//Async Load Models	
+	void								StartLoadingModel(std::string fileName);
+	void								ModelLoadThread(GameState state);
+	void								FinishReadyModels();
+	bool								IsFinishedModelLoading() const;
+	
 	void								CreateInitialLight();
 	void								LoadInitMesh();
 	void								LoadAudioResources();
@@ -166,6 +200,17 @@ private:
 
 	std::vector<RTSCommand*>			m_commandQueue;
 	int									m_currentTeam = 1;
+	
+	//Async Queues for the loading
+	AsyncQueue<ImageLoadWork*>			m_loadQueue;
+	AsyncQueue<ImageLoadWork*>			m_finishedQueue;
+	int									m_imageLoading = 0;
+
+	AsyncQueue<ModelLoadWork*>			m_modelLoadQueue;
+	AsyncQueue<ModelLoadWork*>			m_modelFinishedQueue;
+	int									m_modelLoading = 0;
+
+	std::vector<std::thread>			m_threads;
 
 public:	
 	//Audio
@@ -196,13 +241,13 @@ public:
 	std::string							m_defaultShaderPath = "default_unlit.00.hlsl";
 	std::string							m_shaderLitPath = "default_lit_PCUN.hlsl";
 	std::string							m_normalColorShader = "normal_shader.hlsl";
-	std::string							m_testImagePath = "Test_StbiFlippedAndOpenGL.png";
-	std::string							m_boxTexturePath = "woodcrate.jpg";
-	std::string							m_sphereTexturePath = "2k_earth_daymap.jpg";
+	std::string							m_testImagePath = "Data/Images/Test_StbiFlippedAndOpenGL.png";
+	std::string							m_boxTexturePath = "Data/Images/woodcrate.jpg";
+	std::string							m_sphereTexturePath = "Data/Images/2k_earth_daymap.jpg";
 	std::string							m_xmlShaderPath = "default_unlit.xml";
 	std::string							m_materialPath = "couch.mat";
 	std::string							m_tonemapPath = "tonemap.mat";
-	std::string							m_backgroundPath = "pixelArt.jpg";
+	std::string							m_backgroundPath = "Data/Images/pixelArt.jpg";
 	std::string							m_objectPath = "building/towncenter.mesh";
 	std::string							m_objectMatPath = "building/towncenter.mat";
 
@@ -280,10 +325,10 @@ public:
 	GameInput*							m_gameInput = nullptr;
 
 	//Sprite Sheets and IsoSprites
-	std::string							m_peonSheetPath = "peon.walkdeath.png";
-	std::string							m_peonAttackSheetPath = "peon.attack.png";
-	std::string							m_warriorSheetPath = "warrior.walkdeath.png";
-	std::string							m_warriorAttackSheetPath = "warrior.attack.png";
+	std::string							m_peonSheetPath = "Data/Images/peon.walkdeath.png";
+	std::string							m_peonAttackSheetPath = "Data/Images/peon.attack.png";
+	std::string							m_warriorSheetPath = "Data/Images/warrior.walkdeath.png";
+	std::string							m_warriorAttackSheetPath = "Data/Images/warrior.attack.png";
 	TextureView*						m_peonTexture = nullptr;
 	TextureView*						m_peonAttackTexture = nullptr;
 	TextureView*						m_warriorTexture = nullptr;
