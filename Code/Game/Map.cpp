@@ -294,7 +294,11 @@ void Map::Render() const
 	if ( controller->m_towncenterSpawnSelect)
 	{
 		//Show building preview
-		RenderBuildingPreview();
+		RenderBuildingPreview(TOWNCENTER);
+	}
+	else if (controller->m_hutSpawnSelect)
+	{
+		RenderBuildingPreview(HUT);
 	}
 }
 
@@ -737,7 +741,7 @@ void Map::RenderHut(const Entity& entity) const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Map::RenderBuildingPreview() const
+void Map::RenderBuildingPreview(EntityTypeT type) const
 {
 	Matrix44 objectModel = Matrix44::IDENTITY;
 
@@ -759,7 +763,15 @@ void Map::RenderBuildingPreview() const
 
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->BindTextureView(0U, nullptr);
-	g_renderContext->DrawMesh(m_townCenter->m_mesh);
+
+	if (type == TOWNCENTER)
+	{
+		g_renderContext->DrawMesh(m_townCenter->m_mesh);
+	}
+	else
+	{
+		g_renderContext->DrawMesh(m_hut->m_mesh);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

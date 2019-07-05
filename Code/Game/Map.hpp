@@ -65,7 +65,7 @@ public:
 	void				RenderResourceEntity(const Entity& entity) const;
 	void				RenderTownCenter(const Entity& entity) const;
 	void				RenderHut(const Entity& entity) const;
-	void				RenderBuildingPreview() const;
+	void				RenderBuildingPreview(EntityTypeT type) const;
 	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 
