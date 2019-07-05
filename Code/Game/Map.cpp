@@ -50,6 +50,8 @@ bool Map::Load( char const* filename )
 	UNUSED(filename);
 
 	m_terrainMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialName);
+	m_goblinBuildingTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_goblinBuildingTexturePath);
+
 	m_townCenter = Game::s_gameReference->m_initMesh;
 	m_hut = Game::s_gameReference->m_hutMesh;
 
@@ -429,6 +431,7 @@ void Map::RenderEntityData() const
 		{
 		case PEON:
 		case WARRIOR:
+		case GOBLIN:
 		{
 			RenderIsoSpriteForEntity(*m_entities[index]);
 		}
@@ -481,6 +484,7 @@ void Map::DrawHealthBar(const Entity& entity) const
 	{
 	case PEON:
 	case WARRIOR:
+	case GOBLIN:
 		zHeight = -1.5f;
 		break;
 	case TREE:
@@ -710,6 +714,10 @@ void Map::RenderTownCenter(const Entity& entity) const
 	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
 
 	g_renderContext->BindMaterial(m_townCenter->m_material);
+	if (entity.GetTeam() == 2)
+	{
+		g_renderContext->BindTextureView(0U, m_goblinBuildingTexture);
+	}
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(m_townCenter->m_mesh);
 
@@ -729,6 +737,10 @@ void Map::RenderHut(const Entity& entity) const
 	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
 
 	g_renderContext->BindMaterial(m_hut->m_material);
+	if (entity.GetTeam() == 2)
+	{
+		g_renderContext->BindTextureView(0U, m_goblinBuildingTexture);
+	}
 	g_renderContext->BindModelMatrix(objectModel);
 	g_renderContext->DrawMesh(m_hut->m_mesh);
 
@@ -862,6 +874,21 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 		default:
 		{
 			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_warriorTexture);
+		}
+		break;
+		}
+		break;
+	case GOBLIN:
+		switch (animState)
+		{
+		case ANIMATION_ATTACK:
+		{
+			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_goblinAttackTexture);
+		}
+		break;
+		default:
+		{
+			g_renderContext->BindTextureView(0U, Game::s_gameReference->m_goblinTexture);
 		}
 		break;
 		}
@@ -1005,6 +1032,12 @@ Entity* Map::CreateEntity(const Vec2& pos, EntityTypeT entityType, int team )
 		entity->SetIsBuilt(false);
 		entity->SetMaxHealth(entity->GetHealth());
 		entity->SetHealth(0.f);
+	}
+	break;
+	case GOBLIN:
+	{
+		entity->MakeFromXML(m_peonXMLFile);
+		entity->SetType(GOBLIN);
 	}
 	break;
 	default:
@@ -1202,6 +1235,12 @@ Entity* Map::GetClosestEntityOfType(EntityTypeT type, const Vec2& position)
 int Map::GetPeonCost() const
 {
 	return m_peonCost;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int Map::GetGoblinCost() const
+{
+	return m_goblinCost;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

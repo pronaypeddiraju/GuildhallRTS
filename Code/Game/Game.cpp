@@ -1451,11 +1451,13 @@ void Game::Update( float deltaTime )
 		m_warriorTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorSheetPath);
 		m_peonAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_peonAttackSheetPath);
 		m_warriorAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_warriorAttackSheetPath);
+		m_goblinAttackTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_goblinAttackSheetPath);
+		m_goblinTexture = g_renderContext->CreateOrGetTextureViewFromFile(m_goblinSheetPath);
 
-		m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
-		m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
-		m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
-		m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
+		//m_peonSheet = new SpriteSheet(m_peonTexture, m_peonSheetDim);
+		//m_warriorSheet = new SpriteSheet(m_warriorTexture, m_warriorSheetDim);
+		//m_peonAttackSheet = new SpriteSheet(m_peonAttackTexture, m_peonAttackSheetDim);
+		//m_warriorAttackSheet = new SpriteSheet(m_warriorAttackTexture, m_warriorAttackSheetDim);
 
 		CreateMenuUIWidgets();
 		CreateEditUIWidgets();
@@ -2217,6 +2219,8 @@ void Game::LoadGameTextures()
 	StartLoadingTexture(m_warriorSheetPath);
 	StartLoadingTexture(m_peonAttackSheetPath);
 	StartLoadingTexture(m_warriorAttackSheetPath);
+	StartLoadingTexture(m_goblinSheetPath);
+	StartLoadingTexture(m_goblinAttackSheetPath);
 	
 	StartLoadingTexture("Data/Images/stone_diffuse.png");
 	StartLoadingTexture("Data/Images/stone_normal.png");
@@ -2228,24 +2232,6 @@ void Game::LoadGameTextures()
 	{
 		m_threads.emplace_back(&Game::ImageLoadThread, this, m_gameState);
 	}
-}
-
-//------------------------------------------------------------------------------------------------------------------------------
-void Game::CreateIsoSpriteDefenitions()
-{
-	//use this spot to create an isoSpriteDefenition
-	std::vector<SpriteDefenition> spriteDefs;
-
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(0), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(8), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(16), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(24), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(32), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(40), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(48), Vec2(0.5, 0.25)));
-	spriteDefs.push_back(SpriteDefenition(m_peonSheet->GetSpriteDef(56), Vec2(0.5, 0.25)));
-
-	//m_isoSprite = new IsoSpriteDefenition(&spriteDefs[0], 8);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

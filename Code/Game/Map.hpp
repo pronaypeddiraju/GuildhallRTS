@@ -3,6 +3,7 @@
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/IntVec2.hpp"
 #include "Engine/Renderer/AnimTypes.hpp"
+#include "Engine/Renderer/TextureView.hpp"
 #include <vector>
 #include <map>
 #include <cstdint>
@@ -94,7 +95,7 @@ public:
 	Entity*				GetClosestEntityOfType(EntityTypeT type, const Vec2& position);
 
 	int					GetPeonCost() const;
-
+	int					GetGoblinCost() const;
 private:
 	void				PurgeDestroyedEntities();   // cleanup destroyed entities, freeing up the slots; 
 
@@ -128,6 +129,8 @@ private:
 	Model*					m_hut = nullptr;
 	AABB2					m_mapBounds;
 
+	TextureView*			m_goblinBuildingTexture = nullptr;
+
 	// map entity data
 	std::vector<Entity*>	m_entities;
 	uint16					m_cyclicID = 0; // used for generating the GameHandle
@@ -146,6 +149,7 @@ private:
 	//Costs and Limits
 	int						m_townCenterCost = 50;
 	int						m_peonCost = 10;
+	int						m_goblinCost = 10;
 	int						m_warriorCost = 15;
 	int						m_hutCost = 20;
 
@@ -154,9 +158,11 @@ private:
 	//Data driving 
 	std::string				m_peonXMLFile = "Data/Gameplay/peon.xml";
 	std::string				m_warriorXMLFile = "Data/Gameplay/warrior.xml";
+	std::string				m_goblinXMLFile = "Data/Gameplay/goblin.xml";
 	std::string				m_treeXMLFile = "Data/Gameplay/tree.xml";
 	std::string				m_townCenterXMLFile = "Data/Gameplay/building_townCenter.xml";
 	std::string				m_hutXMLFile = "Data/Gameplay/building_hut.xml";
+	std::string				m_goblinBuildingTexturePath = "goblin.diffuse.png";
 
 	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
 	std::string				m_buildingModelsXMLFile = "Data/Gameplay/building_models.xml";

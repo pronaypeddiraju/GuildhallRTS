@@ -30,31 +30,7 @@ VIRTUAL void CreateEntityCommand::Execute()
 	Map* map = Game::s_gameReference->m_map;
 	int team = Game::s_gameReference->GetCurrentTeam();
 
-	switch (m_entityType)
-	{
-	case PEON:
-	{
-		map->CreateEntity(m_createPosition, m_entityType, team);
-	}
-	break;
-	case WARRIOR:
-	{
-		map->CreateEntity(m_createPosition, m_entityType, team);
-	}
-	break;
-	case TREE:
-	{
-		map->CreateEntity(m_createPosition, m_entityType, team);
-	}
-	break;
-	case TOWNCENTER:
-	{
-		map->CreateEntity(m_createPosition, m_entityType, team);
-	}
-	break;
-	default:
-		break;
-	}
+	map->CreateEntity(m_createPosition, m_entityType, team);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

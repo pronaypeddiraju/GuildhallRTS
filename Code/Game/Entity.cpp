@@ -229,7 +229,17 @@ void Entity::Update(float deltaTime)
 				m_trainingProgress = 0.f;
 				m_isTrainingUnit = false;
 
-				CreateEntityCommand* command = new CreateEntityCommand(GetPosition(), PEON);
+				CreateEntityCommand* command = nullptr;
+
+				if (m_team == 0)
+				{
+					command = new CreateEntityCommand(GetPosition(), PEON);
+				}
+				else
+				{
+					command = new CreateEntityCommand(GetPosition(), GOBLIN);
+				}
+
 				Game::s_gameReference->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
 			}
 		}

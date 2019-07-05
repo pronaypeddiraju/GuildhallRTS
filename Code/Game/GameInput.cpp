@@ -400,7 +400,7 @@ bool GameInput::HandleMouseRBDown()
 				}
 				else if (entity->IsResource())
 				{
-					if (thisEntity->GetType() == PEON)
+					if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 					{
 						//Gather some shit
 						GatherTask *gatherTask = new GatherTask(m_selectionHandles[selectIndex], entity->GetHandle());
@@ -416,7 +416,7 @@ bool GameInput::HandleMouseRBDown()
 				}
 				else if (entity->IsBuildingType())
 				{
-					if (thisEntity->GetType() == PEON)
+					if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 					{
 						if (entity->GetHealth() < entity->GetMaxHealth())
 						{
@@ -531,7 +531,15 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
  			return;
 		}
 
-		SpawnUnit(PEON);
+		int team = Game::s_gameReference->GetCurrentTeam();
+		if (team == 1)
+		{
+			SpawnUnit(PEON);
+		}
+		else
+		{
+			SpawnUnit(GOBLIN);
+		}
 
 	}
 	break;
@@ -715,7 +723,7 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 	break;
 	case NUM_6:
 	{
-		TrainPeon();
+		TrainUnit();
 	}
 	break;
 	}
@@ -732,7 +740,7 @@ void GameInput::MakeBuilding()
 			if (m_selectionHandles[i] != GameHandle::INVALID)
 			{
 				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-				if (thisEntity->GetType() == PEON)
+				if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 				{
 					Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_townCenterOcc);
 
@@ -767,7 +775,7 @@ void GameInput::MakeBuilding()
 			if (m_selectionHandles[i] != GameHandle::INVALID)
 			{
 				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-				if (thisEntity->GetType() == PEON)
+				if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 				{
 					if (m_game->m_teamResource[team] < m_game->m_map->GetTownCenterCost())
 					{
@@ -797,7 +805,7 @@ void GameInput::MakeHut()
 			if (m_selectionHandles[i] != GameHandle::INVALID)
 			{
 				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-				if (thisEntity->GetType() == PEON)
+				if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 				{
 					Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_hutOcc);
 
@@ -832,7 +840,7 @@ void GameInput::MakeHut()
 			if (m_selectionHandles[i] != GameHandle::INVALID)
 			{
 				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
-				if (thisEntity->GetType() == PEON)
+				if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 				{
 					if (m_game->m_teamResource[team] < m_game->m_map->GetHutCost())
 					{
@@ -978,7 +986,7 @@ Vec2 GameInput::GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 o
 	return correctedPos;
 }
 
-void GameInput::TrainPeon()
+void GameInput::TrainUnit()
 {
 	for (int selectIndex = 0; selectIndex < (int)m_selectionHandles.size(); ++selectIndex)
 	{
@@ -986,19 +994,32 @@ void GameInput::TrainPeon()
 		{
 			Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[selectIndex]);
 
-			if (thisEntity->GetType() == TOWNCENTER)
+			if (thisEntity->GetType() == TOWNCENTER || thisEntity->GetType() == HUT)
 			{
 				int team = m_game->GetCurrentTeam() - 1;
 
 				if (m_game->m_teamCurrentSupply[team] >= m_game->m_teamMaxSupply[team])
 					return;
 
-				if (m_game->m_teamResource[team] >= m_game->m_map->GetPeonCost())
+				if (team == 0)
 				{
-					thisEntity->SetIsTrainingUnit(true);
+					if (m_game->m_teamResource[team] >= m_game->m_map->GetPeonCost())
+					{
+						thisEntity->SetIsTrainingUnit(true);
 
-					m_game->m_teamResource[team] -= m_game->m_map->GetPeonCost();
-					m_game->m_teamCurrentSupply[team] += 1;
+						m_game->m_teamResource[team] -= m_game->m_map->GetPeonCost();
+						m_game->m_teamCurrentSupply[team] += 1;
+					}
+				}
+				else
+				{
+					if (m_game->m_teamResource[team] >= m_game->m_map->GetGoblinCost())
+					{
+						thisEntity->SetIsTrainingUnit(true);
+
+						m_game->m_teamResource[team] -= m_game->m_map->GetGoblinCost();
+						m_game->m_teamCurrentSupply[team] += 1;
+					}
 				}
 			}
 		}

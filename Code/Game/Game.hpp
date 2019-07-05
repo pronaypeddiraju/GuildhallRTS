@@ -112,7 +112,6 @@ public:
 
 	void								GetandSetShaders();
 	void								LoadGameTextures();
-	void								CreateIsoSpriteDefenitions();
 	void								LoadGameMaterials();
 	void								CreateInitialMeshes();
 	
@@ -340,18 +339,14 @@ public:
 	std::string							m_peonAttackSheetPath = "Data/Images/peon.attack.png";
 	std::string							m_warriorSheetPath = "Data/Images/warrior.walkdeath.png";
 	std::string							m_warriorAttackSheetPath = "Data/Images/warrior.attack.png";
+	std::string							m_goblinSheetPath = "Data/Images/goblin.walkdeath.png";
+	std::string							m_goblinAttackSheetPath = "Data/Images/goblin.attack.png";
 	TextureView*						m_peonTexture = nullptr;
 	TextureView*						m_peonAttackTexture = nullptr;
 	TextureView*						m_warriorTexture = nullptr;
 	TextureView*						m_warriorAttackTexture = nullptr;
-	IntVec2								m_peonSheetDim = IntVec2(8, 8);
-	IntVec2								m_peonAttackSheetDim = IntVec2(8, 8);
-	IntVec2								m_warriorSheetDim = IntVec2(8, 8);
-	IntVec2								m_warriorAttackSheetDim = IntVec2(8, 8);
-	SpriteSheet* 						m_peonSheet = nullptr;
-	SpriteSheet* 						m_peonAttackSheet = nullptr;
-	SpriteSheet* 						m_warriorSheet = nullptr;
-	SpriteSheet* 						m_warriorAttackSheet = nullptr;
+	TextureView*						m_goblinTexture = nullptr;
+	TextureView*						m_goblinAttackTexture = nullptr;
 
 	float								m_quadSize = 1.f;
 

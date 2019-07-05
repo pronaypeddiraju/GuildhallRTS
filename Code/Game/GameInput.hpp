@@ -61,7 +61,7 @@ public:
 	void								MakeHut();
 	void								SetTeamForSelectedEntities(int teamNum);
 	void								SpawnUnit(EntityTypeT type, const Vec2& buildPos = Vec2::ZERO);
-	void								TrainPeon();
+	void								TrainUnit();
 
 	//Utilities
 	Vec2								GetCorrectedMapPosition(Vec2 position, IntVec2 limits, IntVec2 occupancy);

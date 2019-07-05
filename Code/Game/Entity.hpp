@@ -112,7 +112,7 @@ public:
 	inline EntityTypeT		GetType() const { return m_type; }
 	inline void				SetType(EntityTypeT type) { m_type = type; }
 
-	inline int				GetTeam() { return m_team; }
+	inline int				GetTeam() const { return m_team; }
 	inline void				SetTeam(int team) { m_team = team; }
 
 	const float				GetHealth() const  { return m_health; }

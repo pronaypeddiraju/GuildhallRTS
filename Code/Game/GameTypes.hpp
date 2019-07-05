@@ -6,7 +6,8 @@ enum EntityTypeT
 	WARRIOR,
 	TREE,
 	TOWNCENTER,
-	HUT
+	HUT,
+	GOBLIN
 };
 
 enum ResourceMeshT
