@@ -64,6 +64,7 @@ public:
 	void				DrawProgressBar(const Entity& entity) const;
 	void				RenderResourceEntity(const Entity& entity) const;
 	void				RenderTownCenter(const Entity& entity) const;
+	void				RenderHut(const Entity& entity) const;
 	void				RenderBuildingPreview() const;
 	void				DrawBillBoardedIsoSprites(const Vec2& position, const Vec3& orientation, const IsoSpriteDefenition& isoDef, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
 	void				DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sprite, const RTSCamera& camera, EntityTypeT type, const Rgba& drawColor, eAnimationType animState) const;
@@ -89,6 +90,7 @@ public:
 
 	int					GetNumEntities() const;
 	int					GetTownCenterCost() const;
+	int					GetHutCost() const;
 	Entity*				GetClosestEntityOfType(EntityTypeT type, const Vec2& position);
 
 	int					GetPeonCost() const;
@@ -103,6 +105,7 @@ public:
 	IntVec2					m_tileDimensions; // how many tiles X and Y
 	IntVec2					m_vertDimensions; // how many verts X and Y
 	IntVec2					m_townCenterOcc = IntVec2(4, 3);
+	IntVec2					m_hutOcc = IntVec2(2, 2);
 
 private:
 	std::vector<MapTile>	m_mapTiles;
@@ -122,6 +125,7 @@ private:
 	
 	//Building Models
 	Model*					m_townCenter = nullptr;
+	Model*					m_hut = nullptr;
 	AABB2					m_mapBounds;
 
 	// map entity data
@@ -143,6 +147,7 @@ private:
 	int						m_townCenterCost = 50;
 	int						m_peonCost = 10;
 	int						m_warriorCost = 15;
+	int						m_hutCost = 20;
 
 	GPUMesh*				m_quad = nullptr;
 
@@ -151,10 +156,9 @@ private:
 	std::string				m_warriorXMLFile = "Data/Gameplay/warrior.xml";
 	std::string				m_treeXMLFile = "Data/Gameplay/tree.xml";
 	std::string				m_townCenterXMLFile = "Data/Gameplay/building_townCenter.xml";
+	std::string				m_hutXMLFile = "Data/Gameplay/building_hut.xml";
 
 	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
 	std::string				m_buildingModelsXMLFile = "Data/Gameplay/building_models.xml";
 	std::string				m_treeMaterialFile = "Data/Models/foliage/foliage.mat";
-	std::string				m_townCenterModelFile = "building/towncenter.mesh";
-	std::string				m_townCenterMaterial = "building/towncenter.mat";
 };

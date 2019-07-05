@@ -138,7 +138,7 @@ void Entity::MakeFromXML(const std::string& fileName)
 					SetMeshIDsForResource(rootElement);
 				}
 
-				if (id == "building.townCenter")
+				if (id == "building.townCenter" || id == "building.hut")
 				{
 					Game::s_gameReference->m_map->m_townCenterOcc = m_occupancy;
 				}
@@ -218,7 +218,7 @@ void Entity::Update(float deltaTime)
 		Destroy();
 	}
 
-	if (GetType() == TOWNCENTER)
+	if (GetType() == TOWNCENTER || GetType() == HUT)
 	{
 		if (m_isTrainingUnit)
 		{
@@ -505,7 +505,7 @@ void Entity::PerformBuildActions()
 	{
 		MoveTo(m_position);
 		//Game::s_gameReference->m_gameInput->SpawnUnit(TOWNCENTER, m_buildLocation);
-		m_unitToBuild = Game::s_gameReference->m_map->CreateEntity(m_buildLocation, TOWNCENTER, GetTeam());
+		m_unitToBuild = Game::s_gameReference->m_map->CreateEntity(m_buildLocation, m_buildingType, GetTeam());
 		m_buildLocation = Vec2::ZERO;
 	}
 	else
@@ -893,10 +893,11 @@ void Entity::SetIsBuilt(bool isbuilt)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-void Entity::Build(const Vec2& buildLocation)
+void Entity::Build(const Vec2& buildLocation, EntityTypeT buildType)
 {
 	m_isGathering = false;
 	m_buildLocation = buildLocation;
+	m_buildingType = buildType;
 	MoveTo(buildLocation);
 }
 

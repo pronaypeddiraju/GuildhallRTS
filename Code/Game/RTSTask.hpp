@@ -1,7 +1,8 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #pragma once
-#include "Game/GameHandle.hpp"
 #include "Engine/Math/Vec2.hpp"
+#include "Game/GameHandle.hpp"
+#include "Game/GameTypes.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 enum TaskTypeT
@@ -67,11 +68,12 @@ public:
 class BuildTask : RTSTask
 {
 public:
-	BuildTask(const GameHandle& thisUnit, const Vec2& buildLocation);
+	BuildTask(const GameHandle& thisUnit, const Vec2& buildLocation, EntityTypeT entityType);
 	~BuildTask();
 	virtual void Execute();
 
 public:
 	GameHandle m_thisUnit;
 	Vec2 m_buildLocation;
+	EntityTypeT m_buildingType;
 };

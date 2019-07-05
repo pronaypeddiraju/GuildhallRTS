@@ -59,7 +59,7 @@ void GameInput::Update( float deltaTime )
 
 	UpdateGameControllerInput();
 
-	if (m_buildingSpawnSelect)
+	if (m_towncenterSpawnSelect || m_hutSpawnSelect)
 	{
 		SetupMapCastPosition();
 	}
@@ -565,6 +565,16 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		MakeBuilding();
 	}
 	break;
+	case V_KEY:
+	{
+		if (Game::s_gameReference->m_gameState != STATE_EDIT && Game::s_gameReference->m_gameState != STATE_PLAY)
+		{
+			return;
+		}
+
+		MakeHut();
+	}
+	break;
 	case LSHIFT_KEY:
 	{
 		m_shiftPressed = true;
@@ -715,7 +725,7 @@ void GameInput::MakeBuilding()
 {
 	int team = m_game->GetCurrentTeam() - 1;
 
-	if (m_buildingSpawnSelect)
+	if (m_towncenterSpawnSelect)
 	{
 		for (int i = 0; i < m_selectionHandles.size(); i++)
 		{
@@ -739,12 +749,12 @@ void GameInput::MakeBuilding()
 					}
 
 					//build some shit
-					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos);
+					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos, TOWNCENTER);
 					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
 
 					m_game->m_map->SetOccupancyForUnit(buildPos, m_game->m_map->m_townCenterOcc, true);
 
-					m_buildingSpawnSelect = false;
+					m_towncenterSpawnSelect = false;
 					break;
 				}
 			}
@@ -764,9 +774,74 @@ void GameInput::MakeBuilding()
 						return;
 					}
 
-					if (!m_buildingSpawnSelect)
+					if (!m_towncenterSpawnSelect)
 					{
-						m_buildingSpawnSelect = true;
+						m_towncenterSpawnSelect = true;
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void GameInput::MakeHut()
+{
+	int team = m_game->GetCurrentTeam() - 1;
+
+	if (m_hutSpawnSelect)
+	{
+		for (int i = 0; i < m_selectionHandles.size(); i++)
+		{
+			if (m_selectionHandles[i] != GameHandle::INVALID)
+			{
+				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
+				if (thisEntity->GetType() == PEON)
+				{
+					Vec2 buildPos = GetCorrectedMapPosition(m_terrainCastLocation, m_game->m_map->m_tileDimensions, m_game->m_map->m_hutOcc);
+
+					if (m_game->m_map->IsRegionOccupied(buildPos, m_game->m_map->m_hutOcc))
+						return;
+
+					if (m_game->m_teamResource[team] < m_game->m_map->GetHutCost())
+					{
+						return;
+					}
+					else
+					{
+						m_game->m_teamResource[team] -= m_game->m_map->GetHutCost();
+					}
+
+					//build some shit
+					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos, HUT);
+					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
+
+					m_game->m_map->SetOccupancyForUnit(buildPos, m_game->m_map->m_hutOcc, true);
+
+					m_hutSpawnSelect = false;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < m_selectionHandles.size(); i++)
+		{
+			if (m_selectionHandles[i] != GameHandle::INVALID)
+			{
+				Entity* thisEntity = m_game->m_map->FindEntity(m_selectionHandles[i]);
+				if (thisEntity->GetType() == PEON)
+				{
+					if (m_game->m_teamResource[team] < m_game->m_map->GetHutCost())
+					{
+						return;
+					}
+
+					if (!m_hutSpawnSelect)
+					{
+						m_hutSpawnSelect = true;
 					}
 					break;
 				}

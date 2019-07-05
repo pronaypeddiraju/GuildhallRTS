@@ -5,6 +5,7 @@
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/NamedStrings.hpp"
+#include "Engine/Core/Profiler.hpp"
 #include "Engine/Core/StopWatch.hpp"
 #include "Engine/Core/Time.hpp"
 #include "Engine/Core/VertexUtils.hpp"
@@ -27,9 +28,9 @@
 #include "Engine/Renderer/ObjectLoader.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
+#include "Engine/Renderer/SpriteAnimDefenition.hpp"
 #include "Engine/Renderer/Shader.hpp"
 #include "Engine/Renderer/TextureView.hpp"
-#include "Engine/Core/Profiler.hpp"
 //Game Systems
 #include "Game/App.hpp"
 #include "Game/GameInput.hpp"
@@ -239,6 +240,11 @@ Game::Game()
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
 	g_debugRenderer->SetDebugFont(m_squirrelFont);
+
+	m_explosionTexture = g_renderContext->CreateOrGetTextureViewFromFile("Explosion_5x5.png");
+	SpriteSheet* explosionSheet = new SpriteSheet(m_explosionTexture, IntVec2(5, 5));
+	m_explosionPingPong = new SpriteAnimDefenition(*explosionSheet, 0, 24, 1.f, SPRITE_ANIM_PLAYBACK_PINGPONG);
+
 
 	m_shader = g_renderContext->CreateOrGetShaderFromFile(m_xmlShaderPath);
 	m_shader->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
@@ -738,8 +744,20 @@ void Game::Shutdown()
 	delete m_capsule;
 	m_capsule = nullptr;
 
+	delete m_explosionPingPong;
+	m_explosionPingPong = nullptr;
+
+	delete m_initMesh->m_mesh;
+	m_initMesh->m_mesh = nullptr;
+
 	delete m_initMesh;
 	m_initMesh = nullptr;
+
+	delete m_hutMesh->m_mesh;
+	m_hutMesh->m_mesh = nullptr;
+
+	delete m_hutMesh;
+	m_hutMesh = nullptr;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1207,8 +1225,40 @@ void Game::RenderInitState() const
 
 	std::vector<Vertex_PCU> textVerts;
 	AABB2 titleBox = AABB2(Vec2(-100.0f, -100.f), Vec2(100.f, 100.f));
-	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, "Initializing Game.", Rgba::WHITE);
+
+	std::string textString = "Initializing Game.";
+
+	float time = (float)GetCurrentTimeSeconds() * 0.1f;
+	float check = CosDegrees(time);
+
+	if (check >= -1.f && check < -0.33f)
+	{
+		textString += ".";
+	}
+	else if (check >= -0.33f && check < 0.67f)
+	{
+		textString += "..";
+	}
+	else
+	{
+		textString += "...";
+	}
+
+	//Ping Pong Test
+	Vec2 uvAtBottomLeft = Vec2::ZERO;
+	Vec2 uvAtTopRight = Vec2::ONE;
+
+	AABB2 animBoxPingPong = AABB2(Vec2(-50.f, -100.0f), Vec2(50.f, 0.f));
+	std::vector<Vertex_PCU> animVertsPingPong;
+	SpriteDefenition sdAnimPingPong = m_explosionPingPong->GetSpriteDefAtTime(m_animTime);
+	sdAnimPingPong.GetUVs(uvAtBottomLeft, uvAtTopRight);
+	AddVertsForAABB2D(animVertsPingPong, animBoxPingPong, Rgba::WHITE, uvAtBottomLeft, uvAtTopRight);
+
+	m_squirrelFont->AddVertsForTextInBox2D(textVerts, titleBox, 10.f, textString, Rgba::WHITE);
 	g_renderContext->DrawVertexArray(textVerts);
+
+	g_renderContext->BindTextureView(0U, m_explosionTexture);
+	g_renderContext->DrawVertexArray(animVertsPingPong);
 
 	g_renderContext->EndCamera();
 }
@@ -1382,6 +1432,8 @@ void Game::PostRender()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::Update( float deltaTime )
 {
+	m_animTime += deltaTime;
+
 	FinishReadyTextures();
 	FinishReadyModels();
 	
@@ -1908,6 +1960,7 @@ void Game::LoadInitMesh()
 	if (m_initMesh == nullptr)
 	{		
 		StartLoadingModel(m_objectPath);
+		StartLoadingModel(m_hutPath);
 
 		int coreCount = std::thread::hardware_concurrency();
 		int halfCores = coreCount / 2;
@@ -2087,10 +2140,11 @@ void Game::FinishReadyModels()
 	while (m_modelFinishedQueue.dequeue(&work))
 	{
 		//Create the Model with GPUMesh here
-		GPUMesh* gpuMesh = new GPUMesh(g_renderContext);
-		gpuMesh->CreateFromCPUMesh<Vertex_Lit>(work->mesh);
-		gpuMesh->m_defaultMaterial = work->modelName;
-		work->model = new Model(gpuMesh);
+		work->model = new Model();
+		work->model->m_context = g_renderContext;
+		work->model->m_mesh = new GPUMesh(g_renderContext);
+		work->model->m_mesh->CreateFromCPUMesh<Vertex_Lit>(work->mesh);
+		work->model->m_mesh->m_defaultMaterial = work->modelName;
 
 		std::string materialPath = "";
 		//Setup materials
@@ -2101,12 +2155,18 @@ void Game::FinishReadyModels()
 		}
 
 		work->model->m_material = g_renderContext->CreateOrGetMaterialFromFile(materialPath);
-
 		--m_modelLoading;
-		m_initMesh = work->model;
+		
+		if (splits[splits.size() - 2] == "building/towncenter")
+		{
+			m_initMesh = work->model;
+		}
+		else
+		{
+			m_hutMesh = work->model;
+		}
 
 		delete work;
-		delete gpuMesh;
 
 		ASSERT_RECOVERABLE(m_modelLoading >= 0, "m_modelLoading is less than 0");
 	}

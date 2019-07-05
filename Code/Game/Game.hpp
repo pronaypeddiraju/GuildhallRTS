@@ -215,6 +215,11 @@ private:
 	std::vector<std::thread>			m_threads;
 	bool								m_threadedLoadComplete = false;
 
+	//Load anim
+	SpriteAnimDefenition*				m_explosionPingPong = nullptr;
+	TextureView*						m_explosionTexture = nullptr;
+	float								m_animTime = 0.f;
+
 public:	
 	//Audio
 	std::string							m_deathSoundPath = "Data/Audio/SFX/pain.wav";
@@ -253,6 +258,8 @@ public:
 	std::string							m_backgroundPath = "Data/Images/pixelArt.jpg";
 	std::string							m_objectPath = "building/towncenter.mesh";
 	std::string							m_objectMatPath = "building/towncenter.mat";
+	std::string							m_hutPath = "hut/hut.mesh";
+	std::string							m_hutMatPath = "hut/hut.mat";
 
 	//Cameras
 	Camera*								m_mainCamera = nullptr;
@@ -283,6 +290,7 @@ public:
 	Matrix44							m_baseQuadTransform;
 
 	Model*								m_initMesh = nullptr;
+	Model*								m_hutMesh = nullptr;
 	Matrix44							m_townCenterTransform;
 
 	GPUMesh*							m_capsule = nullptr;

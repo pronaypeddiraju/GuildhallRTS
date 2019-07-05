@@ -1,0 +1,9 @@
+<material id="building/hut"
+  shader="default_lit.xml">
+
+  <diffuse  src="building/towncenter.color.png" />
+  <normal   src="building/towncenter.normal.png" />
+
+  <sampler idx="0" type="linear" />
+
+</material>

@@ -91,11 +91,12 @@ void GatherTask::Execute()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-BuildTask::BuildTask(const GameHandle& thisUnit, const Vec2& buildLocation)
+BuildTask::BuildTask(const GameHandle& thisUnit, const Vec2& buildLocation, EntityTypeT entityType)
 	:RTSTask(BUILD)
 {
 	m_thisUnit = thisUnit;
 	m_buildLocation = buildLocation;
+	m_buildingType = entityType;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -112,6 +113,6 @@ void BuildTask::Execute()
 
 	if (thisEntity != nullptr)
 	{
-		thisEntity->Build(m_buildLocation);
+		thisEntity->Build(m_buildLocation, m_buildingType);
 	}
 }

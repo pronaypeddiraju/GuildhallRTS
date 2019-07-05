@@ -1,0 +1,9 @@
+<mesh id="building/hut"
+	src="hut/hut.obj"
+	invert="false"
+	tangents="true"
+	scale = "0.00390625f"
+	transform="-y -z -x">
+
+	<material index="0" src="hut/hut.mat" />
+</mesh>

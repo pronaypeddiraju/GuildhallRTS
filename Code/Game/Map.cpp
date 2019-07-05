@@ -51,11 +51,12 @@ bool Map::Load( char const* filename )
 
 	m_terrainMaterial = g_renderContext->CreateOrGetMaterialFromFile(m_materialName);
 	m_townCenter = Game::s_gameReference->m_initMesh;
+	m_hut = Game::s_gameReference->m_hutMesh;
 
 	m_redShader = g_renderContext->CreateOrGetShaderFromFile(m_redShaderPath);
 
 	LoadFoliageModels();
-	LoadBuildingModels();
+	//LoadBuildingModels();
 
 	bool result = Create(64, 64);
 	return result;
@@ -290,7 +291,7 @@ void Map::Render() const
 	RenderEntityData();
 
 	GameInput* controller = Game::s_gameReference->m_gameInput;
-	if ( controller->m_buildingSpawnSelect)
+	if ( controller->m_towncenterSpawnSelect)
 	{
 		//Show building preview
 		RenderBuildingPreview();
@@ -438,6 +439,10 @@ void Map::RenderEntityData() const
 			RenderTownCenter(*m_entities[index]);
 		}
 		break;
+		case HUT:
+		{
+			RenderHut(*m_entities[index]);
+		}
 		default:
 			break;
 		}
@@ -713,6 +718,25 @@ void Map::RenderTownCenter(const Entity& entity) const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Map::RenderHut(const Entity& entity) const
+{
+	//Render the model at entity position
+	Matrix44 objectModel = Matrix44::IDENTITY;
+	objectModel = Matrix44::SetTranslation3D(Vec3(entity.GetPosition()), objectModel);
+
+	g_renderContext->BindMaterial(m_hut->m_material);
+	g_renderContext->BindModelMatrix(objectModel);
+	g_renderContext->DrawMesh(m_hut->m_mesh);
+
+	DrawHealthBar(entity);
+
+	if (entity.IsTrainingUnit())
+	{
+		DrawProgressBar(entity);
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Map::RenderBuildingPreview() const
 {
 	Matrix44 objectModel = Matrix44::IDENTITY;
@@ -960,6 +984,17 @@ Entity* Map::CreateEntity(const Vec2& pos, EntityTypeT entityType, int team )
 		entity->SetHealth(0.f);
 	}
 	break;
+	case HUT:
+	{
+		//This is some sketch bro
+		entity->MakeFromXML(m_hutXMLFile);
+		entity->SetType(HUT);
+		entity->SetAsBuilding(true);
+		entity->SetIsBuilt(false);
+		entity->SetMaxHealth(entity->GetHealth());
+		entity->SetHealth(0.f);
+	}
+	break;
 	default:
 		break;
 	}
@@ -1117,6 +1152,12 @@ int Map::GetNumEntities() const
 int Map::GetTownCenterCost() const
 {
 	return m_townCenterCost;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+int Map::GetHutCost() const
+{
+	return m_hutCost;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -1,3 +1,4 @@
 <meshes>
 	<dataFile path = "building/towncenter.mesh" />
+	<dataFile path = "hut/hut.mesh" />
 </meshes>

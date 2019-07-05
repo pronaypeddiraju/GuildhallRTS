@@ -102,7 +102,7 @@ public:
 	void					SetUnitToBuild(Entity* unitToBuild);
 	void					SetAsBuilding(bool building);
 	void					SetIsBuilt(bool isbuilt);
-	void					Build(const Vec2& buildLocation);
+	void					Build(const Vec2& buildLocation, EntityTypeT entityType);
 	void					ConstructBuilding(float deltaTime);
 	void					SetIsTrainingUnit(bool isTraining);
 	bool					IsTrainingUnit() const;
@@ -188,6 +188,7 @@ private:
 	int				m_maxSupply = 40;
 	float			m_buildTime = 0.f;
 	float			m_buildTimeLimit = 5.f;
+	EntityTypeT		m_buildingType;
 
 	// collision
 	float			m_height = 1.f;

@@ -58,6 +58,7 @@ public:
 	
 	//Actions
 	void								MakeBuilding();
+	void								MakeHut();
 	void								SetTeamForSelectedEntities(int teamNum);
 	void								SpawnUnit(EntityTypeT type, const Vec2& buildPos = Vec2::ZERO);
 	void								TrainPeon();
@@ -85,7 +86,8 @@ public:
 	float m_frameZoom				 = 0.f;
 
 	bool m_isRotating				 = false;
-	bool m_buildingSpawnSelect		 = false;
+	bool m_towncenterSpawnSelect	 = false;
+	bool m_hutSpawnSelect			 = false;
 
 	bool m_APressed					 = false;
 	bool m_WPressed					 = false;
