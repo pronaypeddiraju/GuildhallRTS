@@ -206,6 +206,7 @@
       <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ShowIncludes>
     </ClCompile>
     <ClCompile Include="Map.cpp" />
+    <ClCompile Include="PathSolver.cpp" />
     <ClCompile Include="RTSCamera.cpp" />
     <ClCompile Include="RTSCommand.cpp" />
     <ClCompile Include="RTSTask.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="GameInput.hpp" />
     <ClInclude Include="Animator.hpp" />
     <ClInclude Include="Map.hpp" />
+    <ClInclude Include="PathSolver.hpp" />
     <ClInclude Include="RTSCamera.hpp" />
     <ClInclude Include="RTSCommand.hpp" />
     <ClInclude Include="RTSTask.hpp" />

@@ -317,6 +317,15 @@ void Map::Shutdown()
 	m_mapTiles.clear();
 	m_mapVerts.clear();
 	m_mapIndices.clear();
+
+	for (int entityIndex = 0; entityIndex < (int)m_entities.size(); entityIndex++)
+	{
+		if(m_entities[entityIndex] == nullptr)
+			continue;
+
+		delete m_entities[entityIndex];
+		m_entities[entityIndex] = nullptr;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

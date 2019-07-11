@@ -49,6 +49,9 @@
     <ClCompile Include="RTSTask.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="PathSolver.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp">
@@ -84,5 +87,8 @@
     </ClInclude>
     <ClInclude Include="RTSTask.hpp" />
     <ClInclude Include="GameTypes.hpp" />
+    <ClInclude Include="PathSolver.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

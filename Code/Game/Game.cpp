@@ -758,6 +758,7 @@ void Game::Shutdown()
 
 	delete m_hutMesh;
 	m_hutMesh = nullptr;
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -2081,8 +2082,11 @@ void Game::ImageLoadThread(GameState state)
 void Game::FinishReadyTextures()
 {
 	ImageLoadWork* work;
-	while (m_finishedQueue.dequeue(&work)) 
+	if (m_finishedQueue.dequeue(&work)) 
 	{
+		std::string name = work->imageName.c_str();
+		PROFILE_LOG_SCOPE(name.c_str());
+
 		Texture2D *texture = new Texture2D(g_renderContext);
 		TextureView* textureView = nullptr;
 		texture->LoadTextureFromImage(*work->image);

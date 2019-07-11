@@ -110,6 +110,11 @@ void App::ShutDown()
 	g_debugRenderer = nullptr;
 
 	m_game->Shutdown();
+
+	uint totalAllocs = (uint)gTotalAllocations;
+	uint totalAllocBytes = (uint)gTotalBytesAllocated;
+
+	DebuggerPrintf("Memory Allocations total: %u, Bytes Allocated total: %u \n", totalAllocs, totalAllocBytes);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -128,6 +133,14 @@ void App::RunFrame()
 //------------------------------------------------------------------------------------------------------------------------------
 void App::BeginFrame()
 {
+	uint thisFrame = gAllocatedThisFrame;
+	uint thisFrameBytes = gAllocatedBytesThisFrame;
+
+	DebuggerPrintf("Memory Allocations this Frame: %u, Bytes Allocated this Frame: %u \n", thisFrame, thisFrameBytes);
+
+	gAllocatedThisFrame = 0U;
+	gAllocatedBytesThisFrame = 0U;
+
 	g_renderContext->BeginFrame();
 	g_inputSystem->BeginFrame();
 	g_audio->BeginFrame();
