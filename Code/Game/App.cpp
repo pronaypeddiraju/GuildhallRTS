@@ -133,8 +133,8 @@ void App::RunFrame()
 //------------------------------------------------------------------------------------------------------------------------------
 void App::BeginFrame()
 {
-	uint thisFrame = gAllocatedThisFrame;
-	uint thisFrameBytes = gAllocatedBytesThisFrame;
+	uint thisFrame = (uint)gAllocatedThisFrame;
+	uint thisFrameBytes = (uint)gAllocatedBytesThisFrame;
 
 	DebuggerPrintf("Memory Allocations this Frame: %u, Bytes Allocated this Frame: %u \n", thisFrame, thisFrameBytes);
 

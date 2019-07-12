@@ -60,7 +60,7 @@ bool Map::Load( char const* filename )
 	LoadFoliageModels();
 	//LoadBuildingModels();
 
-	bool result = Create(64, 64);
+	bool result = Create(5, 5);
 	return result;
 }
 
@@ -247,11 +247,31 @@ bool Map::Create(int mapWidth, int mapHeight)
 //------------------------------------------------------------------------------------------------------------------------------
 void Map::Update(float deltaTime)
 {
+	PreparePather();
+
 	UpdateEntities(deltaTime);
 
 	ResolveEntityCollisions();
 
 	ClearDeadEntities();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::PreparePather()
+{
+	m_mapPather.Init(m_tileDimensions, m_initCost);
+
+	//For any tiles occupied by buildings or other entities, set the cost to be high
+	int numEntities = (int)m_entities.size();
+	for (int entityIndex = 0; entityIndex < numEntities; ++entityIndex)
+	{
+		if(m_entities[entityIndex] == nullptr)
+			continue;
+
+		Vec2 position = m_entities[entityIndex]->GetPosition();
+		IntVec2 intVecPos = IntVec2(position);
+		m_mapPather.SetCost(intVecPos, m_occupiedCost);
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

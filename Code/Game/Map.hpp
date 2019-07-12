@@ -3,7 +3,7 @@
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/IntVec2.hpp"
 #include "Engine/Renderer/AnimTypes.hpp"
-#include "Engine/Renderer/TextureView.hpp"
+#include "Game/PathSolver.hpp"
 #include <vector>
 #include <map>
 #include <cstdint>
@@ -30,6 +30,7 @@ class RTSCamera;
 class SpriteSheet;
 class Model;
 class Shader;
+class TextureView;
 
 //------------------------------------------------------------------------------------------------------------------------------
 struct MapTile
@@ -52,6 +53,7 @@ public:
 	bool				Create(int mapWidth, int mapHeight);
 
 	void				Update(float deltaTime); 
+	void				PreparePather();
 	void				UpdateEntities(float deltaTime);
 	void				ClearDeadEntities();
 	void				Render() const; // assumes a camera is already bound
@@ -107,6 +109,10 @@ public:
 	IntVec2					m_vertDimensions; // how many verts X and Y
 	IntVec2					m_townCenterOcc = IntVec2(4, 3);
 	IntVec2					m_hutOcc = IntVec2(2, 2);
+
+	float					m_initCost = 1.0f;
+	float					m_occupiedCost = 1000.f;
+	Pather					m_mapPather;
 
 private:
 	std::vector<MapTile>	m_mapTiles;
@@ -167,4 +173,6 @@ private:
 	std::string				m_treeModelsXMLFile = "Data/Gameplay/tree_models.xml";
 	std::string				m_buildingModelsXMLFile = "Data/Gameplay/building_models.xml";
 	std::string				m_treeMaterialFile = "Data/Models/foliage/foliage.mat";
+
+	PathSolver				m_pathSolver;
 };

@@ -14,8 +14,10 @@ enum ePathState
 struct PathInfo_T
 {
 	float cost = INFINITY;  // how much did it cost to reach this point
-	IntVec2 parent = IntVec2(-1, -1); // who was I visited by
+	IntVec2 tile = IntVec2(-1, -1); // who was I visited by
 	ePathState state = PATH_STATE_UNVISITED;
+
+	bool	operator==(const PathInfo_T& compare) const;
 };
 
 typedef Array2D<float> TileCosts;
@@ -34,10 +36,6 @@ public:
 	void		SetCost(const IntVec2& cell, float cost);
 	void		AddCost(const IntVec2& cell, float costToAdd);
 
-	Path*		AllocatePath(const IntVec2& start, const IntVec2& end);
-	Path*		AllocatePath(const IntVec2& start, const std::vector<IntVec2>& ends);
-	void		FreePath(Path* path);
-
 public:
 	TileCosts	m_costs;
 };
@@ -52,21 +50,22 @@ public:
 	//You need to set a seed point (the end we set) and calculate Distance Field from it
 	void		StartDistanceField(Pather* pather);
 
+	PathInfo_T	PopLowestCostCellFromOpenList(std::vector<PathInfo_T>& openList);
+	void		PushToOpenList(const std::vector<PathInfo_T>& neighbors, std::vector<PathInfo_T>& openList);
+	void		GetNeighbors(const PathInfo_T& cell, std::vector<PathInfo_T>& neighbors);
+	void		SetNeighbor(const PathInfo_T neighbor, std::vector<PathInfo_T>& neighborsArray, int index);
 	void		AddEnd(const IntVec2& tile);		//We will flood fill from this destination
-	void		AddStart(const IntVec2& tile);		//Technically becomes our end point for Djikstra
-
-	bool		Step();		
-	void		Solve();	//run all steps and get path
-
-	bool		GetPath(Path* out, const IntVec2& tile);
-
-private:
-	void		VisitDijkstra(const IntVec2& cell, const IntVec2& parent, float parentCost);
+	void		AddStart(const IntVec2& tile);		//Technically becomes our end point for Dijkstra
 
 private:
 
-	Pather* m_pather = nullptr;
-	std::vector<IntVec2> m_visited;
-	std::vector<IntVec2> m_termination_points; // used for ending early if you have a start point in mind; 
-	PathInfo m_pathInfo;
+	Pather*						m_pather = nullptr;
+	std::vector<PathInfo_T>		m_visited;
+	std::vector<IntVec2>		m_termination_points; // used for ending early if you have a start point in mind; 
+	PathInfo					m_pathInfo;
+
+	IntVec2			m_endPoint = IntVec2(-1, -1);	//Start of flood fill
+	IntVec2			m_startPoint = IntVec2(-1, -1);
+
+	Path*			m_shortestPath;
 };

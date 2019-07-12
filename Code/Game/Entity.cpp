@@ -796,6 +796,14 @@ void Entity::MoveTo(Vec2 target)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Entity::PathTo(Vec2 target)
+{
+	m_pathSolver.AddStart(m_position);
+	m_pathSolver.AddEnd(target);
+	m_pathSolver.StartDistanceField(&Game::s_gameReference->m_map->m_mapPather);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 Vec2 Entity::GetPosition() const
 {
 	return m_position;

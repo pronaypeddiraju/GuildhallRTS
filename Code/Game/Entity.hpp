@@ -12,6 +12,7 @@
 #include "Game/Animator.hpp"
 #include "Game/RTSTask.hpp"
 #include "Game/GameTypes.hpp"
+#include "Game/PathSolver.hpp"
 
 struct IntRange;
 struct Ray3D;
@@ -78,6 +79,7 @@ public:
 	void					SetPosition(Vec2 pos);
 	void					ResetTargetPosition();
 	void					MoveTo(Vec2 target);
+	void					PathTo(Vec2 target);
 	Vec2					GetPosition() const;
 	float					GetCollisionRadius() const;
 	Vec2&					GetEditablePosition();
@@ -209,5 +211,9 @@ private:
 
 	Entity*			m_returnGatherUnit = nullptr;
 	Entity*			m_closestTownCenter = nullptr;
+
+	//Pathing
+	Path*			m_unitPath;
+	PathSolver		m_pathSolver;
 };
 

@@ -54,6 +54,6 @@ VIRTUAL void MoveCommand::Execute()
 	Entity *entity = map->FindEntity(m_unit);	
 	if (entity != nullptr) 
 	{
-		entity->MoveTo(m_position);
+		entity->PathTo(m_position);
 	}
 }
