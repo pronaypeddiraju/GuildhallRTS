@@ -359,6 +359,9 @@ void GameInput::SelectEntitiesInClientBox(const IntVec2& boxStart, const IntVec2
 //------------------------------------------------------------------------------------------------------------------------------
 bool GameInput::HandleMouseRBDown()
 {
+	if (Game::s_gameReference->m_gameState != STATE_PLAY && Game::s_gameReference->m_gameState != STATE_EDIT)
+		return false;
+
 	for (int selectIndex = 0; selectIndex < (int)m_selectionHandles.size(); ++selectIndex)
 	{
 		if (m_selectionHandles[selectIndex] != GameHandle::INVALID)
@@ -473,12 +476,16 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 	IntVec2 clientBounds = g_windowContext->GetTrueClientBounds();
 	Ray3D ray = m_game->m_RTSCam->ScreenPointToWorldRay(mousePosition, clientBounds);
 
-	//Select the map if we hit that
 	float terrainOut[2];
-	m_game->m_map->RaycastTerrain(terrainOut, ray);
-
 	float out[2];
-	Entity* entity = m_game->m_map->RaycastEntity(out, ray);
+	Entity* entity = nullptr;
+
+	if (Game::s_gameReference->m_gameState == STATE_EDIT && Game::s_gameReference->m_gameState == STATE_PLAY)
+	{
+		//Select the map if we hit that
+		m_game->m_map->RaycastTerrain(terrainOut, ray);
+		entity = m_game->m_map->RaycastEntity(out, ray);
+	}
 
 	switch( keyCode )
 	{

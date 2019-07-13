@@ -19,7 +19,7 @@ void Pather::SetAllCosts(float cost)
 void Pather::SetCost(const IntVec2& cell, float cost)
 {
 	IntVec2 bounds = m_costs.GetSize();
-	if (cell.IsInBounds(bounds))
+	if (!cell.IsInBounds(bounds))
 		return;
 
 	m_costs.Set(cell, cost);
@@ -222,7 +222,7 @@ void PathSolver::GetCheapestNeighbors(std::vector<PathInfo_T>& cheapestCostCells
 		if (list[index].tile == IntVec2(-1, -1))
 			continue;
 
-		if (m_pather->m_costs.Get(list[index].tile) <= lowestCost)
+		if (m_pathInfo.Get(list[index].tile).cost <= lowestCost)
 		{
 			lowestCost = m_pathInfo.Get(list[index].tile).cost;
 			cheapestCostCells.push_back(list[index]);
@@ -315,6 +315,10 @@ void PathSolver::FallDownToShortestPath(Path& shortestPath)
 			//Pick one of the cells
 			int randomIndex = g_RNG->GetRandomIntInRange(0, (int)lowestCostCells.size() - 1);
 			lowestCostCell = lowestCostCells[randomIndex];
+		}
+		else if (lowestCostCells.size() == 0)
+		{
+			ERROR_RECOVERABLE("There are no lowest cost cells");
 		}
 		else
 		{

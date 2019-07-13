@@ -268,9 +268,12 @@ void Map::PreparePather()
 		if(m_entities[entityIndex] == nullptr)
 			continue;
 
-		Vec2 position = m_entities[entityIndex]->GetPosition();
-		IntVec2 intVecPos = IntVec2(position);
-		m_mapPather.SetCost(intVecPos, m_occupiedCost);
+		if (m_entities[entityIndex]->IsStatic())
+		{
+			Vec2 position = m_entities[entityIndex]->GetPosition();
+			IntVec2 intVecPos = IntVec2(round(position.x), round(position.y));
+			m_mapPather.SetCost(intVecPos, m_occupiedCost);
+		}
 	}
 }
 

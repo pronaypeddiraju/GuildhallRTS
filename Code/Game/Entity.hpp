@@ -75,6 +75,7 @@ public:
 	bool					IsResource() const;
 	bool					IsBuildingType() const;
 	bool					IsBuilt() const;
+	bool					IsStatic();
 
 	void					SetPosition(Vec2 pos);
 	void					ResetTargetPosition();
