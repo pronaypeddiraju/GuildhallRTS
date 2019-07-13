@@ -36,10 +36,8 @@ void Pather::AddCost(const IntVec2& cell, float costToAdd)
 //------------------------------------------------------------------------------------------------------------------------------
 // Method to create the distance field based on costs
 //------------------------------------------------------------------------------------------------------------------------------
-void PathSolver::StartDistanceField(Pather* pather)
+void PathSolver::StartDistanceField(Pather* pather, Path* unitPath)
 {
-	Path shortestPath;
-
 	m_visited.clear();
 	m_pather = pather;
 	PathInfo_T info;
@@ -67,13 +65,18 @@ void PathSolver::StartDistanceField(Pather* pather)
 		info.tile = lowestCostCell.tile;
 		m_pathInfo.Set(lowestCostCell.tile, info);
 
+		if (info.tile == m_startPoint)
+		{
+			break;
+		}
+
 		//Get neighbors and push into open list
 		GetNeighbors(lowestCostCell, neighbors);
 		SetNeighborCosts(neighbors, lowestCostCell.cost);
 		PushToOpenList(neighbors, openList);
 	}
 	
-	FallDownToShortestPath(shortestPath);
+	FallDownToShortestPath(*unitPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

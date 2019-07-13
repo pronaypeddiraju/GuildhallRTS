@@ -271,7 +271,7 @@ void Map::PreparePather()
 		if (m_entities[entityIndex]->IsStatic())
 		{
 			Vec2 position = m_entities[entityIndex]->GetPosition();
-			IntVec2 intVecPos = IntVec2(round(position.x), round(position.y));
+			IntVec2 intVecPos = IntVec2((int)round(position.x), (int)round(position.y));
 			m_mapPather.SetCost(intVecPos, m_occupiedCost);
 		}
 	}

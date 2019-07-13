@@ -195,55 +195,13 @@ void Entity::MakeAnimationsForEntity(XMLElement* xmlElement, const IntVec2& dime
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::Update(float deltaTime)
 {
-	if (m_health <= 0 && m_isAlive)
-	{
-		//Die
-		Game* game = Game::s_gameReference;
-		game->m_deathSoundPlayback = g_audio->Play3DSound(game->m_deathSoundID, m_position, game->m_SFXChannel);
+	CheckEntityDeath();
 
-		m_position = m_targetPosition;
-		m_prevState = m_currentState;
-		ResetTaskData();
-		m_currentState = ANIMATION_DIE;
-		SetDeadState();
-		m_currentAnimTime = 0.f;
-	}
+	UpdateAnimationTime(deltaTime);
 
-	if (!m_isAlive && m_currentAnimTime < m_deathTime)
-	{
-		m_currentAnimTime += deltaTime;
-	}
-	else if(!m_isAlive && m_currentAnimTime > m_deathTime)
-	{
-		Destroy();
-	}
+	CheckIfTrainingUnit(deltaTime);
 
-	if (GetType() == TOWNCENTER || GetType() == HUT)
-	{
-		if (m_isTrainingUnit)
-		{
-			m_trainingProgress += deltaTime;
-
-			if (m_trainingProgress >= m_trainingDuration)
-			{
-				m_trainingProgress = 0.f;
-				m_isTrainingUnit = false;
-
-				CreateEntityCommand* command = nullptr;
-
-				if (m_team == 0)
-				{
-					command = new CreateEntityCommand(GetPosition(), PEON);
-				}
-				else
-				{
-					command = new CreateEntityCommand(GetPosition(), GOBLIN);
-				}
-
-				Game::s_gameReference->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
-			}
-		}
-	}
+	CheckIfEntityIsPathing();
 
 	if (m_unitToGather != nullptr)
 	{
@@ -271,6 +229,104 @@ void Entity::Update(float deltaTime)
 
 	//Process any tasks in the queue
 	ProcessTasks();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::CheckEntityDeath()
+{
+	if (m_health <= 0 && m_isAlive)
+	{
+		//Die
+		Game* game = Game::s_gameReference;
+		game->m_deathSoundPlayback = g_audio->Play3DSound(game->m_deathSoundID, m_position, game->m_SFXChannel);
+
+		m_position = m_targetPosition;
+		m_prevState = m_currentState;
+		ResetTaskData();
+		m_currentState = ANIMATION_DIE;
+		SetDeadState();
+		m_currentAnimTime = 0.f;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::UpdateAnimationTime(float deltaTime)
+{
+	if (!m_isAlive && m_currentAnimTime < m_deathTime)
+	{
+		m_currentAnimTime += deltaTime;
+	}
+	else if (!m_isAlive && m_currentAnimTime > m_deathTime)
+	{
+		Destroy();
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::CheckIfTrainingUnit(float deltaTime)
+{
+	if (GetType() == TOWNCENTER || GetType() == HUT)
+	{
+		if (m_isTrainingUnit)
+		{
+			m_trainingProgress += deltaTime;
+
+			if (m_trainingProgress >= m_trainingDuration)
+			{
+				m_trainingProgress = 0.f;
+				m_isTrainingUnit = false;
+
+				CreateEntityCommand* command = nullptr;
+
+				if (m_team == 0)
+				{
+					command = new CreateEntityCommand(GetPosition(), PEON);
+				}
+				else
+				{
+					command = new CreateEntityCommand(GetPosition(), GOBLIN);
+				}
+
+				Game::s_gameReference->EnqueueCommand(reinterpret_cast<RTSCommand*>(command));
+			}
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Entity::CheckIfEntityIsPathing()
+{
+	if (m_unitPath != nullptr)
+	{
+		if (HasEntityReachedPathTarget())
+		{
+			if (m_unitPath->size() > 0)
+			{
+				IntVec2 targetIntVec = m_unitPath->front();
+				m_unitPath->erase(m_unitPath->begin());
+
+				m_pathTarget = Vec2(targetIntVec.x + 0.5f, targetIntVec.y + 0.5f);
+				MoveTo(m_pathTarget);
+			}
+		}
+		else
+		{
+			MoveTo(m_pathTarget);
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Entity::HasEntityReachedPathTarget()
+{
+	if (m_position - m_pathTarget < Vec2(0.1f, 0.1f))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -811,9 +867,10 @@ void Entity::MoveTo(Vec2 target)
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::PathTo(Vec2 target)
 {
+	m_unitPath = new Path;
 	m_pathSolver.AddStart(m_position);
 	m_pathSolver.AddEnd(target);
-	m_pathSolver.StartDistanceField(&Game::s_gameReference->m_map->m_mapPather);
+	m_pathSolver.StartDistanceField(&Game::s_gameReference->m_map->m_mapPather, m_unitPath);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -895,13 +952,12 @@ void Entity::SetAsResource(bool resource)
 const std::string& Entity::GetMeshIDForState(ResourceMeshT meshType) const
 {
 	std::map<ResourceMeshT, std::string>::const_iterator requestedMeshID = m_meshIDMap.find(meshType);
-	if (requestedMeshID != m_meshIDMap.end())
+	if (requestedMeshID == m_meshIDMap.end())
 	{
-		//Model requested exists in the map
-		return requestedMeshID->second;
+		ASSERT_RECOVERABLE(true, "Mesh type doesn't exist");
 	}
 	
-	ASSERT_RECOVERABLE(true, "Mesh type doesn't exist");
+	return requestedMeshID->second;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

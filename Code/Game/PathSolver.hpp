@@ -25,7 +25,7 @@ typedef Array2D<PathInfo_T> PathInfo;
 typedef std::vector<IntVec2> Path;
 
 //------------------------------------------------------------------------------------------------------------------------------
-// This object will keep all the costs on the map tiles and create paths for us
+// This object will keep all the costs on the map when initialized in map update
 //------------------------------------------------------------------------------------------------------------------------------
 class Pather
 {
@@ -41,14 +41,14 @@ public:
 };
 
 //------------------------------------------------------------------------------------------------------------------------------
-// This object will use the Pather and determine what path to take (i.e: This is the object that runs Dijkstra's algorithm)
+// This object will use the Pather and run Dijkstra to create a path
 //------------------------------------------------------------------------------------------------------------------------------
 class PathSolver
 {
 public:
 	//The function that actually takes a pather and does the distance field calculations
 	//You need to set a seed point (the end we set) and calculate Distance Field from it
-	void		StartDistanceField(Pather* pather);
+	void		StartDistanceField(Pather* pather, Path* unitPath);
 
 	PathInfo_T	PopLowestCostCellFromList(std::vector<PathInfo_T>& openList);
 	void		PushToOpenList(const std::vector<PathInfo_T>& neighbors, std::vector<PathInfo_T>& openList);
@@ -75,6 +75,4 @@ private:
 
 	IntVec2			m_endPoint = IntVec2(-1, -1);	//Start of flood fill
 	IntVec2			m_startPoint = IntVec2(-1, -1);
-
-	Path*			m_shortestPath = nullptr;
 };

@@ -41,6 +41,11 @@ public:
 	void					MakeAnimationsForEntity(XMLElement* xmlElement, const IntVec2& dimensions, const std::string& id);
 
 	void					Update(float deltaTime);
+	void					CheckEntityDeath();
+	void					UpdateAnimationTime(float deltaTime);
+	void					CheckIfTrainingUnit(float deltaTime);
+	void					CheckIfEntityIsPathing();
+	bool					HasEntityReachedPathTarget();
 	void					ResumeGathering();
 	void					UpdateAnimations(float deltaTime);
 	void					CheckTasks();
@@ -214,7 +219,9 @@ private:
 	Entity*			m_closestTownCenter = nullptr;
 
 	//Pathing
-	Path*			m_unitPath;
+	Path*			m_unitPath = nullptr;
 	PathSolver		m_pathSolver;
+
+	Vec2			m_pathTarget = Vec2::NEGATIVE_ONE;
 };
 
