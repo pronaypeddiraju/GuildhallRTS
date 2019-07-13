@@ -9,6 +9,7 @@
 #include "Engine/Core/XMLUtils/XMLUtils.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
+#include "Engine/Math/RandomNumberGenerator.hpp"
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 //Game Systems
@@ -82,6 +83,8 @@ void App::StartUp()
 	g_debugRenderer = new DebugRender();
 	g_debugRenderer->Startup(g_renderContext);
 
+	g_RNG = new RandomNumberGenerator();
+
 	m_game = new Game();
 	m_game->StartUp();
 	
@@ -108,6 +111,9 @@ void App::ShutDown()
 
 	delete g_debugRenderer;
 	g_debugRenderer = nullptr;
+
+	delete g_RNG;
+	g_RNG = nullptr;
 
 	m_game->Shutdown();
 
