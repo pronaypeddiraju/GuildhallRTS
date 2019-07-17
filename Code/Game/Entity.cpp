@@ -11,6 +11,7 @@
 #include "Engine/Renderer/SpriteDefenition.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
+#include "Engine/Renderer/DebugRender.hpp"
 //Game Systems
 #include "Game/Game.hpp"
 #include "Game/GameInput.hpp"
@@ -311,7 +312,18 @@ void Entity::CheckIfEntityIsPathing()
 		}
 		else
 		{
-			MoveTo(m_pathTarget);
+			if (m_pathTarget != Vec2::NEGATIVE_ONE)
+			{
+				MoveTo(m_pathTarget);
+			}
+		}
+
+		
+		AABB2 quad = AABB2(Vec3::ZERO, Vec3(1.f, 1.f, 0.f));
+		for (int i = 0; i < (int)m_unitPath->size(); i++)
+		{
+			IntVec2 position = m_unitPath->at(i);
+			g_debugRenderer->DebugRenderQuad(quad, Vec3(position.x, position.y, 0.f), 0.f, nullptr, false);
 		}
 	}
 }
@@ -319,7 +331,10 @@ void Entity::CheckIfEntityIsPathing()
 //------------------------------------------------------------------------------------------------------------------------------
 bool Entity::HasEntityReachedPathTarget()
 {
-	if (m_position - m_pathTarget < Vec2(0.1f, 0.1f))
+	if (m_pathTarget == Vec2::NEGATIVE_ONE)
+		return true;
+
+	if (m_position - m_pathTarget < Vec2(0.5f, 0.5f))
 	{
 		return true;
 	}
@@ -867,10 +882,12 @@ void Entity::MoveTo(Vec2 target)
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::PathTo(Vec2 target)
 {
+	delete m_unitPath;
 	m_unitPath = new Path;
 	m_pathSolver.AddStart(m_position);
 	m_pathSolver.AddEnd(target);
 	m_pathSolver.StartDistanceField(&Game::s_gameReference->m_map->m_mapPather, m_unitPath);
+	m_pathTarget = Vec2::NEGATIVE_ONE;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

@@ -441,10 +441,13 @@ bool GameInput::HandleMouseRBDown()
 				Vec3 dest = ray.GetPointAtTime(terrainOut[0]);
 				m_terrainCastLocation = Vec2(dest.x, dest.y);
 
-				MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], m_terrainCastLocation);
-				m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
-				thisEntity->ResetTaskData();
-				m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+				if (IntVec2(m_terrainCastLocation).IsInBounds(Game::s_gameReference->m_map->m_tileDimensions))
+				{
+					MoveCommand *cmd = new MoveCommand(m_selectionHandles[selectIndex], m_terrainCastLocation);
+					m_game->m_map->FindEntity(m_selectionHandles[selectIndex])->StopFollow();
+					thisEntity->ResetTaskData();
+					m_game->EnqueueCommand(reinterpret_cast<RTSCommand*>(cmd));
+				}
 			}
 
 		}

@@ -10,7 +10,6 @@
 #include "Engine/Math/Vertex_Lit.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/CPUMesh.hpp"
-#include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/GPUMesh.hpp"
 #include "Engine/Renderer/Material.hpp"
 #include "Engine/Renderer/Model.hpp"
@@ -271,7 +270,7 @@ void Map::PreparePather()
 		if (m_entities[entityIndex]->IsStatic())
 		{
 			Vec2 position = m_entities[entityIndex]->GetPosition();
-			IntVec2 intVecPos = IntVec2((int)round(position.x), (int)round(position.y));
+			IntVec2 intVecPos = IntVec2((int)position.x, (int)position.y);
 			m_mapPather.SetCost(intVecPos, m_occupiedCost);
 		}
 	}
@@ -1180,7 +1179,6 @@ Entity* Map::RaycastEntity(float *out, const Ray3D& ray, float maxDistance /*= I
 	}
 
 	Vec3 point = ray.m_start + (ray.m_direction * bestTime);
-	g_debugRenderer->DebugRenderLine(ray.m_start, point, 1.f);
 
 	*out = bestTime;
 	return bestEntity;

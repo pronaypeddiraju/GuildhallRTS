@@ -161,7 +161,7 @@ private:
 	// info
 	Vec2			m_position = Vec2::ZERO;
 	Vec2			m_targetPosition = Vec2::ZERO;
-	float			m_collisionRadius = 0.75f;
+	float			m_collisionRadius = 0.5f;
 
 	// stats
 	float			m_speed = 2.f;

@@ -866,6 +866,8 @@ void Game::Render() const
 		RenderPauseScreen();
 	}
 
+	DebugRenderToCamera();
+
 	if(g_devConsole->IsOpen())
 	{	
 		g_renderContext->BindShader(m_shader);
