@@ -736,6 +736,18 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 		TrainUnit();
 	}
 	break;
+	case K_KEY:
+	{
+		if (m_selectionHandles.size() > 0)
+		{
+			for (int entityIndex = 0; entityIndex < m_selectionHandles.size(); entityIndex++)
+			{
+				entity = m_game->m_map->FindEntity(m_selectionHandles[entityIndex]);
+				entity->SetHealth(0.f);
+			}
+		}
+	}
+	break;
 	}
 }
 

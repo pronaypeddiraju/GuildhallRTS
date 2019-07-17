@@ -571,7 +571,16 @@ void Entity::PerformDropOff()
 	//Find closest town center
 	if (m_closestTownCenter == nullptr)
 	{
-		m_closestTownCenter = Game::s_gameReference->m_map->GetClosestEntityOfType(TOWNCENTER, m_position);
+		int townCenterTeam = 0;
+		if (m_team == 1)
+		{
+			townCenterTeam = 2;
+		}
+		else
+		{
+			townCenterTeam = 1;
+		}
+		m_closestTownCenter = Game::s_gameReference->m_map->GetClosestEntityOfType(TOWNCENTER, m_position, townCenterTeam);
 	}
 	
 	if (m_closestTownCenter == nullptr)
