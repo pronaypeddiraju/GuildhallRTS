@@ -5,6 +5,8 @@
 #include "Game/GameHandle.hpp"
 #include "Game/GameTypes.hpp"
 
+class Entity;
+
 //------------------------------------------------------------------------------------------------------------------------------
 class AIController
 {
@@ -16,14 +18,21 @@ public:
 	
 	void	CreateGoblinTownCenter();
 	void	CreateTreesNearTownCenter();
+	void	SpawnStartUnits();
 	
-	void	BeginFrame();
-	void	Update();
+	void	Update(float deltaTime);
+	void	TrainUnit();
 	void	DebugRender();
-	void	EndFrame();
+	
 	void	ShutDown();
 
 public:
 	Game*	m_game = nullptr;
 	int		m_AITeam = 2;
+	int		m_startUnitCount = 2;
+
+	Vec2	m_townCenterPos = Vec2::ZERO;
+	Entity*	m_goblinTownCenter = nullptr;
+
+	std::vector<Entity*>	m_AIentities;
 };

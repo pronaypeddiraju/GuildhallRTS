@@ -326,9 +326,9 @@ public:
 	GameState							m_gameState = STATE_INIT;
 	GameState							m_lastState = STATE_NULL;
 
-	int									m_teamMaxSupply[2] = { 50, 5 };
+	int									m_teamMaxSupply[2] = { 50, 50 };
 	int									m_teamCurrentSupply[2] = { 0, 0 };
-	int									m_teamResource[2] = { 150, 150 };
+	int									m_teamResource[2] = { 150, 10 };
 
 	//Map (For now will be 1 single map)
 	Map*								m_map = nullptr;

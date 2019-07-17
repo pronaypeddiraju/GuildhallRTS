@@ -461,7 +461,21 @@ void Entity::CheckTasks()
 	{
 		//Am I next to the unit?
 		Vec2 attackUnitPos = m_unitToAttack->GetPosition();
-		if (GetDistanceSquared2D(attackUnitPos, m_position) < m_proximitySquared)
+		float distanceSquared = GetDistanceSquared2D(attackUnitPos, m_position);
+		if (m_unitToAttack->GetType() == TOWNCENTER)
+		{
+			if (distanceSquared < m_buildingProximity)
+			{
+				MoveTo(m_position);
+				DamageUnit(m_unitToAttack);
+			}
+			else
+			{
+				MoveTo(m_position);
+			}
+		}
+
+		if (distanceSquared < m_proximitySquared)
 		{
 			MoveTo(m_position);
 			DamageUnit(m_unitToAttack);

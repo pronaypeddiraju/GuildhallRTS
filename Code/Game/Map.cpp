@@ -256,6 +256,9 @@ void Map::Update(float deltaTime)
 {
 	PreparePather();
 
+	m_AIController->Update(deltaTime);
+	CheckAIEntities();
+
 	UpdateEntities(deltaTime);
 
 	ResolveEntityCollisions();
@@ -1256,7 +1259,7 @@ int Map::GetHutCost() const
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
-Entity* Map::GetClosestEntityOfType(EntityTypeT type, const Vec2& position)
+Entity* Map::GetClosestEntityOfType(EntityTypeT type, const Vec2& position, int currentTeam)
 {
 	Entity* closestEntity = nullptr;
 	float distanceSq = 10000;
@@ -1268,6 +1271,12 @@ Entity* Map::GetClosestEntityOfType(EntityTypeT type, const Vec2& position)
 
 		if (m_entities[entityIndex]->GetType() == type && m_entities[entityIndex]->IsAlive())
 		{
+			if (type != TREE)
+			{
+				if(m_entities[entityIndex]->GetTeam() == currentTeam)
+					continue;
+			}
+
 			float checkDistSq = GetDistanceSquared2D(position, m_entities[entityIndex]->GetPosition());
 
 			if (checkDistSq < distanceSq)
@@ -1327,4 +1336,21 @@ uint Map::GetNextCyclicID()
 {
 	m_cyclicID = m_cyclicID++;
 	return m_cyclicID;
+}
+
+void Map::CheckAIEntities()
+{
+	for (int unitIndex = 0; unitIndex < m_entities.size(); unitIndex++)
+	{
+		if(m_entities[unitIndex] == nullptr)
+			continue;
+
+		if (m_entities[unitIndex]->GetTeam() == m_AIController->m_AITeam)
+		{
+			if (std::find(m_AIController->m_AIentities.begin(), m_AIController->m_AIentities.end(), m_entities[unitIndex]) == m_AIController->m_AIentities.end())
+			{
+				m_AIController->m_AIentities.push_back(m_entities[unitIndex]);
+			}
+		}
+	}
 }

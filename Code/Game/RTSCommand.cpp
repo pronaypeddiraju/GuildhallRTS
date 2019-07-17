@@ -4,6 +4,7 @@
 #include "Game/Map.hpp"
 #include "Game/Game.hpp"
 #include "Game/Entity.hpp"
+#include "Game/AIController.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 RTSCommand::RTSCommand(CommandTypeT commandType)
@@ -17,6 +18,29 @@ CreateEntityCommand::CreateEntityCommand(Vec2 createPosition, EntityTypeT entity
 {
 	m_createPosition = createPosition;
 	m_entityType = entityType;
+
+	switch (entityType)
+	{
+	case PEON:
+		m_team = 1;
+		break;
+	case WARRIOR:
+		m_team = 1;
+		break;
+	case TREE:
+		m_team = 0;
+		break;
+	case TOWNCENTER:
+		break;
+	case HUT:
+		break;
+	case GOBLIN:
+		m_team = 2;
+		break;
+	default:
+		break;
+	}
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +52,15 @@ CreateEntityCommand::~CreateEntityCommand()
 VIRTUAL void CreateEntityCommand::Execute()
 {
 	Map* map = Game::s_gameReference->m_map;
-	int team = Game::s_gameReference->GetCurrentTeam();
+	int team;
+	if (m_team == 2)
+	{
+		team = Game::s_gameReference->m_map->m_AIController->m_AITeam;
+	}
+	else
+	{
+		team = Game::s_gameReference->GetCurrentTeam();
+	}
 
 	map->CreateEntity(m_createPosition, m_entityType, team);
 }

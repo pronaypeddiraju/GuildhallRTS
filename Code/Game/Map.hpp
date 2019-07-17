@@ -96,7 +96,7 @@ public:
 	int					GetNumEntities() const;
 	int					GetTownCenterCost() const;
 	int					GetHutCost() const;
-	Entity*				GetClosestEntityOfType(EntityTypeT type, const Vec2& position);
+	Entity*				GetClosestEntityOfType(EntityTypeT type, const Vec2& position, int currentTeam = 1);
 
 	int					GetPeonCost() const;
 	int					GetGoblinCost() const;
@@ -179,4 +179,5 @@ private:
 	std::string				m_treeMaterialFile = "Data/Models/foliage/foliage.mat";
 
 	PathSolver				m_pathSolver;
+	void CheckAIEntities();
 };
