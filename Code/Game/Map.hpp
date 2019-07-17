@@ -31,6 +31,7 @@ class SpriteSheet;
 class Model;
 class Shader;
 class TextureView;
+class AIController;
 
 //------------------------------------------------------------------------------------------------------------------------------
 struct MapTile
@@ -51,6 +52,7 @@ public:
 	void				LoadFoliageModels();
 	void				LoadBuildingModels();
 	bool				Create(int mapWidth, int mapHeight);
+	void				CreateAIController();
 
 	void				Update(float deltaTime); 
 	void				PreparePather();
@@ -108,11 +110,13 @@ public:
 	IntVec2					m_tileDimensions; // how many tiles X and Y
 	IntVec2					m_vertDimensions; // how many verts X and Y
 	IntVec2					m_townCenterOcc = IntVec2(4, 3);
-	IntVec2					m_hutOcc = IntVec2(2, 2);
+	IntVec2					m_hutOcc = IntVec2(1, 1);
 
 	float					m_initCost = 1.0f;
 	float					m_occupiedCost = 1000.f;
 	Pather					m_mapPather;
+
+	AIController*			m_AIController = nullptr;
 
 private:
 	std::vector<MapTile>	m_mapTiles;

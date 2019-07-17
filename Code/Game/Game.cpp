@@ -1518,7 +1518,11 @@ void Game::Update( float deltaTime )
 		if(m_map == nullptr)
 		{
 			m_map = new Map();
-			m_map->Load("InitMap");
+			bool result = m_map->Load("InitMap");
+			if (result)
+			{
+				m_map->CreateAIController();
+			}
 		}
 
 		m_RTSCam->SetFocusBounds(m_map->GetXYBounds());

@@ -26,6 +26,7 @@
 #include "Game/GameInput.hpp"
 #include "Game/RTSCamera.hpp"
 #include "Game/IsoAnimDefenition.hpp"
+#include "Game/AIController.hpp"
 
 extern RenderContext* g_renderContext;
 
@@ -59,7 +60,7 @@ bool Map::Load( char const* filename )
 	LoadFoliageModels();
 	//LoadBuildingModels();
 
-	bool result = Create(5, 5);
+	bool result = Create(32, 32);
 	return result;
 }
 
@@ -241,6 +242,13 @@ bool Map::Create(int mapWidth, int mapHeight)
 	}
 
 	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Map::CreateAIController()
+{
+	m_AIController = new AIController(Game::s_gameReference);
+	m_AIController->Startup();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -936,24 +944,36 @@ void Map::DrawBillBoardedSprite(const Vec3& position, const SpriteDefenition& sp
 //------------------------------------------------------------------------------------------------------------------------------
 void Map::SetOccupancyForUnit(const Vec2& position, const IntVec2& occupancy, bool isOccupied)
 {
-	int posX = (int)position.x;
-	int posY = (int)position.y;
-
-	int lowLimitX = posX - occupancy.x / 2;
-	int highLimitX = posX + occupancy.x / 2 + 1;
-
-	int lowLimitY = posY - occupancy.y / 2;
-	int hightLimitY = posY + occupancy.y / 2 + 1;
-
-	for (int xIndex = lowLimitX; xIndex <= highLimitX; xIndex++)
+	if (occupancy == IntVec2::ONE)
 	{
-		for (int yIndex = lowLimitY; yIndex <= hightLimitY; yIndex++)
-		{
-			int tileID = xIndex + (yIndex * m_tileDimensions.y);
+		int tileID = (int)position.x + ((int)position.y * m_tileDimensions.y);
 
-			if (tileID < m_tileDimensions.x * m_tileDimensions.y)
+		if (tileID < m_tileDimensions.x * m_tileDimensions.y)
+		{
+			m_mapOccupancy[tileID] = isOccupied;
+		}
+	}
+	else
+	{
+		int posX = (int)position.x;
+		int posY = (int)position.y;
+
+		int lowLimitX = posX - occupancy.x / 2;
+		int highLimitX = posX + occupancy.x / 2 + 1;
+
+		int lowLimitY = posY - occupancy.y / 2;
+		int hightLimitY = posY + occupancy.y / 2 + 1;
+
+		for (int xIndex = lowLimitX; xIndex <= highLimitX; xIndex++)
+		{
+			for (int yIndex = lowLimitY; yIndex <= hightLimitY; yIndex++)
 			{
-				m_mapOccupancy[tileID] = isOccupied;
+				int tileID = xIndex + (yIndex * m_tileDimensions.y);
+
+				if (tileID < m_tileDimensions.x * m_tileDimensions.y)
+				{
+					m_mapOccupancy[tileID] = isOccupied;
+				}
 			}
 		}
 	}

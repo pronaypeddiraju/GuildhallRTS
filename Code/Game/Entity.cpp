@@ -279,7 +279,7 @@ void Entity::CheckIfTrainingUnit(float deltaTime)
 
 				CreateEntityCommand* command = nullptr;
 
-				if (m_team == 0)
+				if (m_team == 1)
 				{
 					command = new CreateEntityCommand(GetPosition(), PEON);
 				}
@@ -323,7 +323,7 @@ void Entity::CheckIfEntityIsPathing()
 		for (int i = 0; i < (int)m_unitPath->size(); i++)
 		{
 			IntVec2 position = m_unitPath->at(i);
-			g_debugRenderer->DebugRenderQuad(quad, Vec3(position.x, position.y, 0.f), 0.f, nullptr, false);
+			g_debugRenderer->DebugRenderQuad(quad, Vec3((float)position.x, (float)position.y, 0.f), 0.f, nullptr, false);
 		}
 	}
 }
@@ -347,7 +347,7 @@ bool Entity::HasEntityReachedPathTarget()
 //------------------------------------------------------------------------------------------------------------------------------
 void Entity::ResumeGathering()
 {
-	if (m_type != PEON)
+	if (!(m_type == PEON || m_type == GOBLIN))
 		return;
 
 	m_dropOffResources = false;
@@ -572,6 +572,8 @@ void Entity::PerformDropOff()
 		m_targetPosition = m_position;
 		Game::s_gameReference->AddResourcesForTeam(GetTeam(), GetCurrentResource());
 		m_currentResourceInventory = 0;
+		//m_unitToGather = Game::s_gameReference->m_map->GetClosestEntityOfType(TREE, m_position);
+		//m_dropOffResources = false;
 	}
 	else
 	{

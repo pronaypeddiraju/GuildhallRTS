@@ -5,7 +5,7 @@
    resource="true"
    building = "false">
 
-   <collision radius="0.75" />
+   <collision radius="0.5" />
    <occupancy tilesXY = "1,1" />
 
    <!-- models are made up of...
