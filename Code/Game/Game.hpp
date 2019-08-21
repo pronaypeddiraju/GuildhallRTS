@@ -379,4 +379,6 @@ public:
 	UIButton*							m_quitButton = nullptr;
 	bool								m_loadingMesh = true;
 	bool								m_returnToMenu = false;
+
+	bool								m_disableAI = true;
 };

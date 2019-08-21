@@ -256,8 +256,11 @@ void Map::Update(float deltaTime)
 {
 	PreparePather();
 
-	m_AIController->Update(deltaTime);
-	CheckAIEntities();
+	if (!Game::s_gameReference->m_disableAI)
+	{
+		m_AIController->Update(deltaTime);
+		CheckAIEntities();
+	}
 
 	UpdateEntities(deltaTime);
 

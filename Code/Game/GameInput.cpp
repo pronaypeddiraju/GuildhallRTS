@@ -747,6 +747,10 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 			}
 		}
 	}
+	case L_KEY:
+	{
+		m_game->m_disableAI = !m_game->m_disableAI;
+	}
 	break;
 	}
 }

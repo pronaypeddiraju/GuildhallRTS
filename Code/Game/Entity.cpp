@@ -595,8 +595,6 @@ void Entity::PerformDropOff()
 		m_targetPosition = m_position;
 		Game::s_gameReference->AddResourcesForTeam(GetTeam(), GetCurrentResource());
 		m_currentResourceInventory = 0;
-		//m_unitToGather = Game::s_gameReference->m_map->GetClosestEntityOfType(TREE, m_position);
-		//m_dropOffResources = false;
 	}
 	else
 	{

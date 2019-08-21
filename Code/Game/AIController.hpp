@@ -22,9 +22,7 @@ public:
 	
 	void	Update(float deltaTime);
 	void	TrainUnit();
-	void	DebugRender();
-	
-	void	ShutDown();
+
 
 public:
 	Game*	m_game = nullptr;
