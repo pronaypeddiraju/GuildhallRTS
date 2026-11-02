@@ -397,7 +397,7 @@ bool GameInput::HandleMouseRBDown()
 				}
 				else if (entity->GetTeam() != thisEntity->GetTeam() && !entity->IsResource())
 				{
-					//Fuck up your enemies						
+					//Attack your enemies						
 					AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
 					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
 				}
@@ -405,7 +405,7 @@ bool GameInput::HandleMouseRBDown()
 				{
 					if (thisEntity->GetType() == PEON || thisEntity->GetType() == GOBLIN)
 					{
-						//Gather some shit
+						//Gather the resource
 						GatherTask *gatherTask = new GatherTask(m_selectionHandles[selectIndex], entity->GetHandle());
 						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(gatherTask));
 					}
@@ -659,7 +659,7 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 					thisEntity->ResetTaskData();
 					if (entity->GetTeam() != thisEntity->GetTeam() && !entity->IsResource())
 					{
-						//Fuck up your enemies						
+						//Attack your enemies						
 						AttackTask *attackTask = new AttackTask(m_selectionHandles[selectIndex], entity->GetHandle());
 						thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(attackTask));
 					}
@@ -699,7 +699,7 @@ void GameInput::HandleKeyPressed( unsigned char keyCode )
 					{
 						if (thisEntity->GetType() == PEON)
 						{
-							//Gather some shit
+							//Gather the resource
 							GatherTask *gatherTask = new GatherTask(m_selectionHandles[selectIndex], entity->GetHandle());
 							thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(gatherTask));
 						}
@@ -782,7 +782,7 @@ void GameInput::MakeBuilding()
 						m_game->m_teamResource[team] -= m_game->m_map->GetTownCenterCost();
 					}
 
-					//build some shit
+					//Build a town center
 					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos, TOWNCENTER);
 					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
 
@@ -847,7 +847,7 @@ void GameInput::MakeHut()
 						m_game->m_teamResource[team] -= m_game->m_map->GetHutCost();
 					}
 
-					//build some shit
+					//Build a hut
 					BuildTask *buildTask = new BuildTask(m_selectionHandles[i], buildPos, HUT);
 					thisEntity->EnqueueTask(reinterpret_cast<RTSTask*>(buildTask));
 
